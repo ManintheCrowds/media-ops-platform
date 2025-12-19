@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Hosted Platform Dashboard</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Self-Hosted Platform</h1>
+            <div class="user-info">
+                <button id="help-btn" class="btn btn-help" title="Show help and documentation">?</button>
+                <span id="username">Loading...</span>
+                <button id="refresh-btn" class="btn btn-secondary" title="Refresh service status">Refresh</button>
+                <button id="logout-btn" class="btn btn-secondary">Logout</button>
+            </div>
+        </header>
+
+        <!-- Notification area for user feedback -->
+        <div id="notification-area" class="notification-area"></div>
+
+        <div class="dashboard-content">
+            <div class="services-grid">
+                <!-- File Storage -->
+                <div class="service-card" data-service="file-storage">
+                    <div class="service-header">
+                        <div class="service-icon">📁</div>
+                        <span class="service-info-icon" title="File Storage (Seafile) - Enterprise file hosting with file syncing and sharing. Create libraries, sync files across devices, and share with team members.">ℹ️</span>
+                    </div>
+                    <h3>File Storage</h3>
+                    <p class="service-description">Access and manage your files</p>
+                    <div class="service-details">
+                        <p class="service-help-text">Enterprise file hosting with syncing and sharing capabilities. Organize files into libraries and access them from anywhere.</p>
+                    </div>
+                    <div class="service-status" id="status-file-storage">
+                        <span class="status-indicator unknown"></span>
+                        <span>Checking...</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="openService('file-storage')" title="Open File Storage service in a new tab">Open</button>
+                </div>
+
+                <!-- Media Server -->
+                <div class="service-card" data-service="media-server">
+                    <div class="service-header">
+                        <div class="service-icon">🎬</div>
+                        <span class="service-info-icon" title="Media Server (Jellyfin) - Organize and stream your media collection. Supports movies, TV shows, music, and photos with automatic metadata fetching.">ℹ️</span>
+                    </div>
+                    <h3>Media Server</h3>
+                    <p class="service-description">Stream your media collection</p>
+                    <div class="service-details">
+                        <p class="service-help-text">Organize and stream movies, TV shows, music, and photos. Automatic metadata fetching and multi-device support.</p>
+                    </div>
+                    <div class="service-status" id="status-media-server">
+                        <span class="status-indicator unknown"></span>
+                        <span>Checking...</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="openService('media-server')" title="Open Media Server in a new tab">Open</button>
+                </div>
+
+                <!-- Productivity -->
+                <div class="service-card" data-service="productivity">
+                    <div class="service-header">
+                        <div class="service-icon">📝</div>
+                        <span class="service-info-icon" title="Productivity (Wiki) - Documentation and knowledge management system. Create and organize wiki pages for team documentation.">ℹ️</span>
+                    </div>
+                    <h3>Productivity</h3>
+                    <p class="service-description">Wiki and documentation</p>
+                    <div class="service-details">
+                        <p class="service-help-text">Create and organize documentation, knowledge bases, and wiki pages. Perfect for team collaboration and documentation.</p>
+                    </div>
+                    <div class="service-status" id="status-productivity">
+                        <span class="status-indicator unknown"></span>
+                        <span>Checking...</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="openService('productivity')" title="Open Wiki/Documentation in a new tab">Open</button>
+                </div>
+
+                <!-- Development Tools -->
+                <div class="service-card" data-service="dev-tools">
+                    <div class="service-header">
+                        <div class="service-icon">💻</div>
+                        <span class="service-info-icon" title="Development Tools (Gitea) - Self-hosted Git service for version control. Manage repositories, issues, pull requests, and collaborate on code.">ℹ️</span>
+                    </div>
+                    <h3>Development Tools</h3>
+                    <p class="service-description">Git repositories and version control</p>
+                    <div class="service-details">
+                        <p class="service-help-text">Self-hosted Git service for managing code repositories. Create repositories, track issues, and collaborate on projects.</p>
+                    </div>
+                    <div class="service-status" id="status-dev-tools">
+                        <span class="status-indicator unknown"></span>
+                        <span>Checking...</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="openService('dev-tools')" title="Open Git service in a new tab">Open</button>
+                </div>
+
+                <!-- Monitoring -->
+                <div class="service-card" data-service="monitoring">
+                    <div class="service-header">
+                        <div class="service-icon">📊</div>
+                        <span class="service-info-icon" title="Monitoring (Prometheus & Grafana) - System metrics collection and visualization. Monitor service health, performance, and create custom dashboards.">ℹ️</span>
+                    </div>
+                    <h3>Monitoring</h3>
+                    <p class="service-description">System metrics and dashboards</p>
+                    <div class="service-details">
+                        <p class="service-help-text">Monitor system health, performance metrics, and create custom dashboards. Includes Prometheus for metrics and Grafana for visualization.</p>
+                    </div>
+                    <div class="service-status" id="status-monitoring">
+                        <span class="status-indicator unknown"></span>
+                        <span>Checking...</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="openService('monitoring')" title="Open Monitoring dashboards in a new tab">Open</button>
+                </div>
+
+                <!-- Security -->
+                <div class="service-card" data-service="security">
+                    <div class="service-header">
+                        <div class="service-icon">🔒</div>
+                        <span class="service-info-icon" title="Security (Vaultwarden) - Self-hosted password manager compatible with Bitwarden. Securely store and manage passwords, credit cards, and secure notes.">ℹ️</span>
+                    </div>
+                    <h3>Security</h3>
+                    <p class="service-description">Password manager and security tools</p>
+                    <div class="service-details">
+                        <p class="service-help-text">Self-hosted password manager compatible with Bitwarden clients. Securely store passwords, credit cards, and secure notes.</p>
+                    </div>
+                    <div class="service-status" id="status-security">
+                        <span class="status-indicator unknown"></span>
+                        <span>Checking...</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="openService('security')" title="Open Password Manager in a new tab">Open</button>
+                </div>
+            </div>
+
+            <div class="system-info">
+                <h2>System Information</h2>
+                <p class="info-help-text">Overview of registered services and their health status. Status is automatically refreshed every 30 seconds.</p>
+                <div id="system-metrics" class="metrics-grid">
+                    <div class="metric-card" title="Total number of registered services">
+                        <h4>Services</h4>
+                        <p id="total-services">-</p>
+                    </div>
+                    <div class="metric-card" title="Number of services responding correctly">
+                        <h4>Healthy</h4>
+                        <p id="healthy-services">-</p>
+                    </div>
+                    <div class="metric-card" title="Number of services that are not responding">
+                        <h4>Unhealthy</h4>
+                        <p id="unhealthy-services">-</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Help & Documentation</h2>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h3>About This Platform</h3>
+                <p>This self-hosted platform provides unified access to multiple services. All services are integrated with single sign-on (SSO) authentication.</p>
+                
+                <h3>Service Status Indicators</h3>
+                <ul>
+                    <li><span class="status-indicator healthy"></span> <strong>Online</strong> - Service is running and responding</li>
+                    <li><span class="status-indicator unhealthy"></span> <strong>Offline</strong> - Service is not responding or has errors</li>
+                    <li><span class="status-indicator unknown"></span> <strong>Not Registered</strong> - Service is not registered in the system</li>
+                </ul>
+
+                <h3>Using Services</h3>
+                <p>Click the "Open" button on any service card to access that service in a new tab. You'll be automatically authenticated if SSO is configured.</p>
+
+                <h3>System Metrics</h3>
+                <p>The System Information section shows:</p>
+                <ul>
+                    <li><strong>Services:</strong> Total number of registered services</li>
+                    <li><strong>Healthy:</strong> Number of services currently online</li>
+                    <li><strong>Unhealthy:</strong> Number of services with issues</li>
+                </ul>
+
+                <h3>Getting Help</h3>
+                <p>For more information, see:</p>
+                <ul>
+                    <li><a href="/README.md" target="_blank">Platform Documentation</a></li>
+                    <li><a href="/API.md" target="_blank">API Documentation</a></li>
+                    <li><a href="/QUICKSTART.md" target="_blank">Quick Start Guide</a></li>
+                </ul>
+
+                <h3>Keyboard Shortcuts</h3>
+                <ul>
+                    <li><kbd>R</kbd> - Refresh service status</li>
+                    <li><kbd>?</kbd> - Show/hide this help dialog</li>
+                    <li><kbd>Esc</kbd> - Close modals</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
+
+

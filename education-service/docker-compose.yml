@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  education-service:
+    build: .
+    container_name: platform-education
+    environment:
+      - DATABASE_URL=postgresql://education:password@education-db:5432/education
+      - PLATFORM_URL=http://platform:8000
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+    ports:
+      - "8003:8000"
+    depends_on:
+      - education-db
+    volumes:
+      - ./storage:/app/storage
+    networks:
+      - platform-network
+    restart: unless-stopped
+
+  education-db:
+    image: postgres:15
+    container_name: platform-education-db
+    environment:
+      - POSTGRES_USER=education
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=education
+    volumes:
+      - education_db_data:/var/lib/postgresql/data
+    networks:
+      - platform-network
+    restart: unless-stopped
+
+volumes:
+  education_db_data:
+
+networks:
+  platform-network:
+    external: true

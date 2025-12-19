@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<!--
+    pfSense VLAN Configuration Template
+    This is a reference configuration for VLAN setup.
+    Import this into pfSense via Diagnostics -> Backup & Restore -> Restore Configuration
+    Or use as a reference for manual configuration.
+-->
+<pfsense>
+    <vlans>
+        <!-- VLAN 10 - Management Network -->
+        <vlan>
+            <vlanif>lan</vlanif>
+            <tag>10</tag>
+            <descr>Management Network</descr>
+        </vlan>
+        
+        <!-- VLAN 20 - DMZ -->
+        <vlan>
+            <vlanif>lan</vlanif>
+            <tag>20</tag>
+            <descr>DMZ Network</descr>
+        </vlan>
+        
+        <!-- VLAN 30 - Web Services -->
+        <vlan>
+            <vlanif>lan</vlanif>
+            <tag>30</tag>
+            <descr>Web Services Network</descr>
+        </vlan>
+        
+        <!-- VLAN 40 - Database -->
+        <vlan>
+            <vlanif>lan</vlanif>
+            <tag>40</tag>
+            <descr>Database Network</descr>
+        </vlan>
+        
+        <!-- VLAN 50 - Storage -->
+        <vlan>
+            <vlanif>lan</vlanif>
+            <tag>50</tag>
+            <descr>Storage Network</descr>
+        </vlan>
+        
+        <!-- VLAN 60 - IoT/Cameras -->
+        <vlan>
+            <vlanif>lan</vlanif>
+            <tag>60</tag>
+            <descr>IoT Network</descr>
+        </vlan>
+        
+        <!-- VLAN 70 - Guest -->
+        <vlan>
+            <vlanif>lan</vlanif>
+            <tag>70</tag>
+            <descr>Guest Network</descr>
+        </vlan>
+    </vlans>
+    
+    <interfaces>
+        <!-- VLAN 10 Interface -->
+        <opt1>
+            <enable>1</enable>
+            <if>vlan10</if>
+            <descr>Management</descr>
+            <ipaddr>10.0.10.1</ipaddr>
+            <subnet>24</subnet>
+        </opt1>
+        
+        <!-- VLAN 20 Interface -->
+        <opt2>
+            <enable>1</enable>
+            <if>vlan20</if>
+            <descr>DMZ</descr>
+            <ipaddr>10.0.20.1</ipaddr>
+            <subnet>24</subnet>
+        </opt2>
+        
+        <!-- VLAN 30 Interface -->
+        <opt3>
+            <enable>1</enable>
+            <if>vlan30</if>
+            <descr>Web Services</descr>
+            <ipaddr>10.0.30.1</ipaddr>
+            <subnet>24</subnet>
+        </opt3>
+        
+        <!-- VLAN 40 Interface -->
+        <opt4>
+            <enable>1</enable>
+            <if>vlan40</if>
+            <descr>Database</descr>
+            <ipaddr>10.0.40.1</ipaddr>
+            <subnet>24</subnet>
+        </opt4>
+        
+        <!-- VLAN 50 Interface -->
+        <opt5>
+            <enable>1</enable>
+            <if>vlan50</if>
+            <descr>Storage</descr>
+            <ipaddr>10.0.50.1</ipaddr>
+            <subnet>24</subnet>
+        </opt5>
+        
+        <!-- VLAN 60 Interface -->
+        <opt6>
+            <enable>1</enable>
+            <if>vlan60</if>
+            <descr>IoT</descr>
+            <ipaddr>10.0.60.1</ipaddr>
+            <subnet>24</subnet>
+        </opt6>
+        
+        <!-- VLAN 70 Interface -->
+        <opt7>
+            <enable>1</enable>
+            <if>vlan70</if>
+            <descr>Guest</descr>
+            <ipaddr>10.0.70.1</ipaddr>
+            <subnet>24</subnet>
+        </opt7>
+    </interfaces>
+</pfsense>

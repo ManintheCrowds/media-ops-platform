@@ -1,0 +1,241 @@
+<?xml version="1.0"?>
+<!--
+    pfSense Firewall Rules Configuration Template
+    This is a reference configuration for firewall rules.
+    Use as a reference for manual configuration in pfSense web interface.
+    
+    Note: Actual XML format may vary by pfSense version.
+    These rules should be configured via the web interface for best compatibility.
+-->
+<pfsense>
+    <filter>
+        <!-- VLAN 20 (DMZ) - Inbound Rules -->
+        <rule>
+            <type>pass</type>
+            <interface>opt2</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>tcp</protocol>
+            <source>
+                <any/>
+            </source>
+            <destination>
+                <address>10.0.20.10</address>
+                <port>80</port>
+            </destination>
+            <descr>Allow HTTP to Nginx</descr>
+        </rule>
+        
+        <rule>
+            <type>pass</type>
+            <interface>opt2</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>tcp</protocol>
+            <source>
+                <any/>
+            </source>
+            <destination>
+                <address>10.0.20.10</address>
+                <port>443</port>
+            </destination>
+            <descr>Allow HTTPS to Nginx</descr>
+        </rule>
+        
+        <!-- VLAN 20 (DMZ) - Outbound Rules -->
+        <rule>
+            <type>pass</type>
+            <interface>opt2</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>tcp</protocol>
+            <source>
+                <network>opt2net</network>
+            </source>
+            <destination>
+                <network>opt3net</network>
+                <port>80,443,8000</port>
+            </destination>
+            <descr>Allow DMZ to Web Services</descr>
+        </rule>
+        
+        <!-- VLAN 30 (Web Services) - Rules -->
+        <rule>
+            <type>pass</type>
+            <interface>opt3</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>tcp</protocol>
+            <source>
+                <network>opt2net</network>
+            </source>
+            <destination>
+                <network>opt3net</network>
+                <port>80,443,8000</port>
+            </destination>
+            <descr>Allow DMZ to Web Services</descr>
+        </rule>
+        
+        <rule>
+            <type>pass</type>
+            <interface>opt3</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>tcp</protocol>
+            <source>
+                <network>opt3net</network>
+            </source>
+            <destination>
+                <network>opt4net</network>
+                <port>5432,3306</port>
+            </destination>
+            <descr>Allow Web Services to Database</descr>
+        </rule>
+        
+        <rule>
+            <type>pass</type>
+            <interface>opt3</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>tcp</protocol>
+            <source>
+                <network>opt3net</network>
+            </source>
+            <destination>
+                <network>opt5net</network>
+                <port>80,8082</port>
+            </destination>
+            <descr>Allow Web Services to Storage</descr>
+        </rule>
+        
+        <rule>
+            <type>pass</type>
+            <interface>opt3</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>tcp</protocol>
+            <source>
+                <network>opt3net</network>
+            </source>
+            <destination>
+                <network>opt1net</network>
+                <port>9090,3000</port>
+            </destination>
+            <descr>Allow Web Services to Management (monitoring)</descr>
+        </rule>
+        
+        <!-- VLAN 40 (Database) - Rules -->
+        <rule>
+            <type>pass</type>
+            <interface>opt4</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>tcp</protocol>
+            <source>
+                <network>opt3net</network>
+            </source>
+            <destination>
+                <network>opt4net</network>
+                <port>5432,3306</port>
+            </destination>
+            <descr>Allow Web Services to Database</descr>
+        </rule>
+        
+        <rule>
+            <type>pass</type>
+            <interface>opt4</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>tcp</protocol>
+            <source>
+                <network>opt1net</network>
+            </source>
+            <destination>
+                <network>opt4net</network>
+                <port>5432,3306</port>
+            </destination>
+            <descr>Allow Management to Database (admin)</descr>
+        </rule>
+        
+        <!-- VLAN 50 (Storage) - Rules -->
+        <rule>
+            <type>pass</type>
+            <interface>opt5</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>tcp</protocol>
+            <source>
+                <network>opt3net</network>
+            </source>
+            <destination>
+                <network>opt5net</network>
+                <port>80,8082</port>
+            </destination>
+            <descr>Allow Web Services to Storage</descr>
+        </rule>
+        
+        <rule>
+            <type>pass</type>
+            <interface>opt5</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>tcp</protocol>
+            <source>
+                <network>opt5net</network>
+            </source>
+            <destination>
+                <network>opt4net</network>
+                <port>5432,3306</port>
+            </destination>
+            <descr>Allow Storage to Database (metadata)</descr>
+        </rule>
+        
+        <!-- VLAN 60 (IoT) - Rules -->
+        <rule>
+            <type>pass</type>
+            <interface>opt6</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>any</protocol>
+            <source>
+                <network>opt6net</network>
+            </source>
+            <destination>
+                <any/>
+            </destination>
+            <descr>Allow IoT to Internet (outbound only)</descr>
+        </rule>
+        
+        <!-- VLAN 70 (Guest) - Rules -->
+        <rule>
+            <type>pass</type>
+            <interface>opt7</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>any</protocol>
+            <source>
+                <network>opt7net</network>
+            </source>
+            <destination>
+                <any/>
+            </destination>
+            <descr>Allow Guest to Internet</descr>
+        </rule>
+        
+        <!-- VLAN 10 (Management) - Rules -->
+        <rule>
+            <type>pass</type>
+            <interface>opt1</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>any</protocol>
+            <source>
+                <network>10.0.200.0/24</network>
+            </source>
+            <destination>
+                <network>opt1net</network>
+            </destination>
+            <descr>Allow VPN to Management</descr>
+        </rule>
+        
+        <rule>
+            <type>pass</type>
+            <interface>opt1</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>any</protocol>
+            <source>
+                <network>opt1net</network>
+            </source>
+            <destination>
+                <any/>
+            </destination>
+            <descr>Allow Management to all VLANs (admin)</descr>
+        </rule>
+    </filter>
+</pfsense>

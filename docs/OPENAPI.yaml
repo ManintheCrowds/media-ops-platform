@@ -1,0 +1,1057 @@
+openapi: 3.0.3
+info:
+  title: Self-Hosted Platform Integration API
+  description: |
+    Unified API gateway for integrating multiple self-hosted services.
+    Provides authentication, service management, health monitoring, and service proxying.
+  version: 0.1.0
+  contact:
+    name: Platform Support
+    url: https://github.com/your-org/platform
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000/api
+    description: Local development server
+  - url: https://yourdomain.com/api
+    description: Production server
+
+tags:
+  - name: authentication
+    description: User authentication and registration
+  - name: services
+    description: Service registry management
+  - name: health
+    description: Health monitoring endpoints
+  - name: gateway
+    description: Service gateway and proxying
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/token:
+    post:
+      tags:
+        - authentication
+      summary: Obtain access token
+      description: Authenticate user and receive JWT access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: admin
+                password:
+                  type: string
+                  format: password
+                  example: securepassword
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+              example:
+                access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                token_type: bearer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: login
+
+  /auth/register:
+    post:
+      tags:
+        - authentication
+      summary: Register new user
+      description: Create a new user account
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+            example:
+              username: newuser
+              email: user@example.com
+              password: securepassword123
+      responses:
+        '200':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+              example:
+                id: 1
+                username: newuser
+                email: user@example.com
+                is_active: true
+                is_admin: false
+        '400':
+          $ref: '#/components/responses/BadRequest'
+      operationId: register
+
+  /auth/me:
+    get:
+      tags:
+        - authentication
+      summary: Get current user
+      description: Get information about the currently authenticated user
+      responses:
+        '200':
+          description: User information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+              example:
+                id: 1
+                username: admin
+                email: admin@example.com
+                is_active: true
+                is_admin: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getCurrentUser
+
+  /auth/init-db:
+    post:
+      tags:
+        - authentication
+      summary: Initialize database
+      description: Initialize database tables (development only, requires DEBUG=True)
+      security: []
+      responses:
+        '200':
+          description: Database initialized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Database initialized
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: initDatabase
+
+  /services:
+    get:
+      tags:
+        - services
+      summary: List all services
+      description: Get a list of all registered services
+      responses:
+        '200':
+          description: List of services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceResponse'
+              example:
+                - id: 1
+                  name: seafile
+                  service_type: file_storage
+                  base_url: http://seafile:8000
+                  api_url: http://seafile:8000/api2
+                  health_check_url: http://seafile:8000/api2/ping/
+                  is_active: true
+                  requires_auth: true
+                  health_status: healthy
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: listServices
+
+    post:
+      tags:
+        - services
+      summary: Register new service
+      description: Register a new service (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCreate'
+            example:
+              name: seafile
+              service_type: file_storage
+              base_url: http://seafile:8000
+              api_url: http://seafile:8000/api2
+              health_check_url: http://seafile:8000/api2/ping/
+              requires_auth: true
+              auth_token: your-api-token-here
+      responses:
+        '201':
+          description: Service created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      operationId: createService
+
+  /services/{service_id}:
+    get:
+      tags:
+        - services
+      summary: Get service by ID
+      description: Get details of a specific service
+      parameters:
+        - name: service_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Service details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      operationId: getService
+
+    put:
+      tags:
+        - services
+      summary: Update service
+      description: Update service configuration (admin only)
+      parameters:
+        - name: service_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCreate'
+      responses:
+        '200':
+          description: Service updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      operationId: updateService
+
+    delete:
+      tags:
+        - services
+      summary: Delete service
+      description: Delete a service (admin only)
+      parameters:
+        - name: service_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '204':
+          description: Service deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      operationId: deleteService
+
+  /health:
+    get:
+      tags:
+        - health
+      summary: Basic health check
+      description: Check if the API is healthy
+      security: []
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              example:
+                status: healthy
+                timestamp: 2024-01-01T00:00:00
+      operationId: healthCheck
+
+  /health/services:
+    get:
+      tags:
+        - health
+      summary: Check all services health
+      description: Check health status of all registered services
+      responses:
+        '200':
+          description: Health status of all services
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceHealthResponse'
+              example:
+                timestamp: 2024-01-01T00:00:00
+                services:
+                  seafile:
+                    status: healthy
+                    status_code: 200
+                    response_time_ms: 45.2
+                  jellyfin:
+                    status: healthy
+                    status_code: 200
+                    response_time_ms: 123.5
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: checkAllServices
+
+  /health/services/{service_id}:
+    get:
+      tags:
+        - health
+      summary: Check service health
+      description: Check health status of a specific service
+      parameters:
+        - name: service_id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Service health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceHealthDetail'
+              example:
+                service: seafile
+                status: healthy
+                status_code: 200
+                response_time_ms: 45.2
+                timestamp: 2024-01-01T00:00:00
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      operationId: checkService
+
+  /gateway/file-storage/libraries:
+    get:
+      tags:
+        - gateway
+      summary: Get file storage libraries
+      description: Get list of libraries from file storage service
+      responses:
+        '200':
+          description: List of libraries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  libraries:
+                    type: array
+                    items:
+                      type: object
+              example:
+                libraries:
+                  - id: abc123
+                    name: My Library
+                    owner: user@example.com
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: File storage service not found
+      operationId: getFileStorageLibraries
+
+  /gateway/media-server/libraries:
+    get:
+      tags:
+        - gateway
+      summary: Get media server libraries
+      description: Get list of libraries from media server
+      responses:
+        '200':
+          description: List of libraries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  libraries:
+                    type: array
+                    items:
+                      type: object
+              example:
+                libraries:
+                  - Name: Movies
+                    CollectionType: movies
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Media server not found
+      operationId: getMediaLibraries
+
+  /gateway/media-server/recent:
+    get:
+      tags:
+        - gateway
+      summary: Get recent media items
+      description: Get recently added media items from media server
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+          example: 10
+      responses:
+        '200':
+          description: Recent media items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+              example:
+                items:
+                  - Name: Movie Title
+                    Type: Movie
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Media server not found
+      operationId: getRecentMedia
+
+  /gateway/productivity/pages:
+    get:
+      tags:
+        - gateway
+      summary: Get wiki pages
+      description: Get list of pages from productivity/wiki service
+      responses:
+        '200':
+          description: List of pages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pages:
+                    type: array
+                    items:
+                      type: object
+              example:
+                pages:
+                  - id: page-1
+                    title: Page Title
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Productivity service not found
+      operationId: getWikiPages
+
+  /gateway/dev-tools/repositories:
+    get:
+      tags:
+        - gateway
+      summary: Get repositories
+      description: Get list of repositories from development tools service
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          example: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          example: 20
+      responses:
+        '200':
+          description: List of repositories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  repositories:
+                    type: array
+                    items:
+                      type: object
+              example:
+                repositories:
+                  - id: 1
+                    name: my-repo
+                    full_name: user/my-repo
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Development tools service not found
+      operationId: getRepositories
+
+  /gateway/monitoring/metrics:
+    get:
+      tags:
+        - gateway
+      summary: Get monitoring metrics
+      description: Query Prometheus metrics or list available metrics
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+          description: PromQL query string
+          example: up
+      responses:
+        '200':
+          description: Metrics data
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      result:
+                        type: object
+                  - type: object
+                    properties:
+                      metrics:
+                        type: array
+                        items:
+                          type: string
+              examples:
+                withQuery:
+                  value:
+                    result:
+                      status: success
+                      data:
+                        resultType: vector
+                        result: []
+                withoutQuery:
+                  value:
+                    metrics:
+                      - up
+                      - cpu_usage
+                      - memory_usage
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Monitoring service not found
+      operationId: getMonitoringMetrics
+
+  /gateway/monitoring/dashboards:
+    get:
+      tags:
+        - gateway
+      summary: Get Grafana dashboards
+      description: Get list of dashboards from Grafana
+      responses:
+        '200':
+          description: List of dashboards
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dashboards:
+                    type: array
+                    items:
+                      type: object
+              example:
+                dashboards:
+                  - uid: dashboard-1
+                    title: System Overview
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Monitoring service not found
+      operationId: getGrafanaDashboards
+
+  /gateway/security/stats:
+    get:
+      tags:
+        - gateway
+      summary: Get security statistics
+      description: Get Vaultwarden statistics (admin only)
+      responses:
+        '200':
+          description: Security statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stats:
+                    type: object
+              example:
+                stats:
+                  users: 10
+                  items: 150
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Security service not found
+      operationId: getSecurityStats
+
+  /gateway/proxy/{service_name}/{path}:
+    get:
+      tags:
+        - gateway
+      summary: Proxy GET request to service
+      description: Generic proxy endpoint for GET requests to any registered service
+      parameters:
+        - name: service_name
+          in: path
+          required: true
+          schema:
+            type: string
+          example: seafile
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+          example: api2/repos/
+      responses:
+        '200':
+          description: Proxied response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Service not found
+        '502':
+          description: Service unavailable
+      operationId: proxyGet
+
+    post:
+      tags:
+        - gateway
+      summary: Proxy POST request to service
+      description: Generic proxy endpoint for POST requests to any registered service
+      parameters:
+        - name: service_name
+          in: path
+          required: true
+          schema:
+            type: string
+          example: seafile
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+          example: api2/repos/
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Proxied response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Service not found
+        '502':
+          description: Service unavailable
+      operationId: proxyPost
+
+    put:
+      tags:
+        - gateway
+      summary: Proxy PUT request to service
+      description: Generic proxy endpoint for PUT requests to any registered service
+      parameters:
+        - name: service_name
+          in: path
+          required: true
+          schema:
+            type: string
+          example: seafile
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+          example: api2/repos/
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Proxied response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Service not found
+        '502':
+          description: Service unavailable
+      operationId: proxyPut
+
+    delete:
+      tags:
+        - gateway
+      summary: Proxy DELETE request to service
+      description: Generic proxy endpoint for DELETE requests to any registered service
+      parameters:
+        - name: service_name
+          in: path
+          required: true
+          schema:
+            type: string
+          example: seafile
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+          example: api2/repos/
+      responses:
+        '200':
+          description: Proxied response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Service not found
+        '502':
+          description: Service unavailable
+      operationId: proxyDelete
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /api/auth/token
+
+  schemas:
+    Token:
+      type: object
+      required:
+        - access_token
+        - token_type
+      properties:
+        access_token:
+          type: string
+          description: JWT access token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type:
+          type: string
+          description: Token type
+          example: bearer
+
+    UserCreate:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          example: newuser
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: securepassword123
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: admin
+        email:
+          type: string
+          format: email
+          example: admin@example.com
+        is_active:
+          type: boolean
+          example: true
+        is_admin:
+          type: boolean
+          example: false
+
+    ServiceCreate:
+      type: object
+      required:
+        - name
+        - service_type
+        - base_url
+      properties:
+        name:
+          type: string
+          description: Unique service name
+          example: seafile
+        service_type:
+          type: string
+          description: Service category
+          enum:
+            - file_storage
+            - media_server
+            - productivity
+            - dev_tools
+            - monitoring
+            - security
+          example: file_storage
+        base_url:
+          type: string
+          format: uri
+          description: Base URL of the service
+          example: http://seafile:8000
+        api_url:
+          type: string
+          format: uri
+          description: API URL of the service
+          example: http://seafile:8000/api2
+        health_check_url:
+          type: string
+          format: uri
+          description: Health check endpoint URL
+          example: http://seafile:8000/api2/ping/
+        requires_auth:
+          type: boolean
+          default: true
+          description: Whether service requires authentication
+        auth_token:
+          type: string
+          description: Authentication token for the service
+          example: your-api-token-here
+        metadata:
+          type: string
+          description: Additional metadata (JSON string)
+
+    ServiceResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: seafile
+        service_type:
+          type: string
+          example: file_storage
+        base_url:
+          type: string
+          format: uri
+          example: http://seafile:8000
+        api_url:
+          type: string
+          format: uri
+          nullable: true
+          example: http://seafile:8000/api2
+        health_check_url:
+          type: string
+          format: uri
+          nullable: true
+          example: http://seafile:8000/api2/ping/
+        is_active:
+          type: boolean
+          example: true
+        requires_auth:
+          type: boolean
+          example: true
+        health_status:
+          type: string
+          enum:
+            - healthy
+            - unhealthy
+            - unknown
+          example: healthy
+
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          example: healthy
+        timestamp:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00
+
+    ServiceHealthDetail:
+      type: object
+      properties:
+        service:
+          type: string
+          example: seafile
+        status:
+          type: string
+          enum:
+            - healthy
+            - unhealthy
+            - not_found
+          example: healthy
+        status_code:
+          type: integer
+          nullable: true
+          example: 200
+        response_time_ms:
+          type: number
+          nullable: true
+          example: 45.2
+        timestamp:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00
+        error:
+          type: string
+          nullable: true
+          example: null
+
+    ServiceHealthResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: 2024-01-01T00:00:00
+        services:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum:
+                  - healthy
+                  - unhealthy
+              status_code:
+                type: integer
+                nullable: true
+              response_time_ms:
+                type: number
+                nullable: true
+              error:
+                type: string
+                nullable: true
+
+    Error:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Error message
+          example: Error message here
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: Invalid request data
+
+    Unauthorized:
+      description: Unauthorized - Invalid or missing authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: Could not validate credentials
+
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: Only admins can perform this action
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: Resource not found
+
+    ServiceUnavailable:
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: Service unavailable: Connection timeout

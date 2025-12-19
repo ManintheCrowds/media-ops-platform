@@ -1,0 +1,68 @@
+# Security alerting rules for Prometheus
+
+groups:
+  - name: security_alerts
+    interval: 30s
+    rules:
+      - alert: HighSecurityEventRate
+        expr: rate(security_events_total{severity="high"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate of high-severity security events"
+          description: "{{ $value }} high-severity events per second detected"
+
+      - alert: CriticalSecurityEvent
+        expr: security_events_total{severity="critical"} > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical security event detected"
+          description: "Critical security event: {{ $labels.event_type }}"
+
+      - alert: DDoSAttackDetected
+        expr: increase(ddos_attacks_detected[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "DDoS attack detected"
+          description: "DDoS attack detected and mitigated"
+
+      - alert: HighIntrusionAttempts
+        expr: rate(intrusion_attempts_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate of intrusion attempts"
+          description: "{{ $value }} intrusion attempts per second"
+
+      - alert: ManyBlockedIPs
+        expr: blocked_ips_total > 100
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Large number of blocked IP addresses"
+          description: "{{ $value }} IP addresses are currently blocked"
+
+      - alert: UnresolvedVulnerabilities
+        expr: vulnerabilities_detected{resolved="false",severity="critical"} > 10
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Multiple unresolved critical vulnerabilities"
+          description: "{{ $value }} critical vulnerabilities remain unresolved"
+
+      - alert: ActiveSecurityIncidents
+        expr: incidents_active{status="open",severity="critical"} > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Active critical security incident"
+          description: "Critical security incident requires immediate attention"

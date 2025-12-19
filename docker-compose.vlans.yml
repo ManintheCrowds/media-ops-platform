@@ -1,0 +1,372 @@
+version: '3.8'
+
+# Docker Compose configuration with VLAN networks
+# This file uses macvlan networks to assign containers to specific VLANs
+# 
+# Prerequisites:
+# 1. Configure VLAN interfaces on host (use scripts/network/vlan-setup.sh)
+# 2. Configure pfSense VLAN interfaces
+# 3. Update parent interface name below (eth0.XX) to match your setup
+# 4. Ensure parent interface exists before starting containers
+
+services:
+  # PostgreSQL Database - VLAN 40 (Database)
+  postgres:
+    image: postgres:15-alpine
+    container_name: platform-postgres
+    environment:
+      POSTGRES_USER: platform
+      POSTGRES_PASSWORD: platform
+      POSTGRES_DB: platform
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      vlan40-db:
+        ipv4_address: 10.0.40.10
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Main Platform API - VLAN 30 (Web Services)
+  platform:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: platform-api
+    environment:
+      DATABASE_URL: postgresql://platform:platform@10.0.40.10:5432/platform
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-production-jwt}
+      DEBUG: ${DEBUG:-False}
+    volumes:
+      - .:/app
+    networks:
+      vlan30-web:
+        ipv4_address: 10.0.30.10
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Seafile - VLAN 50 (Storage)
+  seafile:
+    image: seafileltd/seafile-mc:latest
+    container_name: platform-seafile
+    environment:
+      - SEAFILE_ADMIN_EMAIL=admin@example.com
+      - SEAFILE_ADMIN_PASSWORD=changeme
+      - DB_HOST=10.0.40.20
+      - DB_ROOT_PASSWD=changeme
+    volumes:
+      - seafile_data:/shared
+    networks:
+      vlan50-storage:
+        ipv4_address: 10.0.50.10
+      vlan40-db:
+        ipv4_address: 10.0.50.11  # Secondary IP for DB access
+    depends_on:
+      - seafile-db
+
+  seafile-db:
+    image: mariadb:10.11
+    container_name: platform-seafile-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=changeme
+      - MYSQL_DATABASE=seafile
+    volumes:
+      - seafile_db_data:/var/lib/mysql
+    networks:
+      vlan40-db:
+        ipv4_address: 10.0.40.20
+
+  # Jellyfin - VLAN 30 (Web Services)
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: platform-jellyfin
+    environment:
+      - JELLYFIN_PublishedServerUrl=http://10.0.30.40:8096
+    volumes:
+      - jellyfin_config:/config
+      - jellyfin_cache:/cache
+      - ./media:/media:ro
+    networks:
+      vlan30-web:
+        ipv4_address: 10.0.30.40
+
+  # Gitea - VLAN 30 (Web Services)
+  gitea:
+    image: gitea/gitea:latest
+    container_name: platform-gitea
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - DB_TYPE=postgres
+      - DB_HOST=10.0.40.30:5432
+      - DB_NAME=gitea
+      - DB_USER=gitea
+      - DB_PASSWD=gitea
+    volumes:
+      - gitea_data:/data
+    networks:
+      vlan30-web:
+        ipv4_address: 10.0.30.50
+    depends_on:
+      - gitea-db
+
+  gitea-db:
+    image: postgres:15-alpine
+    container_name: platform-gitea-db
+    environment:
+      - POSTGRES_USER=gitea
+      - POSTGRES_PASSWORD=gitea
+      - POSTGRES_DB=gitea
+    volumes:
+      - gitea_db_data:/var/lib/postgresql/data
+    networks:
+      vlan40-db:
+        ipv4_address: 10.0.40.30
+
+  # Prometheus - VLAN 10 (Management)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: platform-prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      vlan10-mgmt:
+        ipv4_address: 10.0.10.10
+
+  # Grafana - VLAN 10 (Management)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: platform-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      vlan10-mgmt:
+        ipv4_address: 10.0.10.20
+    depends_on:
+      - prometheus
+
+  # Vaultwarden - VLAN 30 (Web Services)
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: platform-vaultwarden
+    environment:
+      - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN:-changeme}
+      - SIGNUPS_ALLOWED=true
+      - WEBSOCKET_ENABLED=true
+    volumes:
+      - vaultwarden_data:/data
+    networks:
+      vlan30-web:
+        ipv4_address: 10.0.30.70
+
+  # BookStack - VLAN 30 (Web Services)
+  bookstack:
+    image: lscr.io/linuxserver/bookstack:latest
+    container_name: platform-bookstack
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - APP_URL=http://10.0.30.60
+      - APP_KEY=${BOOKSTACK_APP_KEY}
+      - DB_HOST=10.0.40.40
+      - DB_USERNAME=bookstack
+      - DB_PASSWORD=${BOOKSTACK_DB_PASSWORD:-bookstack}
+      - DB_DATABASE=bookstack
+    volumes:
+      - bookstack_data:/config
+    networks:
+      vlan30-web:
+        ipv4_address: 10.0.30.60
+    depends_on:
+      - bookstack-db
+
+  bookstack-db:
+    image: mariadb:10.11
+    container_name: platform-bookstack-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=${BOOKSTACK_ROOT_PASSWORD:-bookstack_root}
+      - MYSQL_DATABASE=bookstack
+      - MYSQL_USER=bookstack
+      - MYSQL_PASSWORD=${BOOKSTACK_DB_PASSWORD:-bookstack}
+    volumes:
+      - bookstack_db_data:/var/lib/mysql
+    networks:
+      vlan40-db:
+        ipv4_address: 10.0.40.40
+
+  # Educational System Service - VLAN 30 (Web Services)
+  education-service:
+    build:
+      context: ./education-service
+      dockerfile: Dockerfile
+    container_name: platform-education
+    environment:
+      - DATABASE_URL=postgresql://education:password@10.0.40.50:5432/education
+      - PLATFORM_URL=http://10.0.30.10:8000
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-change-me-in-production-jwt}
+      - BOOKSTACK_URL=http://10.0.30.60:80
+      - GITEA_URL=http://10.0.30.50:3000
+      - SEAFILE_URL=http://10.0.50.10:80
+      - JELLYFIN_URL=http://10.0.30.40:8096
+    volumes:
+      - ./education-service:/app
+      - education_storage:/app/storage
+    networks:
+      vlan30-web:
+        ipv4_address: 10.0.30.20
+    depends_on:
+      - education-db
+      - platform
+
+  education-db:
+    image: postgres:15-alpine
+    container_name: platform-education-db
+    environment:
+      - POSTGRES_USER=education
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=education
+    volumes:
+      - education_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U education"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      vlan40-db:
+        ipv4_address: 10.0.40.50
+
+  # Nginx - VLAN 20 (DMZ)
+  nginx:
+    image: nginx:alpine
+    container_name: platform-nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      vlan20-dmz:
+        ipv4_address: 10.0.20.10
+      vlan30-web:
+        ipv4_address: 10.0.20.11  # Secondary IP for backend access
+    depends_on:
+      - platform
+      - seafile
+      - jellyfin
+      - gitea
+      - grafana
+      - vaultwarden
+      - bookstack
+      - education-service
+
+  # Security Service - VLAN 30 (Web Services)
+  security-service:
+    build:
+      context: ./security-service
+      dockerfile: Dockerfile
+    container_name: platform-security
+    environment:
+      - DATABASE_URL=postgresql://platform:platform@10.0.40.10:5432/platform
+      - REDIS_URL=redis://10.0.30.80:6379
+      - PROMETHEUS_URL=http://10.0.10.10:9090
+      - SECURITY_SERVICE_PORT=8001
+      - PFSENSE_URL=${PFSENSE_URL:-https://10.0.10.1}
+      - PFSENSE_API_KEY=${PFSENSE_API_KEY}
+    networks:
+      vlan30-web:
+        ipv4_address: 10.0.30.30
+      vlan10-mgmt:
+        ipv4_address: 10.0.30.31  # Secondary IP for monitoring
+    depends_on:
+      - postgres
+      - redis
+
+  # Redis - VLAN 30 (Web Services)
+  redis:
+    image: redis:7-alpine
+    container_name: platform-redis
+    volumes:
+      - redis_data:/data
+    networks:
+      vlan30-web:
+        ipv4_address: 10.0.30.80
+    command: redis-server --appendonly yes
+
+volumes:
+  postgres_data:
+  seafile_data:
+  seafile_db_data:
+  jellyfin_config:
+  jellyfin_cache:
+  gitea_data:
+  gitea_db_data:
+  prometheus_data:
+  grafana_data:
+  vaultwarden_data:
+  bookstack_data:
+  bookstack_db_data:
+  education_db_data:
+  education_storage:
+  redis_data:
+
+networks:
+  # VLAN 10 - Management Network
+  vlan10-mgmt:
+    driver: macvlan
+    driver_opts:
+      parent: eth0.10  # Update to match your VLAN interface
+    ipam:
+      config:
+        - subnet: 10.0.10.0/24
+          gateway: 10.0.10.1
+
+  # VLAN 20 - DMZ Network
+  vlan20-dmz:
+    driver: macvlan
+    driver_opts:
+      parent: eth0.20  # Update to match your VLAN interface
+    ipam:
+      config:
+        - subnet: 10.0.20.0/24
+          gateway: 10.0.20.1
+
+  # VLAN 30 - Web Services Network
+  vlan30-web:
+    driver: macvlan
+    driver_opts:
+      parent: eth0.30  # Update to match your VLAN interface
+    ipam:
+      config:
+        - subnet: 10.0.30.0/24
+          gateway: 10.0.30.1
+
+  # VLAN 40 - Database Network
+  vlan40-db:
+    driver: macvlan
+    driver_opts:
+      parent: eth0.40  # Update to match your VLAN interface
+    ipam:
+      config:
+        - subnet: 10.0.40.0/24
+          gateway: 10.0.40.1
+
+  # VLAN 50 - Storage Network
+  vlan50-storage:
+    driver: macvlan
+    driver_opts:
+      parent: eth0.50  # Update to match your VLAN interface
+    ipam:
+      config:
+        - subnet: 10.0.50.0/24
+          gateway: 10.0.50.1

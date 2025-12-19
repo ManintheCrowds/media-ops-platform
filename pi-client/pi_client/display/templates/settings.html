@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+        }
+        .settings-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .setting-group {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #3a3a3a;
+        }
+        .setting-group h3 {
+            margin-bottom: 15px;
+            color: #4a9eff;
+        }
+        .setting-item {
+            margin-bottom: 15px;
+        }
+        .setting-item label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .setting-item select, .setting-item input {
+            width: 100%;
+            padding: 8px;
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            color: #fff;
+            border-radius: 4px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #4a9eff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <a href="/" class="back-link">← Back to Dashboard</a>
+        <h1>Settings</h1>
+        
+        <div class="setting-group">
+            <h3>Display</h3>
+            <div class="setting-item">
+                <label>Display Mode</label>
+                <select id="display-mode">
+                    <option value="kiosk">Kiosk</option>
+                    <option value="interactive">Interactive</option>
+                    <option value="presentation">Presentation</option>
+                    <option value="dashboard">Dashboard</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label>Rotation</label>
+                <select id="rotation">
+                    <option value="landscape">Landscape</option>
+                    <option value="portrait">Portrait</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const ws = new WebSocket(`ws://${window.location.host}/ws`);
+        
+        document.getElementById('display-mode').addEventListener('change', (e) => {
+            ws.send(JSON.stringify({
+                type: 'display_mode',
+                mode: e.target.value
+            }));
+        });
+        
+        document.getElementById('rotation').addEventListener('change', (e) => {
+            ws.send(JSON.stringify({
+                type: 'settings',
+                setting: 'rotation',
+                value: e.target.value
+            }));
+        });
+    </script>
+</body>
+</html>
