@@ -1,0 +1,21 @@
+---
+# Platform deployment playbook
+- name: Deploy platform services
+  hosts: servers
+  become: yes
+  gather_facts: yes
+  
+  roles:
+    - platform
+  
+  post_tasks:
+    - name: Wait for services to be healthy
+      wait_for:
+        port: "{{ item }}"
+        host: localhost
+        delay: 10
+        timeout: 300
+      loop:
+        - 8000  # Platform API
+        - 5432  # PostgreSQL
+      when: inventory_hostname == 'app-server'

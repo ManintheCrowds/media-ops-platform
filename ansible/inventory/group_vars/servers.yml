@@ -1,0 +1,41 @@
+---
+# Variables for server group
+
+# Docker settings
+docker_version: "24.0"
+docker_compose_version: "2.23.0"
+docker_users:
+  - ansible
+
+# Platform deployment
+platform_services:
+  - postgres
+  - platform
+  - seafile
+  - jellyfin
+  - gitea
+  - prometheus
+  - grafana
+  - vaultwarden
+  - bookstack
+  - education-service
+  - security-service
+  - redis
+  - nginx
+
+# Database settings
+postgres_version: "15-alpine"
+postgres_data_dir: /var/lib/postgresql/data
+postgres_backup_dir: /var/backups/postgres
+
+# Resource limits
+resource_limits:
+  platform:
+    cpus: "2.0"
+    memory: 2G
+  postgres:
+    cpus: "1.0"
+    memory: 1G
+  monitoring:
+    cpus: "0.5"
+    memory: 512M

@@ -1,0 +1,18 @@
+[Unit]
+Description=Pi Client for Educational Platform
+After=network.target
+
+[Service]
+Type=simple
+User=pi-client
+Group=pi-client
+WorkingDirectory={{ pi_client_install_path }}
+Environment="PATH={{ pi_client_install_path }}/venv/bin"
+ExecStart={{ pi_client_install_path }}/venv/bin/python {{ pi_client_install_path }}/pi_client/main.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

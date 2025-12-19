@@ -1,0 +1,31 @@
+---
+# Default variables for monitoring role
+monitoring_config_path: /etc/monitoring
+monitoring_data_path: /var/lib/monitoring
+prometheus_port: 9090
+grafana_port: 3000
+alertmanager_port: 9093
+
+# Prometheus settings
+prometheus_scrape_interval: 15s
+prometheus_evaluation_interval: 15s
+prometheus_retention: 30d
+
+# Exporters
+node_exporter_enabled: true
+cadvisor_enabled: true
+postgres_exporter_enabled: true
+
+# Grafana settings
+grafana_configure_datasource: true
+grafana_admin_user: admin
+grafana_admin_password: admin
+
+# Alert settings
+alert_email_to: admin@example.com
+smtp_host: smtp.example.com
+smtp_port: 587
+smtp_from: alerts@example.com
+smtp_username: ""
+smtp_password: ""
+smtp_require_tls: true

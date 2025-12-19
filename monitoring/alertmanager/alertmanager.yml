@@ -1,0 +1,109 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: 'smtp.example.com:587'
+  smtp_from: 'alerts@example.com'
+  smtp_auth_username: 'alerts@example.com'
+  smtp_auth_password: 'your-smtp-password'
+  smtp_require_tls: true
+
+# The directory from which notification templates are read.
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# The root route on which each incoming alert enters.
+route:
+  receiver: 'default'
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  routes:
+    # Critical alerts
+    - match:
+        severity: critical
+      receiver: 'critical'
+      continue: true
+      group_wait: 10s
+      repeat_interval: 1h
+    
+    # Warning alerts
+    - match:
+        severity: warning
+      receiver: 'warning'
+      group_wait: 30s
+      repeat_interval: 6h
+    
+    # Service-specific routes
+    - match:
+        service: platform
+      receiver: 'platform-team'
+      continue: true
+    
+    - match:
+        service: database
+      receiver: 'database-team'
+      continue: true
+
+# Inhibition rules allow to mute a set of alerts given that another alert is
+# firing.
+inhibit_rules:
+  # Mute any warning-level notifications if the same alert is already critical.
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+  
+  # Mute service alerts if the node is down
+  - source_match:
+      alertname: 'NodeDown'
+    target_match_re:
+      alertname: '.*'
+    equal: ['instance']
+
+# Receivers
+receivers:
+  - name: 'default'
+    email_configs:
+      - to: 'admin@example.com'
+        headers:
+          Subject: 'Platform Alert: {{ .GroupLabels.alertname }}'
+        html: '{{ template "email.default.html" . }}'
+        send_resolved: true
+
+  - name: 'critical'
+    email_configs:
+      - to: 'oncall@example.com'
+        headers:
+          Subject: 'CRITICAL: {{ .GroupLabels.alertname }}'
+          Priority: '1'
+        html: '{{ template "email.critical.html" . }}'
+        send_resolved: true
+    # Add webhook for critical alerts
+    webhook_configs:
+      - url: 'http://security-service:8001/api/alerts'
+        send_resolved: true
+
+  - name: 'warning'
+    email_configs:
+      - to: 'admin@example.com'
+        headers:
+          Subject: 'WARNING: {{ .GroupLabels.alertname }}'
+        html: '{{ template "email.warning.html" . }}'
+        send_resolved: true
+
+  - name: 'platform-team'
+    email_configs:
+      - to: 'platform-team@example.com'
+        headers:
+          Subject: 'Platform Service Alert: {{ .GroupLabels.alertname }}'
+        html: '{{ template "email.default.html" . }}'
+        send_resolved: true
+
+  - name: 'database-team'
+    email_configs:
+      - to: 'database-team@example.com'
+        headers:
+          Subject: 'Database Alert: {{ .GroupLabels.alertname }}'
+        html: '{{ template "email.default.html" . }}'
+        send_resolved: true

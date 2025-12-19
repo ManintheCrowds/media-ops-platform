@@ -1,0 +1,149 @@
+---
+# Raspberry Pi client provisioning tasks
+- name: Update system packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+    autoremove: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install prerequisites
+  apt:
+    name:
+      - python3
+      - python3-pip
+      - python3-venv
+      - git
+      - build-essential
+      - libssl-dev
+      - libffi-dev
+      - python3-dev
+    state: present
+
+- name: Create pi-client user
+  user:
+    name: pi-client
+    system: yes
+    shell: /bin/false
+    home: /var/lib/pi-client
+    create_home: yes
+
+- name: Create pi-client directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: pi-client
+    group: pi-client
+    mode: '0755'
+  loop:
+    - "{{ pi_client_install_path }}"
+    - "{{ pi_client_config_path }}"
+    - "{{ pi_client_data_path }}"
+    - "{{ pi_client_config_path }}/certs"
+    - "{{ pi_client_data_path }}/cache"
+    - "{{ pi_client_data_path }}/logs"
+
+- name: Clone pi-client repository
+  git:
+    repo: "{{ pi_client_repo_url | default('https://github.com/your-org/pi-client.git') }}"
+    dest: "{{ pi_client_install_path }}"
+    version: "{{ pi_client_version }}"
+    update: yes
+  when: pi_client_repo_url is defined
+
+- name: Create Python virtual environment
+  command: python3 -m venv {{ pi_client_install_path }}/venv
+    creates: "{{ pi_client_install_path }}/venv"
+  become_user: pi-client
+
+- name: Install Python dependencies
+  pip:
+    requirements: "{{ pi_client_install_path }}/requirements.txt"
+    virtualenv: "{{ pi_client_install_path }}/venv"
+    virtualenv_python: python3
+  become_user: pi-client
+  when: pi_client_repo_url is defined
+
+- name: Install hardware packages
+  pip:
+    name:
+      - RPi.GPIO
+      - gpiozero
+      - picamera2
+      - pygame
+    virtualenv: "{{ pi_client_install_path }}/venv"
+    virtualenv_python: python3
+  become_user: pi-client
+  when: pi_hardware_enabled | default(true)
+
+- name: Generate device certificate
+  openssl_certificate:
+    path: "{{ pi_certificate_path }}"
+    privatekey_path: "{{ pi_certificate_key_path }}"
+    csr_path: "{{ pi_client_config_path }}/certs/device.csr"
+    provider: selfsigned
+    selfsigned_not_after: "+3650d"
+    selfsigned_version: 3
+    selfsigned_extensions:
+      - subjectAltName
+    subject_alt_name:
+      - "DNS:{{ inventory_hostname }}"
+      - "IP:{{ ansible_default_ipv4.address }}"
+  when: pi_generate_certificate | default(true)
+
+- name: Copy CA certificate
+  copy:
+    src: "{{ pi_certificate_ca }}"
+    dest: "{{ pi_client_config_path }}/certs/ca.pem"
+    owner: pi-client
+    group: pi-client
+    mode: '0644'
+  when: pi_certificate_ca is defined
+
+- name: Create pi-client configuration
+  template:
+    src: config.yaml.j2
+    dest: "{{ pi_client_config_path }}/config.yaml"
+    owner: pi-client
+    group: pi-client
+    mode: '0644'
+
+- name: Create systemd service file
+  template:
+    src: pi-client.service.j2
+    dest: /etc/systemd/system/pi-client.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload systemd
+
+- name: Enable and start pi-client service
+  systemd:
+    name: pi-client
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+- name: Register device with platform
+  uri:
+    url: "{{ pi_client_config.api.base_url }}/api/v1/pi/devices/register"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ pi_registration_token }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      device_id: "{{ device_id }}"
+      device_name: "{{ device_name }}"
+      device_type: "{{ pi_device_type | default('kiosk') }}"
+      organization_id: "{{ pi_organization_id | default(1) }}"
+      capabilities: "{{ pi_client_config.hardware }}"
+      settings: "{{ pi_client_config.display }}"
+    status_code: [200, 201, 409]
+  register: device_registration
+  when: pi_register_device | default(true) and pi_registration_token is defined
+
+- name: Display registration status
+  debug:
+    msg: "Device registered: {{ device_registration.status }}"
+  when: device_registration is defined

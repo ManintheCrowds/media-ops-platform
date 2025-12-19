@@ -1,0 +1,11 @@
+---
+# Handlers for monitoring role
+- name: restart prometheus
+  docker_container:
+    name: prometheus
+    state: restarted
+
+- name: restart alertmanager
+  docker_container:
+    name: alertmanager
+    state: restarted

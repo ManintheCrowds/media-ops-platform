@@ -1,0 +1,15 @@
+---
+# Main playbook - orchestrates all setup tasks
+- name: Complete Infrastructure Setup
+  hosts: all
+  become: yes
+  gather_facts: yes
+  
+  tasks:
+    - name: Include server setup for servers
+      include: server-setup.yml
+      when: "'servers' in group_names"
+    
+    - name: Include pi setup for pi devices
+      include: pi-provision.yml
+      when: "'pi_devices' in group_names"

@@ -1,0 +1,121 @@
+---
+# Platform deployment tasks
+- name: Create platform directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - "{{ platform_deploy_path }}"
+    - "{{ platform_data_path }}"
+    - "{{ platform_deploy_path }}/config"
+    - "{{ platform_deploy_path }}/backups"
+
+- name: Clone platform repository
+  git:
+    repo: "{{ platform_repo_url }}"
+    dest: "{{ platform_deploy_path }}"
+    version: "{{ platform_repo_branch }}"
+    update: yes
+  when: platform_repo_url is defined
+
+- name: Copy platform files
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ platform_files | default([]) }}"
+  when: platform_files is defined
+
+- name: Create .env file from template
+  template:
+    src: env.j2
+    dest: "{{ platform_deploy_path }}/.env"
+    owner: root
+    group: root
+    mode: '0600'
+  when: platform_env_template is defined
+
+- name: Copy .env file
+  copy:
+    src: "{{ platform_env_file }}"
+    dest: "{{ platform_deploy_path }}/.env"
+    owner: root
+    group: root
+    mode: '0600'
+  when: platform_env_file is defined and platform_env_template is not defined
+
+- name: Copy docker-compose.yml
+  copy:
+    src: "{{ platform_deploy_path }}/docker-compose.yml"
+    dest: "{{ platform_deploy_path }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: '0644'
+  when: platform_repo_url is defined
+
+- name: Copy docker-compose.prod.yml if exists
+  copy:
+    src: "{{ platform_deploy_path }}/docker-compose.prod.yml"
+    dest: "{{ platform_deploy_path }}/docker-compose.prod.yml"
+    owner: root
+    group: root
+    mode: '0644'
+  when: platform_repo_url is defined
+  ignore_errors: yes
+
+- name: Pull Docker images
+  docker_compose:
+    project_src: "{{ platform_deploy_path }}"
+    files:
+      - docker-compose.yml
+      - docker-compose.prod.yml
+    pull: yes
+    state: present
+  when: docker_compose_pull | default(true)
+
+- name: Start platform services
+  docker_compose:
+    project_src: "{{ platform_deploy_path }}"
+    files:
+      - docker-compose.yml
+      - docker-compose.prod.yml
+    state: started
+    restarted: yes
+
+- name: Wait for database to be ready
+  wait_for:
+    port: 5432
+    host: localhost
+    delay: 10
+    timeout: 300
+  when: "'postgres' in platform_services"
+
+- name: Initialize database
+  uri:
+    url: "http://localhost:8000/api/auth/init-db"
+    method: POST
+    status_code: [200, 201]
+  register: db_init_result
+  retries: 5
+  delay: 10
+  until: db_init_result.status == 200 or db_init_result.status == 201
+  when: platform_init_db | default(true)
+
+- name: Verify platform health
+  uri:
+    url: "http://localhost:8000/api/health"
+    method: GET
+    status_code: [200]
+  register: health_check
+  retries: 10
+  delay: 5
+  until: health_check.status == 200
+
+- name: Display platform status
+  debug:
+    msg: "Platform deployed successfully. Health check: {{ health_check.status }}"

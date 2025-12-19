@@ -1,22 +1,53 @@
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
+  external_labels:
+    cluster: 'production'
+    environment: 'on-premise'
 
 scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Platform API
   - job_name: 'platform'
     static_configs:
       - targets: ['platform:8000']
     metrics_path: '/api/health'
+    scrape_interval: 30s
 
+  # Security Service
   - job_name: 'security-service'
     static_configs:
       - targets: ['security-service:8001']
     metrics_path: '/metrics'
-    scrape_interval: 15s
+    scrape_interval: 30s
 
-  - job_name: 'prometheus'
+  # Node Exporter - System metrics
+  - job_name: 'node-exporter'
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # cAdvisor - Container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 30s
+
+  # PostgreSQL Exporter
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+
+  # Redis Exporter (if available)
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
 
 # Alerting rules
 rule_files:
@@ -25,6 +56,12 @@ rule_files:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets: []
+        - targets: ['alertmanager:9093']
 
-
+# Storage configuration
+storage:
+  tsdb:
+    path: /prometheus
+    retention:
+      time: 30d
+      size: 50GB

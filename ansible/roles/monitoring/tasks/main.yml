@@ -1,0 +1,113 @@
+---
+# Monitoring stack setup tasks
+- name: Include exporters setup
+  include: exporters.yml
+
+- name: Create monitoring directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - "{{ monitoring_config_path }}/prometheus"
+    - "{{ monitoring_config_path }}/alertmanager"
+    - "{{ monitoring_config_path }}/grafana"
+    - "{{ monitoring_data_path }}/prometheus"
+    - "{{ monitoring_data_path }}/grafana"
+
+- name: Copy Prometheus configuration
+  template:
+    src: prometheus.yml.j2
+    dest: "{{ monitoring_config_path }}/prometheus/prometheus.yml"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart prometheus
+
+- name: Copy Prometheus alert rules
+  copy:
+    src: "{{ item }}"
+    dest: "{{ monitoring_config_path }}/prometheus/{{ item | basename }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ prometheus_alert_rules_files | default([]) }}"
+  when: prometheus_alert_rules_files is defined
+
+- name: Copy Alertmanager configuration
+  template:
+    src: alertmanager.yml.j2
+    dest: "{{ monitoring_config_path }}/alertmanager/alertmanager.yml"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart alertmanager
+
+- name: Copy Grafana provisioning configuration
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ monitoring_config_path }}/grafana/{{ item.dest }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ grafana_provisioning_files | default([]) }}"
+  when: grafana_provisioning_files is defined
+
+- name: Copy Grafana dashboards
+  copy:
+    src: "{{ item }}"
+    dest: "{{ monitoring_config_path }}/grafana/dashboards/{{ item | basename }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop: "{{ grafana_dashboard_files | default([]) }}"
+  when: grafana_dashboard_files is defined
+
+- name: Ensure monitoring services are running
+  docker_compose:
+    project_src: "{{ platform_deploy_path }}"
+    files:
+      - docker-compose.yml
+    services:
+      - prometheus
+      - alertmanager
+      - grafana
+    state: started
+
+- name: Wait for Prometheus to be ready
+  wait_for:
+    port: "{{ prometheus_port }}"
+    host: localhost
+    delay: 10
+    timeout: 300
+
+- name: Wait for Grafana to be ready
+  wait_for:
+    port: "{{ grafana_port }}"
+    host: localhost
+    delay: 10
+    timeout: 300
+
+- name: Configure Grafana data source
+  uri:
+    url: "http://localhost:{{ grafana_port }}/api/datasources"
+    method: POST
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Basic {{ grafana_admin_credentials | b64encode }}"
+    body_format: json
+    body:
+      name: "Prometheus"
+      type: "prometheus"
+      url: "http://prometheus:9090"
+      access: "proxy"
+      isDefault: true
+    status_code: [200, 201, 409]
+  register: grafana_datasource
+  when: grafana_configure_datasource | default(true)
+
+- name: Display monitoring status
+  debug:
+    msg: "Monitoring stack deployed. Prometheus: {{ prometheus_port }}, Grafana: {{ grafana_port }}"

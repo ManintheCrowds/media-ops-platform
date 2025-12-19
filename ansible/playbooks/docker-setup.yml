@@ -1,0 +1,9 @@
+---
+# Docker installation and configuration
+- name: Setup Docker on servers
+  hosts: servers
+  become: yes
+  gather_facts: yes
+  
+  roles:
+    - docker

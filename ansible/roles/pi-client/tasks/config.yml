@@ -1,0 +1,28 @@
+---
+# Pi client configuration management
+- name: Backup current configuration
+  copy:
+    src: "{{ pi_client_config_path }}/config.yaml"
+    dest: "{{ pi_client_config_path }}/config.yaml.backup-{{ ansible_date_time.epoch }}"
+    remote_src: yes
+  when: pi_backup_config | default(true)
+
+- name: Update configuration file
+  template:
+    src: config.yaml.j2
+    dest: "{{ pi_client_config_path }}/config.yaml"
+    owner: pi-client
+    group: pi-client
+    mode: '0644'
+  notify: restart pi-client
+
+- name: Validate configuration
+  command: "{{ pi_client_install_path }}/venv/bin/python -c 'import yaml; yaml.safe_load(open(\"{{ pi_client_config_path }}/config.yaml\"))'"
+  register: config_validation
+  changed_when: false
+  failed_when: config_validation.rc != 0
+
+- name: Display configuration validation
+  debug:
+    msg: "Configuration validated successfully"
+  when: config_validation.rc == 0

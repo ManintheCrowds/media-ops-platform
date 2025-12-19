@@ -1,0 +1,14 @@
+# Logrotate configuration for platform
+/var/log/platform/*.log {
+    daily
+    rotate {{ logrotate_retention_days | default(30) }}
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 root root
+    sharedscripts
+    postrotate
+        /bin/kill -HUP `cat /var/run/syslogd.pid 2> /dev/null` 2> /dev/null || true
+    endscript
+}

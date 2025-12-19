@@ -1,0 +1,33 @@
+{{ define "email.default.html" }}
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .alert { border-left: 4px solid #3498db; padding: 10px; margin: 10px 0; }
+        .critical { border-left-color: #e74c3c; }
+        .warning { border-left-color: #f39c12; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h2>Platform Alert</h2>
+    <div class="alert {{ .Status }}">
+        <h3>{{ .GroupLabels.alertname }}</h3>
+        <p><strong>Status:</strong> {{ .Status }}</p>
+        <p><strong>Service:</strong> {{ .GroupLabels.service }}</p>
+        <p><strong>Cluster:</strong> {{ .GroupLabels.cluster }}</p>
+        {{ range .Alerts }}
+        <p><strong>Description:</strong> {{ .Annotations.description }}</p>
+        <p><strong>Summary:</strong> {{ .Annotations.summary }}</p>
+        <p><strong>Started:</strong> {{ .StartsAt }}</p>
+        {{ if .EndsAt }}
+        <p><strong>Ended:</strong> {{ .EndsAt }}</p>
+        {{ end }}
+        {{ end }}
+    </div>
+</body>
+</html>
+{{ end }}

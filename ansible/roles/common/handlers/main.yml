@@ -1,0 +1,13 @@
+---
+# Handlers for common role
+- name: restart ntp
+  systemd:
+    name: ntp
+    state: restarted
+  when: ansible_os_family == "Debian"
+
+- name: restart chronyd
+  systemd:
+    name: chronyd
+    state: restarted
+  when: ansible_os_family == "RedHat"

@@ -1,0 +1,99 @@
+---
+# Common server setup tasks
+- name: Update system packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+    autoremove: yes
+    autoclean: yes
+  when: ansible_os_family == "Debian"
+
+- name: Update system packages (RedHat)
+  yum:
+    name: "*"
+    state: latest
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Install essential packages
+  package:
+    name:
+      - curl
+      - wget
+      - git
+      - vim
+      - htop
+      - net-tools
+      - ufw
+      - ntp
+      - logrotate
+    state: present
+
+- name: Create system users
+  user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups | default([]) }}"
+    shell: "{{ item.shell | default('/bin/bash') }}"
+    create_home: yes
+    state: present
+  loop: "{{ system_users }}"
+  when: system_users is defined
+
+- name: Setup SSH keys for users
+  authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ item.key }}"
+    state: present
+  loop: "{{ system_users }}"
+  when: system_users is defined and item.ssh_keys is defined
+
+- name: Configure timezone
+  timezone:
+    name: "{{ timezone }}"
+
+- name: Configure NTP
+  template:
+    src: ntp.conf.j2
+    dest: /etc/ntp.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart ntp
+  when: ntp_servers is defined
+
+- name: Enable and start NTP service
+  systemd:
+    name: ntp
+    enabled: yes
+    state: started
+  when: ansible_os_family == "Debian"
+
+- name: Enable and start chronyd service
+  systemd:
+    name: chronyd
+    enabled: yes
+    state: started
+  when: ansible_os_family == "RedHat"
+
+- name: Configure firewall
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop: "{{ firewall_allowed_tcp_ports }}"
+  when: firewall_enabled | default(true) and ansible_os_family == "Debian"
+
+- name: Enable firewall
+  ufw:
+    state: enabled
+    policy: deny
+  when: firewall_enabled | default(true) and ansible_os_family == "Debian"
+
+- name: Configure logrotate
+  template:
+    src: logrotate.conf.j2
+    dest: /etc/logrotate.d/platform
+    owner: root
+    group: root
+    mode: '0644'
+  when: logrotate_enabled | default(true)

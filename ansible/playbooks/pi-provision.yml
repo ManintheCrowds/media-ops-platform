@@ -1,0 +1,20 @@
+---
+# Raspberry Pi provisioning playbook
+- name: Provision Raspberry Pi devices
+  hosts: pi_devices
+  become: yes
+  gather_facts: yes
+  
+  roles:
+    - pi-client
+  
+  post_tasks:
+    - name: Verify Pi client installation
+      command: systemctl status pi-client
+      register: pi_client_status
+      changed_when: false
+      failed_when: false
+    
+    - name: Display Pi client status
+      debug:
+        msg: "Pi client status: {{ pi_client_status.stdout }}"

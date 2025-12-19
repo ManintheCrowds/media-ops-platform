@@ -1,0 +1,10 @@
+---
+# Handlers for pi-client role
+- name: reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: restart pi-client
+  systemd:
+    name: pi-client
+    state: restarted

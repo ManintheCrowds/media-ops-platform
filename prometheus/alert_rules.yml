@@ -1,6 +1,78 @@
-# Security alerting rules for Prometheus
+# Comprehensive alerting rules for Prometheus
 
 groups:
+  # Service Availability Alerts
+  - name: service_availability
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up{job=~"platform|postgres|prometheus|grafana"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute"
+
+      - alert: DatabaseDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database is down"
+          description: "PostgreSQL database is not responding"
+
+      - alert: PlatformAPIDown
+        expr: up{job="platform"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Platform API is down"
+          description: "Platform API has been down for more than 2 minutes"
+
+  # Resource Usage Alerts
+  - name: resource_usage
+    interval: 30s
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 80% for 5 minutes"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 85% for 5 minutes"
+
+      - alert: HighDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High disk usage on {{ $labels.instance }}"
+          description: "Disk usage is above 90% for 5 minutes"
+
+      - alert: ContainerHighMemory
+        expr: container_memory_usage_bytes / container_spec_memory_limit_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} using high memory"
+          description: "Container memory usage is above 90%"
+
+  # Security Alerts
   - name: security_alerts
     interval: 30s
     rules:
@@ -66,3 +138,65 @@ groups:
         annotations:
           summary: "Active critical security incident"
           description: "Critical security incident requires immediate attention"
+
+  # Pi Device Alerts
+  - name: pi_device_alerts
+    interval: 30s
+    rules:
+      - alert: PiDeviceOffline
+        expr: pi_device_last_seen_seconds > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pi device {{ $labels.device_id }} is offline"
+          description: "Pi device {{ $labels.device_id }} has not been seen for more than 5 minutes"
+
+      - alert: PiDeviceSyncFailed
+        expr: pi_device_sync_status == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pi device {{ $labels.device_id }} sync failed"
+          description: "Pi device {{ $labels.device_id }} sync has been failing for 10 minutes"
+
+      - alert: PiDeviceHighErrorRate
+        expr: rate(pi_device_errors_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on Pi device {{ $labels.device_id }}"
+          description: "Pi device {{ $labels.device_id }} is experiencing high error rate"
+
+  # Database Performance Alerts
+  - name: database_performance
+    interval: 30s
+    rules:
+      - alert: DatabaseSlowQueries
+        expr: rate(pg_stat_statements_mean_exec_time[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow database queries detected"
+          description: "Average query execution time is above 1 second"
+
+      - alert: DatabaseConnectionsHigh
+        expr: pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High database connection usage"
+          description: "Database connections are above 80% of maximum"
+
+      - alert: DatabaseReplicationLag
+        expr: pg_replication_lag > 60
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database replication lag detected"
+          description: "Database replication lag is above 60 seconds"

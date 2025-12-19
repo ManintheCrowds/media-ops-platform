@@ -1,0 +1,9 @@
+---
+# Monitoring stack deployment
+- name: Setup monitoring stack
+  hosts: servers
+  become: yes
+  gather_facts: yes
+  
+  roles:
+    - monitoring

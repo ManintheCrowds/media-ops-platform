@@ -1,0 +1,20 @@
+---
+# Default variables for pi-client role
+pi_client_install_path: /opt/pi-client
+pi_client_config_path: /etc/pi-client
+pi_client_data_path: /var/lib/pi-client
+pi_client_version: latest
+pi_hardware_enabled: true
+pi_generate_certificate: true
+pi_register_device: true
+pi_encryption_enabled: true
+pi_backup_config: true
+
+# Device settings
+pi_device_type: kiosk
+pi_organization_id: 1
+
+# Certificate paths
+pi_certificate_path: /etc/pi-client/certs/device.pem
+pi_certificate_key_path: /etc/pi-client/certs/device-key.pem
+pi_certificate_ca: ""

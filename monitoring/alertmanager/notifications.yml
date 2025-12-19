@@ -1,0 +1,45 @@
+# Notification channel configuration
+# This file defines additional notification channels beyond email
+
+# Email notification settings
+email:
+  smtp:
+    host: smtp.example.com
+    port: 587
+    username: alerts@example.com
+    password: your-smtp-password
+    from: alerts@example.com
+    tls: true
+  
+  recipients:
+    default: admin@example.com
+    critical: oncall@example.com
+    warning: admin@example.com
+    platform: platform-team@example.com
+    database: database-team@example.com
+
+# Webhook notifications
+webhooks:
+  - name: security-service
+    url: http://security-service:8001/api/alerts
+    method: POST
+    timeout: 10s
+  
+  - name: slack
+    url: https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+    method: POST
+    timeout: 10s
+
+# Escalation policies
+escalation:
+  - level: 1
+    delay: 5m
+    receivers: ['warning']
+  
+  - level: 2
+    delay: 15m
+    receivers: ['critical']
+  
+  - level: 3
+    delay: 30m
+    receivers: ['critical', 'webhook-security-service']

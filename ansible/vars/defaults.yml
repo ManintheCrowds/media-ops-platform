@@ -1,0 +1,17 @@
+---
+# Default variables for Ansible playbooks
+
+# Ansible user
+ansible_user: ansible
+ansible_ssh_private_key_file: ~/.ssh/id_rsa
+
+# Platform repository
+platform_repo_url: "https://github.com/your-org/software.git"
+platform_repo_branch: main
+
+# Environment
+environment: production
+
+# Secrets (should be in vault)
+# Use: ansible-vault create group_vars/all/vault.yml
+secrets_managed_by_vault: true

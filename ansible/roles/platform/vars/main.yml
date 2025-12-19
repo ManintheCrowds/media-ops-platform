@@ -1,0 +1,25 @@
+---
+# Default variables for platform role
+platform_deploy_path: /opt/platform
+platform_data_path: /var/lib/platform
+platform_repo_url: ""
+platform_repo_branch: main
+platform_init_db: true
+docker_compose_pull: true
+
+# Database defaults
+postgres_user: platform
+postgres_password: platform
+postgres_database: platform
+
+# Service defaults
+seafile_url: http://seafile:8000
+jellyfin_url: http://jellyfin:8096
+gitea_url: http://gitea:3000
+prometheus_url: http://prometheus:9090
+grafana_url: http://grafana:3000
+vaultwarden_url: http://vaultwarden:80
+
+# Secrets (should be in vault)
+platform_secret_key: "change-me-in-production"
+platform_jwt_secret_key: "change-me-in-production-jwt"

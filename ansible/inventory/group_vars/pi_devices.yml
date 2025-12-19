@@ -1,0 +1,36 @@
+---
+# Variables for Raspberry Pi devices
+
+# Pi client settings
+pi_client_version: latest
+pi_client_install_path: /opt/pi-client
+pi_client_config_path: /etc/pi-client
+pi_client_data_path: /var/lib/pi-client
+
+# Pi client configuration
+pi_client_config:
+  api:
+    base_url: "https://education.example.com"
+    timeout: 30
+  cache:
+    max_size_mb: 5000
+    ttl_hours: 168
+  display:
+    port: 8080
+    rotation: landscape
+    fullscreen: true
+  hardware:
+    gpio_enabled: true
+    camera_enabled: false
+    audio_enabled: true
+
+# Update settings
+pi_update_enabled: true
+pi_update_schedule: "0 2 * * *"  # Daily at 2 AM
+pi_update_staged: true
+pi_update_batch_size: 2
+
+# Certificate settings
+pi_certificate_ca: /etc/pi-client/certs/ca.pem
+pi_certificate_path: /etc/pi-client/certs/device.pem
+pi_certificate_key_path: /etc/pi-client/certs/device-key.pem
