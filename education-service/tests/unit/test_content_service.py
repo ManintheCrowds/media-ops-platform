@@ -22,3 +22,4 @@ def test_create_content(db, mock_user):
     # For now, just test the slugify function
     from app.services.content_service import slugify
     assert slugify("Test Content") == "test-content"
+

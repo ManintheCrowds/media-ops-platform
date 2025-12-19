@@ -163,3 +163,4 @@ class Config:
         if not self.api.base_url:
             raise ValueError("api.base_url is required")
         return True
+

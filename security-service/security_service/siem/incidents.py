@@ -133,3 +133,4 @@ class IncidentManager:
             "mean_time_to_resolution_hours": mttr,
             "period_days": days
         }
+

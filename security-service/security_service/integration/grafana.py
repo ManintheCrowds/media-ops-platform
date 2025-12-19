@@ -116,3 +116,4 @@ class GrafanaDashboardManager:
         dashboards.append(self.create_intrusion_detection_dashboard())
         
         return dashboards
+

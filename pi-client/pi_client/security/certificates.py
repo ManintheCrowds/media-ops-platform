@@ -162,3 +162,4 @@ class CertificateManager:
         expiry = self.cert.not_valid_after
         renewal_date = expiry - timedelta(days=days_before_expiry)
         return datetime.utcnow() >= renewal_date
+

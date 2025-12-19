@@ -65,3 +65,4 @@ class TaxonomyTreeResponse(TaxonomyNodeResponse):
 
 
 TaxonomyTreeResponse.model_rebuild()
+

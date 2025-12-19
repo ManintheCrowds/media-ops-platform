@@ -178,3 +178,4 @@ When fetching content items, external references are included in the `external_r
 3. **Cache External Data**: Consider caching frequently accessed external resources
 4. **Monitor Integration Health**: Regularly check integration service health
 5. **Use Metadata**: Store additional metadata in the `metadata` field for custom use cases
+

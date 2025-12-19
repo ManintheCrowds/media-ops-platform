@@ -48,3 +48,4 @@ class GiteaClient:
         except Exception:
             pass
         return None
+

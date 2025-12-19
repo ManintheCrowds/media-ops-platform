@@ -53,3 +53,4 @@ def mock_user():
         is_admin=True,
         is_active=True
     )
+

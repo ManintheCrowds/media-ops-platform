@@ -259,3 +259,4 @@ if __name__ == "__main__":
 - Check audio output device
 - Verify ALSA/PulseAudio is configured
 - Test with system `aplay` command
+

@@ -51,3 +51,4 @@ class JellyfinClient:
         except Exception:
             pass
         return None
+

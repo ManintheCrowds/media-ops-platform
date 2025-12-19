@@ -166,3 +166,4 @@ class AudioManager:
                 pygame.mixer.quit()
             except Exception as e:
                 logger.error(f"Failed to cleanup audio: {e}")
+

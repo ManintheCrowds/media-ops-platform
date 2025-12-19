@@ -165,3 +165,4 @@ class CryptoManager:
         except Exception as e:
             logger.error(f"Failed to decrypt file: {e}", exc_info=True)
             return None
+

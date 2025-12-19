@@ -217,3 +217,4 @@ For devices that need to work offline:
 - Check device has access to organization
 - Review content permissions
 - Test API connectivity
+

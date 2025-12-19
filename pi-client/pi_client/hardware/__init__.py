@@ -6,3 +6,4 @@ from .audio import AudioManager
 from .power import PowerManager
 
 __all__ = ["GPIOInterface", "CameraInterface", "AudioManager", "PowerManager"]
+

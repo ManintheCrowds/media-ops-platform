@@ -150,3 +150,4 @@ class PowerManager:
                 return True
         
         return False
+

@@ -233,3 +233,4 @@ Timestamp: {datetime.utcnow().isoformat()}
         ]
         for key in keys_to_remove:
             del self.sent_alerts[key]
+

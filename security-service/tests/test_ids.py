@@ -59,3 +59,4 @@ def test_brute_force_detection(ids):
     
     # Check if brute force event was created
     # This would require checking the database
+

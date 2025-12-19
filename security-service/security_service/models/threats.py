@@ -128,3 +128,4 @@ class AuditLog(Base):
         Index('idx_audit_logs_type_timestamp', 'event_type', 'timestamp'),
         Index('idx_audit_logs_timestamp', 'timestamp'),
     )
+

@@ -120,3 +120,4 @@ async def initiate_wipe(
         "status": "wipe_initiated",
         "device_id": device_id,
     }
+

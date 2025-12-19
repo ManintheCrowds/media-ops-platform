@@ -146,3 +146,4 @@ class PatchManager:
             patch.current_version = patch.available_version
             patch.patch_available = "false"
             self.db.commit()
+

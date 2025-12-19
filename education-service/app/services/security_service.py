@@ -165,3 +165,4 @@ class SecurityService:
             device.security_status = SecurityStatus.REVOKED
         
         db.commit()
+

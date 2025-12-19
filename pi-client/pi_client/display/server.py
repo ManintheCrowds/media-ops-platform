@@ -106,3 +106,4 @@ class DisplayServer:
                 await self._server_task
             except asyncio.CancelledError:
                 pass
+

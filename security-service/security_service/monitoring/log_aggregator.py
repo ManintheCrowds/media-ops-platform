@@ -177,3 +177,4 @@ class LogAggregator:
             # For file-based logs, we could implement rotation
             # For now, we'll keep all logs and let the system handle rotation
             pass
+

@@ -77,3 +77,4 @@ class DeviceAuthenticator:
         self.current_token = None
         self.token_expires_at = None
         return await self.authenticate()
+

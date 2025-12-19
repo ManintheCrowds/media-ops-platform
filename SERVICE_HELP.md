@@ -517,3 +517,4 @@ The platform provides API endpoints for Vaultwarden (admin only):
 
 **Last Updated:** 2024  
 **Version:** 1.0
+

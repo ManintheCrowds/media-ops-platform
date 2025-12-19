@@ -270,3 +270,4 @@ education-service:
 2. **Connection Pooling**: Adjust SQLAlchemy pool settings
 3. **Caching**: Implement Redis for frequently accessed data
 4. **Async Operations**: Use background tasks for heavy operations
+

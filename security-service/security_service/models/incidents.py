@@ -63,3 +63,4 @@ class SecurityIncident(Base):
         Index('idx_incidents_status_severity', 'status', 'severity'),
         Index('idx_incidents_created_at', 'created_at'),
     )
+

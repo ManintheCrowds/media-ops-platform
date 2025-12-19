@@ -104,3 +104,4 @@ async def get_project_content(
     """Get all content items in a project."""
     content_items = ProjectService.get_project_content(db, project_id)
     return [ContentItemResponse.model_validate(item) for item in content_items]
+

@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<!--
+    Cursor IDE Firewall Rules Configuration
+    This file contains firewall aliases and rules for monitoring Cursor IDE traffic
+    Import into pfSense via: System > Diagnostics > Backup & Restore > Restore Configuration
+-->
+<pfsense>
+    <aliases>
+        <!-- Cursor API Endpoints -->
+        <alias>
+            <name>CursorAPI</name>
+            <type>host</type>
+            <address>api.cursor.com</address>
+            <descr>Cursor API endpoint</descr>
+        </alias>
+        
+        <!-- Cursor CDN -->
+        <alias>
+            <name>CursorCDN</name>
+            <type>host</type>
+            <address>cdn.cursor.com</address>
+            <descr>Cursor CDN endpoint</descr>
+        </alias>
+        
+        <!-- Cursor Wildcard Domain -->
+        <alias>
+            <name>CursorWildcard</name>
+            <type>host</type>
+            <address>*.cursor.sh</address>
+            <descr>Cursor wildcard domain</descr>
+        </alias>
+        
+        <!-- Combined Cursor Endpoints -->
+        <alias>
+            <name>CursorEndpoints</name>
+            <type>network</type>
+            <address>
+                <item>
+                    <address>CursorAPI</address>
+                    <descr>Cursor API</descr>
+                </item>
+                <item>
+                    <address>CursorCDN</address>
+                    <descr>Cursor CDN</descr>
+                </item>
+            </address>
+            <descr>All Cursor endpoints</descr>
+        </alias>
+    </aliases>
+    
+    <filter>
+        <!-- Rule to allow and log Cursor traffic -->
+        <rule>
+            <type>pass</type>
+            <interface>lan</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>tcp</protocol>
+            <source>
+                <any/>
+            </source>
+            <destination>
+                <address>CursorEndpoints</address>
+                <port>443</port>
+            </destination>
+            <descr>Allow Cursor HTTPS traffic (logged)</descr>
+            <log>1</log>
+            <statetype>keep state</statetype>
+        </rule>
+        
+        <!-- Rule to allow and log Cursor WebSocket traffic -->
+        <rule>
+            <type>pass</type>
+            <interface>lan</interface>
+            <ipprotocol>inet</ipprotocol>
+            <protocol>tcp</protocol>
+            <source>
+                <any/>
+            </source>
+            <destination>
+                <address>CursorEndpoints</address>
+                <port>443</port>
+            </destination>
+            <descr>Allow Cursor WebSocket traffic (logged)</descr>
+            <log>1</log>
+            <statetype>keep state</statetype>
+        </rule>
+    </filter>
+    
+    <!-- Logging Configuration -->
+    <syslog>
+        <remoteserver>YOUR_MONITORING_SERVER_IP</remoteserver>
+        <remoteserverport>514</remoteserverport>
+        <sourceip>YOUR_PFSENSE_IP</sourceip>
+        <ipproto>ipv4</ipproto>
+    </syslog>
+</pfsense>

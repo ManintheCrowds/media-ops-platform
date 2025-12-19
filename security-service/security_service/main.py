@@ -437,3 +437,4 @@ async def get_compliance_report(
         raise HTTPException(status_code=400, detail="Invalid report type")
     
     return report
+

@@ -59,3 +59,4 @@ class SecurityEvent(Base):
         Index('idx_security_events_source_ip_detected', 'source_ip', 'detected_at'),
         Index('idx_security_events_type_severity', 'event_type', 'severity'),
     )
+

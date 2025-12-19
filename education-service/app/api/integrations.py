@@ -233,3 +233,4 @@ async def fetch_external_resource(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Unknown service: {service}"
         )
+

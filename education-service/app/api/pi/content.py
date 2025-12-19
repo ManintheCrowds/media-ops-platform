@@ -87,3 +87,4 @@ async def get_display_config(
         "display_settings": device.settings.get("display", {}),
         "capabilities": device.capabilities,
     }
+

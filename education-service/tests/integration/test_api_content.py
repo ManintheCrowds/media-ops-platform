@@ -19,3 +19,4 @@ def test_root_endpoint(client):
     assert "service" in data
     assert "version" in data
     assert "status" in data
+

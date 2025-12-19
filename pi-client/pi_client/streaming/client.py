@@ -164,3 +164,4 @@ class StreamingClient:
             "buffer": self.buffer_manager.get_stats(),
             "quality": self.quality_manager.get_recommended_quality().value,
         }
+

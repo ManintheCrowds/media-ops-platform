@@ -147,3 +147,4 @@ class BackupVerifier:
             "oldest_backup": oldest_backup.isoformat() if oldest_backup else None,
             "newest_backup": newest_backup.isoformat() if newest_backup else None
         }
+

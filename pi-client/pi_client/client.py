@@ -226,3 +226,4 @@ class PiAPIClient:
         }
         response = await self._request("POST", f"/devices/{device_id}/sensors/data", json=data)
         return response.json()
+

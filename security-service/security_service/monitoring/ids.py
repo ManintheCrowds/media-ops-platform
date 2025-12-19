@@ -236,3 +236,4 @@ class IntrusionDetectionSystem:
             description=f"Failed login attempt from {source_ip}",
             metadata={"action": "failed_login"}
         )
+

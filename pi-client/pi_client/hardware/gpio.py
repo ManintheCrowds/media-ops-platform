@@ -159,3 +159,4 @@ class GPIOInterface:
     def __del__(self):
         """Destructor - cleanup on deletion."""
         self.cleanup()
+

@@ -47,3 +47,4 @@ def test_is_ip_blocked(firewall):
     # Check non-blocked IP
     is_blocked = firewall.is_ip_blocked("192.168.1.300")
     assert is_blocked is False
+

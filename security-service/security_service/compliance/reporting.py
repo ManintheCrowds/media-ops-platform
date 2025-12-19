@@ -146,3 +146,4 @@ class ComplianceReporter:
                     writer.writerow([key, value])
         
         return filepath
+

@@ -109,3 +109,4 @@ class AuditLogger:
                 tampered.append(entry)
         
         return tampered
+

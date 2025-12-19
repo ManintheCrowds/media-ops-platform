@@ -383,11 +383,25 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Documentation
 
+### Project Documentation
+
 - [Architecture Documentation](docs/ARCHITECTURE.md) - System architecture and design
 - [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment instructions
 - [Development Guide](docs/DEVELOPMENT.md) - Development setup and contributing
 - [Security Guide](docs/SECURITY.md) - Security best practices and configuration
 - [API Documentation](API.md) - API endpoint reference
+
+### AI Agent Documentation
+
+- **[AI Documentation Index](docs/AI_DOCUMENTATION_INDEX.md)** - Master navigation hub for all AI documentation
+- [AI Principles](docs/AI_PRINCIPLES.md) - Core principles, safety mechanisms, and governance framework
+- [AI Patterns](docs/AI_PATTERNS.md) - Code implementation patterns with real examples
+- [AI Task Templates](docs/AI_TASK_TEMPLATES.md) - Standardized task decomposition templates
+- [AI Validation Checklist](docs/AI_VALIDATION_CHECKLIST.md) - Pre-execution validation checklists
+- [AI Codebase Map](docs/AI_CODEBASE_MAP.md) - Navigation guide and file location reference
+- [AI Prompt Library](docs/AI_PROMPT_LIBRARY.md) - Reusable prompt templates for AI interactions
+
+These AI documentation files work together as a cohesive system to guide AI agents and maintain alignment with project principles. Start with the [AI Documentation Index](docs/AI_DOCUMENTATION_INDEX.md) for navigation.
 
 ## Support
 

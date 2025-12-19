@@ -122,3 +122,4 @@ class DisplayManager:
         elif self.current_mode == DisplayMode.KIOSK:
             # In kiosk mode, touch might advance to next content
             asyncio.create_task(self._rotate_to_next_content())
+

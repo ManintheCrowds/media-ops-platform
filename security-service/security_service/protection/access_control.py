@@ -121,3 +121,4 @@ class AccessControlEngine:
     def create_policy(self, policy: AccessControlPolicy):
         """Create new access control policy."""
         self.policies[policy.policy_id] = policy
+

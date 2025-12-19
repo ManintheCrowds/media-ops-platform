@@ -63,3 +63,4 @@ class SyncCheckResponse(BaseModel):
     last_sync: Optional[datetime] = None
     sync_status: SyncStatus
     available_packages: List[PiSyncPackageResponse] = []
+

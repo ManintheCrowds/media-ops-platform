@@ -49,6 +49,14 @@ scrape_configs:
       - targets: ['redis-exporter:9121']
     scrape_interval: 30s
 
+  # Cursor Exporter - Windows client metrics
+  - job_name: 'cursor-exporter'
+    static_configs:
+      - targets: ['host.docker.internal:9101']  # Windows host
+    scrape_interval: 30s
+    metrics_path: '/metrics'
+    scrape_timeout: 10s
+
 # Alerting rules
 rule_files:
   - '/etc/prometheus/alert_rules.yml'

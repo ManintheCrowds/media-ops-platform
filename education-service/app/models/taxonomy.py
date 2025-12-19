@@ -50,3 +50,4 @@ class TaxonomyNode(Base):
     # Relationships
     parent = relationship("TaxonomyNode", remote_side=[id], backref="children")
     content_items = relationship("ContentItem", secondary=content_taxonomy, back_populates="taxonomy_nodes")
+

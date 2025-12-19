@@ -200,3 +200,61 @@ groups:
         annotations:
           summary: "Database replication lag detected"
           description: "Database replication lag is above 60 seconds"
+
+  # Cursor Connection Alerts
+  - name: cursor_connection_alerts
+    interval: 30s
+    rules:
+      - alert: CursorHighLatency
+        expr: cursor_latency_seconds > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency to Cursor endpoint {{ $labels.endpoint }}"
+          description: "Latency to {{ $labels.endpoint }} is {{ $value }}s (threshold: 0.5s)"
+
+      - alert: CursorHighPacketLoss
+        expr: cursor_packet_loss_ratio > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High packet loss to Cursor endpoint {{ $labels.endpoint }}"
+          description: "Packet loss to {{ $labels.endpoint }} is {{ $value | humanizePercentage }} (threshold: 5%)"
+
+      - alert: CursorFrequentDisconnects
+        expr: rate(cursor_disconnects_total[5m]) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Frequent disconnects from Cursor endpoint {{ $labels.endpoint }}"
+          description: "{{ $value }} disconnects per minute detected"
+
+      - alert: CursorDNSResolutionFailure
+        expr: cursor_dns_resolution_seconds == 0 and cursor_connections_active == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "DNS resolution failure for Cursor endpoint {{ $labels.endpoint }}"
+          description: "Unable to resolve DNS for {{ $labels.endpoint }}"
+
+      - alert: CursorConnectionTimeout
+        expr: increase(cursor_connection_errors_total{error_type="timeout"}[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Connection timeouts to Cursor endpoint {{ $labels.endpoint }}"
+          description: "{{ $value }} timeout errors in the last 5 minutes"
+
+      - alert: CursorNoActiveConnections
+        expr: cursor_connections_active == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No active Cursor connections"
+          description: "No active connections to Cursor endpoints for 10 minutes"

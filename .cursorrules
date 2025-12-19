@@ -1,0 +1,87 @@
+# AI Agent Operating Principles
+
+This file defines the core principles for AI agents operating in this codebase. See `docs/AI_PRINCIPLES.md` for comprehensive documentation.
+
+## Core Invariants
+
+1. **Human-Gated Autonomy**: AI proposes, humans approve. Every execution path requires explicit human approval and rollback hooks.
+
+2. **Risk-Tiered Operations**: All changes must be categorized (Low/Medium/High/Critical) with proportional safeguards:
+   - Low: Git commit, single reviewer
+   - Medium: Git tag + backup, two reviewers
+   - High: Full backup + lead approval
+   - Critical: Multiple backups + team consensus
+
+3. **Reversible by Default**: Every change must include:
+   - Git tag before change
+   - Backup of affected systems
+   - Documented rollback procedure
+   - Tested rollback in staging
+
+## Multi-Agent Coordination
+
+- **Deterministic Coordination**: Use atomic locks and explicit status tracking. Never assume resources are available.
+- **Scope Before Scale**: Validate with small agent counts before scaling. Test single agent → 2-3 agents → gradual scaling.
+- **Expand by Type, Not Volume**: Add new task type capabilities before adding more agents of the same type.
+
+## Documentation & Memory
+
+- **Preserve Before Moving**: Extract unique context before archiving. Create preservation records with cross-references.
+- **Triple-Check Integrity**: Automated scans + AI checks + manual review before archiving.
+- **Traceability**: Every relocation must have an auditable trail (source, destination, rationale, date).
+
+## Prompting Principles
+
+- **Decompose, Then Orchestrate**: Break tasks into WBS with dependency mapping and parallelization strategy.
+- **Validate Early**: Fail-fast checks for APIs, services, dependencies before starting work.
+- **Design for Reversibility**: Include rollback plans, idempotency, feature flags, and backward compatibility.
+
+## Task Execution
+
+- **Model as Typed Tasks**: Explicit categories (CONFIG, DOCS, CODE, DEPLOY, TEST), inputs, outputs, dependencies.
+- **Small Observable Steps**: Minimal testable increments with validation before/after each step.
+- **Standardized Prompts**: Use consistent prompt templates for decomposition, validation, and safety checks.
+
+## Required Before Any Change
+
+- [ ] Risk level assigned and documented
+- [ ] Git tag created (for Medium+ risk)
+- [ ] Backups completed (for Medium+ risk)
+- [ ] Rollback plan documented and tested
+- [ ] Human approval obtained
+- [ ] Task dependencies mapped
+- [ ] Early validation checks passed
+
+## Code Style & Practices
+
+- Follow existing code patterns in the codebase
+- Use type hints for all functions
+- Include docstrings for public APIs
+- Write tests for new functionality
+- Update documentation when adding features
+- Follow PEP 8 style guide
+
+## Safety First
+
+When in doubt:
+1. Ask for human approval
+2. Create backups
+3. Test in isolation
+4. Document thoroughly
+5. Make changes reversible
+
+See `docs/AI_PRINCIPLES.md` for detailed guidance on all principles.
+
+## See Also
+
+For comprehensive AI documentation, see:
+
+- **Start Here**: [AI Documentation Index](docs/AI_DOCUMENTATION_INDEX.md) - Master navigation hub
+- [AI Principles](docs/AI_PRINCIPLES.md) - Detailed principles and governance framework
+- [AI Patterns](docs/AI_PATTERNS.md) - Code implementation patterns and examples
+- [AI Task Templates](docs/AI_TASK_TEMPLATES.md) - Task decomposition templates with dependency graphs
+- [AI Validation Checklist](docs/AI_VALIDATION_CHECKLIST.md) - Pre-execution validation checklists
+- [AI Codebase Map](docs/AI_CODEBASE_MAP.md) - Navigation guide and file location reference
+- [AI Prompt Library](docs/AI_PROMPT_LIBRARY.md) - Reusable prompt templates for AI interactions
+
+These documents work together as a cohesive system. Reference them as needed for specific tasks.

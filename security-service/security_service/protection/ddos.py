@@ -110,3 +110,4 @@ class DDoSProtection:
             # Remove empty entries
             if not self.request_counts[ip]:
                 del self.request_counts[ip]
+

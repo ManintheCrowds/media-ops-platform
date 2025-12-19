@@ -91,3 +91,4 @@ async def mark_sync_complete(
     """Mark sync as complete."""
     PiSyncService.mark_sync_complete(db, device_id, package_id)
     return {"status": "completed"}
+

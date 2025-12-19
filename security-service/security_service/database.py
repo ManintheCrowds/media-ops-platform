@@ -36,3 +36,4 @@ def init_db():
     from .models import security_events, incidents, threats
     
     Base.metadata.create_all(bind=engine)
+

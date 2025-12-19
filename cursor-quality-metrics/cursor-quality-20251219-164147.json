@@ -1,0 +1,196 @@
+﻿{
+    "StartTime":  "2025-12-19 16:39:21",
+    "Endpoints":  {
+                      "api.cursor.com":  {
+                                             "PingResults":  [
+                                                                 {
+                                                                     "PacketsLost":  5,
+                                                                     "PacketsSent":  10,
+                                                                     "LatencyMax":  null,
+                                                                     "LatencyAvg":  null,
+                                                                     "Error":  null,
+                                                                     "PacketLossPercent":  100,
+                                                                     "Latencies":  [
+
+                                                                                   ],
+                                                                     "Target":  "3.232.152.42",
+                                                                     "PacketsReceived":  0,
+                                                                     "Success":  false,
+                                                                     "LatencyMin":  null,
+                                                                     "Timestamp":  "2025-12-19 16:39:21"
+                                                                 },
+                                                                 {
+                                                                     "PacketsLost":  5,
+                                                                     "PacketsSent":  10,
+                                                                     "LatencyMax":  null,
+                                                                     "LatencyAvg":  null,
+                                                                     "Error":  null,
+                                                                     "PacketLossPercent":  100,
+                                                                     "Latencies":  [
+
+                                                                                   ],
+                                                                     "Target":  "3.223.196.161",
+                                                                     "PacketsReceived":  0,
+                                                                     "Success":  false,
+                                                                     "LatencyMin":  null,
+                                                                     "Timestamp":  "2025-12-19 16:39:57"
+                                                                 },
+                                                                 {
+                                                                     "PacketsLost":  5,
+                                                                     "PacketsSent":  10,
+                                                                     "LatencyMax":  null,
+                                                                     "LatencyAvg":  null,
+                                                                     "Error":  null,
+                                                                     "PacketLossPercent":  100,
+                                                                     "Latencies":  [
+
+                                                                                   ],
+                                                                     "Target":  "3.232.152.42",
+                                                                     "PacketsReceived":  0,
+                                                                     "Success":  false,
+                                                                     "LatencyMin":  null,
+                                                                     "Timestamp":  "2025-12-19 16:40:32"
+                                                                 },
+                                                                 {
+                                                                     "PacketsLost":  5,
+                                                                     "PacketsSent":  10,
+                                                                     "LatencyMax":  null,
+                                                                     "LatencyAvg":  null,
+                                                                     "Error":  null,
+                                                                     "PacketLossPercent":  100,
+                                                                     "Latencies":  [
+
+                                                                                   ],
+                                                                     "Target":  "3.223.196.161",
+                                                                     "PacketsReceived":  0,
+                                                                     "Success":  false,
+                                                                     "LatencyMin":  null,
+                                                                     "Timestamp":  "2025-12-19 16:41:07"
+                                                                 },
+                                                                 {
+                                                                     "PacketsLost":  5,
+                                                                     "PacketsSent":  10,
+                                                                     "LatencyMax":  null,
+                                                                     "LatencyAvg":  null,
+                                                                     "Error":  null,
+                                                                     "PacketLossPercent":  100,
+                                                                     "Latencies":  [
+
+                                                                                   ],
+                                                                     "Target":  "52.55.199.72",
+                                                                     "PacketsReceived":  0,
+                                                                     "Success":  false,
+                                                                     "LatencyMin":  null,
+                                                                     "Timestamp":  "2025-12-19 16:41:42"
+                                                                 }
+                                                             ],
+                                             "WebSocketResults":  [
+
+                                                                  ],
+                                             "HTTPResults":  [
+                                                                 {
+                                                                     "Latency":  624,
+                                                                     "StatusCode":  200,
+                                                                     "Error":  null,
+                                                                     "Success":  true,
+                                                                     "Timestamp":  "2025-12-19 16:39:26",
+                                                                     "Url":  "https://api.cursor.com"
+                                                                 },
+                                                                 {
+                                                                     "Latency":  103,
+                                                                     "StatusCode":  200,
+                                                                     "Error":  null,
+                                                                     "Success":  true,
+                                                                     "Timestamp":  "2025-12-19 16:40:01",
+                                                                     "Url":  "https://api.cursor.com"
+                                                                 },
+                                                                 {
+                                                                     "Latency":  152,
+                                                                     "StatusCode":  200,
+                                                                     "Error":  null,
+                                                                     "Success":  true,
+                                                                     "Timestamp":  "2025-12-19 16:40:36",
+                                                                     "Url":  "https://api.cursor.com"
+                                                                 },
+                                                                 {
+                                                                     "Latency":  127,
+                                                                     "StatusCode":  200,
+                                                                     "Error":  null,
+                                                                     "Success":  true,
+                                                                     "Timestamp":  "2025-12-19 16:41:11",
+                                                                     "Url":  "https://api.cursor.com"
+                                                                 },
+                                                                 {
+                                                                     "Latency":  166,
+                                                                     "StatusCode":  200,
+                                                                     "Error":  null,
+                                                                     "Success":  true,
+                                                                     "Timestamp":  "2025-12-19 16:41:46",
+                                                                     "Url":  "https://api.cursor.com"
+                                                                 }
+                                                             ],
+                                             "DNSResults":  [
+                                                                {
+                                                                    "Resolved":  true,
+                                                                    "Timestamp":  "2025-12-19 16:39:21",
+                                                                    "Error":  null,
+                                                                    "Hostname":  "api.cursor.com",
+                                                                    "IPs":  [
+                                                                                "3.232.152.42",
+                                                                                "52.55.199.72",
+                                                                                "3.223.196.161"
+                                                                            ],
+                                                                    "ResolutionTime":  123
+                                                                },
+                                                                {
+                                                                    "Resolved":  true,
+                                                                    "Timestamp":  "2025-12-19 16:39:57",
+                                                                    "Error":  null,
+                                                                    "Hostname":  "api.cursor.com",
+                                                                    "IPs":  [
+                                                                                "3.223.196.161",
+                                                                                "52.55.199.72",
+                                                                                "3.232.152.42"
+                                                                            ],
+                                                                    "ResolutionTime":  109
+                                                                },
+                                                                {
+                                                                    "Resolved":  true,
+                                                                    "Timestamp":  "2025-12-19 16:40:32",
+                                                                    "Error":  null,
+                                                                    "Hostname":  "api.cursor.com",
+                                                                    "IPs":  [
+                                                                                "3.232.152.42",
+                                                                                "52.55.199.72",
+                                                                                "3.223.196.161"
+                                                                            ],
+                                                                    "ResolutionTime":  55
+                                                                },
+                                                                {
+                                                                    "Resolved":  true,
+                                                                    "Timestamp":  "2025-12-19 16:41:07",
+                                                                    "Error":  null,
+                                                                    "Hostname":  "api.cursor.com",
+                                                                    "IPs":  [
+                                                                                "3.223.196.161",
+                                                                                "52.55.199.72",
+                                                                                "3.232.152.42"
+                                                                            ],
+                                                                    "ResolutionTime":  29
+                                                                },
+                                                                {
+                                                                    "Resolved":  true,
+                                                                    "Timestamp":  "2025-12-19 16:41:42",
+                                                                    "Error":  null,
+                                                                    "Hostname":  "api.cursor.com",
+                                                                    "IPs":  [
+                                                                                "52.55.199.72",
+                                                                                "3.232.152.42",
+                                                                                "3.223.196.161"
+                                                                            ],
+                                                                    "ResolutionTime":  94
+                                                                }
+                                                            ]
+                                         }
+                  }
+}

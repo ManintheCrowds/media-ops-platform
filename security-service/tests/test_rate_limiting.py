@@ -33,3 +33,4 @@ def test_endpoint_rate_limit():
     
     allowed, remaining, reset = limiter.check_endpoint_rate_limit("/api/test", "192.168.1.100")
     assert allowed is True
+

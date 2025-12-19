@@ -176,3 +176,4 @@ class CorrelationEngine:
         self.db.refresh(incident)
         
         return incident
+

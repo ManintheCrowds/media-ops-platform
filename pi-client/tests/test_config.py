@@ -57,3 +57,4 @@ def test_config_validate():
     config.device.device_id = ""
     with pytest.raises(ValueError):
         config.validate()
+

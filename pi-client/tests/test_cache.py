@@ -67,3 +67,4 @@ def test_cache_manager_invalidate(config):
     # Should not be in cache
     cached = manager.get_content(1)
     assert cached is None
+

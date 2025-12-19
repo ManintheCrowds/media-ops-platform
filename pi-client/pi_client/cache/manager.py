@@ -142,3 +142,4 @@ class CacheManager:
             "usage_percent": (cache_size / self.max_size_bytes) * 100,
             "metadata_items": len(self._metadata_cache),
         }
+

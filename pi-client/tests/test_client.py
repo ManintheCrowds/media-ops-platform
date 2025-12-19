@@ -53,3 +53,4 @@ async def test_stream_media(config):
             response = await client.stream_media(1, start_byte=0, end_byte=1023)
         
         assert response.content == b"test video data"
+

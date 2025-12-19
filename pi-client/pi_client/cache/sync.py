@@ -209,3 +209,4 @@ class SyncManager:
         except Exception as e:
             logger.error(f"Failed to request incremental sync: {e}", exc_info=True)
             return False
+

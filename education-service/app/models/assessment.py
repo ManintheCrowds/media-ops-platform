@@ -57,3 +57,4 @@ class AssessmentSubmission(Base):
     
     # Relationships
     assessment = relationship("Assessment", back_populates="submissions")
+

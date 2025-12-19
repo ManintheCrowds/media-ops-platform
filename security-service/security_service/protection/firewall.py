@@ -180,3 +180,4 @@ class FirewallAutomation:
         """Remove rule from actual firewall system."""
         # Similar to _apply_firewall_rule but for removal
         print(f"Would remove firewall rule: {rule.id}")
+

@@ -80,3 +80,4 @@ class BookStackClient:
         except Exception:
             pass
         return None
+
