@@ -166,3 +166,4 @@ class CryptoManager:
             logger.error(f"Failed to decrypt file: {e}", exc_info=True)
             return None
 
+

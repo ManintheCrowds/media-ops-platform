@@ -108,10 +108,12 @@ docker exec -it platform-postgres psql -U platform -d platform
 
 Key environment variables in `.env`:
 
-- `SECRET_KEY`: Secret key for application (change in production!)
-- `JWT_SECRET_KEY`: Secret key for JWT tokens (change in production!)
+- **`SECRET_KEY`** (REQUIRED): Secret key for application. Must be at least 32 characters long. The application will fail to start if not set. Generate with: `python -c "import secrets; print(secrets.token_urlsafe(32))"`
+- **`JWT_SECRET_KEY`** (REQUIRED): Secret key for JWT tokens. Must be at least 32 characters long. The application will fail to start if not set. Generate with: `python -c "import secrets; print(secrets.token_urlsafe(32))"`
 - `DATABASE_URL`: PostgreSQL connection string
 - Service-specific URLs and tokens
+
+**⚠️ WARNING**: The application will not start without `SECRET_KEY` and `JWT_SECRET_KEY` set. These are mandatory environment variables with no default values for security reasons.
 
 ### Service Configuration
 
@@ -365,7 +367,7 @@ For more details, see [Development Guide](docs/DEVELOPMENT.md).
 
 ## Security Considerations
 
-1. **Change Default Secrets**: Update all secrets in `.env` before production use
+1. **Required Secrets**: `SECRET_KEY` and `JWT_SECRET_KEY` must be set as environment variables (no defaults). Generate strong secrets (32+ characters) before deployment.
 2. **Use HTTPS**: Configure SSL/TLS certificates for production
 3. **Firewall**: Restrict access to necessary ports only
 4. **Regular Updates**: Keep all containers and dependencies updated

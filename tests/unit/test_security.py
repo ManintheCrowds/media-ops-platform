@@ -203,24 +203,50 @@ class TestServiceSecurity:
         assert "auth_token" not in data or data.get("auth_token") is None
     
     def test_service_url_validation(self, client, admin_token):
-        """Test that service URLs are validated."""
+        """Test that service URLs are validated to prevent SSRF attacks."""
         invalid_urls = [
-            "not-a-url",
-            "ftp://insecure:21",
-            "javascript:alert('xss')",
-            ""
+            ("not-a-url", "Invalid URL"),
+            ("ftp://insecure:21", "scheme"),
+            ("javascript:alert('xss')", "scheme"),
+            ("", "empty"),
+            ("http://localhost:8000", "Localhost"),
+            ("http://127.0.0.1:8000", "Localhost"),
+            ("http://192.168.1.1:8000", "Private IP"),
+            ("file:///etc/passwd", "scheme"),
         ]
         
-        for url in invalid_urls:
+        for url, expected_error_keyword in invalid_urls:
             response = client.post(
                 "/api/services",
                 headers={"Authorization": f"Bearer {admin_token}"},
                 json={
-                    "name": f"test-{url[:10]}",
+                    "name": f"test-{hash(url) % 10000}",  # Unique name
                     "service_type": "file_storage",
                     "base_url": url
                 }
             )
-            # Should validate URL format
-            # Current implementation may not validate, but we test the behavior
-            assert response.status_code in [status.HTTP_201_CREATED, status.HTTP_400_BAD_REQUEST, status.HTTP_422_UNPROCESSABLE_ENTITY]
+            # SSRF protection should reject all invalid URLs
+            assert response.status_code == status.HTTP_400_BAD_REQUEST, f"URL {url} should be rejected"
+            error_detail = response.json().get("detail", "").lower()
+            assert expected_error_keyword.lower() in error_detail, f"Error message should mention '{expected_error_keyword}' for URL {url}"
+    
+    def test_service_url_validation_allows_valid_urls(self, client, admin_token):
+        """Test that valid external URLs are accepted."""
+        valid_urls = [
+            "https://api.example.com",
+            "http://example.com/api",
+            "https://subdomain.example.com:8080/path",
+        ]
+        
+        for url in valid_urls:
+            response = client.post(
+                "/api/services",
+                headers={"Authorization": f"Bearer {admin_token}"},
+                json={
+                    "name": f"valid-service-{hash(url) % 10000}",
+                    "service_type": "file_storage",
+                    "base_url": url
+                }
+            )
+            # Valid URLs should be accepted
+            assert response.status_code == status.HTTP_201_CREATED, f"Valid URL {url} should be accepted"

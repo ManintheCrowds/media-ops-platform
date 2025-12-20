@@ -166,3 +166,4 @@ class PrometheusMetrics:
         """Get content type for metrics endpoint."""
         return CONTENT_TYPE_LATEST
 
+

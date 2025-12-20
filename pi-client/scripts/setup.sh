@@ -116,3 +116,4 @@ echo ""
 echo "Setup complete!"
 echo "Start the service with: sudo systemctl start pi-client"
 
+

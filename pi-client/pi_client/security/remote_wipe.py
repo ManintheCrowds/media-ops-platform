@@ -135,3 +135,4 @@ class RemoteWipeManager:
                 except Exception as e:
                     logger.error(f"Failed to wipe log: {e}")
 
+

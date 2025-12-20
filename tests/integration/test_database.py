@@ -3,7 +3,7 @@
 import pytest
 from app.models import User, Service
 from app.auth.oauth2 import get_password_hash, verify_password
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 @pytest.mark.integration
@@ -63,7 +63,7 @@ class TestDatabaseOperations:
         
         # Update
         retrieved_service.health_status = "healthy"
-        retrieved_service.last_health_check = datetime.utcnow()
+        retrieved_service.last_health_check = datetime.now(timezone.utc)
         db_session.commit()
         db_session.refresh(retrieved_service)
         assert retrieved_service.health_status == "healthy"
@@ -158,7 +158,7 @@ class TestDatabaseOperations:
         
         # Update health status
         service.health_status = "healthy"
-        service.last_health_check = datetime.utcnow()
+        service.last_health_check = datetime.now(timezone.utc)
         db_session.commit()
         db_session.refresh(service)
         

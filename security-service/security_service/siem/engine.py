@@ -1,6 +1,6 @@
 """SIEM engine for event correlation and analysis."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
@@ -61,8 +61,8 @@ class SIEMEngine:
             description=event.description,
             source_ips=[event.source_ip] if event.source_ip else [],
             related_event_ids=[event.id],
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc)
         )
         
         self.db.add(incident)
@@ -120,4 +120,5 @@ class SIEMEngine:
             })
         
         return timeline
+
 

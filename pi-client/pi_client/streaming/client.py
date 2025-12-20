@@ -165,3 +165,4 @@ class StreamingClient:
             "quality": self.quality_manager.get_recommended_quality().value,
         }
 
+

@@ -1,6 +1,6 @@
 """DDoS protection service."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional
 from collections import defaultdict
 from sqlalchemy.orm import Session
@@ -22,7 +22,7 @@ class DDoSProtection:
         
     def analyze_request(self, source_ip: str) -> Optional[SecurityEvent]:
         """Analyze request for DDoS patterns."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         window_start = now - self.threshold_window
         
         # Track request
@@ -50,7 +50,7 @@ class DDoSProtection:
             severity=EventSeverity.CRITICAL.value,
             source_ip=source_ip,
             description=f"DDoS attack detected: {request_count} requests in {self.threshold_window.total_seconds()} seconds",
-            detected_at=datetime.utcnow(),
+            detected_at=datetime.now(timezone.utc),
             metadata={
                 "request_count": request_count,
                 "threshold": self.threshold_requests,
@@ -74,7 +74,7 @@ class DDoSProtection:
     
     def get_ddos_statistics(self, hours: int = 24) -> Dict[str, Any]:
         """Get DDoS protection statistics."""
-        end_time = datetime.utcnow()
+        end_time = datetime.now(timezone.utc)
         start_time = end_time - timedelta(hours=hours)
         
         ddos_events = self.db.query(SecurityEvent).filter(
@@ -99,7 +99,7 @@ class DDoSProtection:
     
     def cleanup_old_tracking(self):
         """Clean up old request tracking data."""
-        cutoff = datetime.utcnow() - self.threshold_window
+        cutoff = datetime.now(timezone.utc) - self.threshold_window
         
         for ip in list(self.request_counts.keys()):
             self.request_counts[ip] = [
@@ -110,4 +110,5 @@ class DDoSProtection:
             # Remove empty entries
             if not self.request_counts[ip]:
                 del self.request_counts[ip]
+
 

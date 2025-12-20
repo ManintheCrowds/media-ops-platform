@@ -196,3 +196,4 @@ class CameraInterface:
         """Destructor - cleanup on deletion."""
         self.cleanup()
 
+

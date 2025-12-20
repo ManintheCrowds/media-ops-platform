@@ -12,24 +12,28 @@
 
 ### 1. Security Configuration
 
-**Critical: Change all default secrets before production deployment!**
+**Critical: Set required secrets before deployment - application will NOT start without them!**
 
-- [ ] Generate strong `SECRET_KEY`
-- [ ] Generate strong `JWT_SECRET_KEY`
+- [ ] **REQUIRED**: Generate and set `SECRET_KEY` (must be at least 32 characters)
+- [ ] **REQUIRED**: Generate and set `JWT_SECRET_KEY` (must be at least 32 characters)
 - [ ] Change all service default passwords
 - [ ] Configure proper CORS origins
 - [ ] Set up SSL/TLS certificates
 - [ ] Configure firewall rules
 - [ ] Review and update `.env` file
 
+**⚠️ WARNING**: The application will fail to start if `SECRET_KEY` or `JWT_SECRET_KEY` are missing or shorter than 32 characters. These are mandatory with no default values.
+
 ### 2. Environment Variables
 
 Create a `.env` file from `.env.example` and configure:
 
 ```bash
-# Application Secrets (REQUIRED - Change these!)
-SECRET_KEY=your-very-long-random-secret-key-here
-JWT_SECRET_KEY=your-jwt-secret-key-here
+# Application Secrets (REQUIRED - Must be set, no defaults!)
+# ⚠️ Application will NOT start without these variables set
+# Both must be at least 32 characters long
+SECRET_KEY=your-very-long-random-secret-key-here  # Minimum 32 characters
+JWT_SECRET_KEY=your-jwt-secret-key-here  # Minimum 32 characters
 
 # Database
 DATABASE_URL=postgresql://platform:strong-password@postgres:5432/platform
@@ -60,18 +64,24 @@ DEBUG=False
 
 ### 3. Generate Secure Secrets
 
-Use these commands to generate secure secrets:
+**MANDATORY**: You must generate and set `SECRET_KEY` and `JWT_SECRET_KEY` before starting the application. Use these commands:
 
 ```bash
-# Generate SECRET_KEY
-python -c "import secrets; print(secrets.token_urlsafe(32))"
+# Generate SECRET_KEY (REQUIRED - copy output to .env file)
+python -c "import secrets; print('SECRET_KEY=' + secrets.token_urlsafe(32))"
 
-# Generate JWT_SECRET_KEY
-python -c "import secrets; print(secrets.token_urlsafe(32))"
+# Generate JWT_SECRET_KEY (REQUIRED - copy output to .env file)
+python -c "import secrets; print('JWT_SECRET_KEY=' + secrets.token_urlsafe(32))"
 
-# Generate database password
+# Generate database password (optional, for database security)
 openssl rand -base64 32
 ```
+
+**Important Notes:**
+- Both `SECRET_KEY` and `JWT_SECRET_KEY` are **required** - the application will not start without them
+- Each secret must be at least 32 characters long (the commands above generate 43-character secrets)
+- Store these secrets securely and never commit them to version control
+- Use different values for `SECRET_KEY` and `JWT_SECRET_KEY` (do not reuse the same value)
 
 ## Deployment Steps
 

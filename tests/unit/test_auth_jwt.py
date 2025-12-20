@@ -1,7 +1,7 @@
 """Unit tests for JWT handler."""
 
 import pytest
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from jose import jwt
 from app.auth.jwt_handler import create_access_token, verify_token
 from app.config import settings
@@ -46,7 +46,7 @@ class TestJWTHandler:
         
         # Check expiration is approximately 60 minutes from now
         exp_time = datetime.fromtimestamp(payload["exp"])
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         diff = exp_time - now
         
         assert 59 <= diff.total_seconds() / 60 <= 61

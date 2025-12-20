@@ -123,18 +123,95 @@ bandit -r app services
 
 ### Database Migrations
 
-Currently using SQLAlchemy's `create_all()`. For production, consider Alembic:
+**Important**: The `/api/auth/init-db` endpoint is deprecated and should not be used in production. Use Alembic migrations instead.
+
+#### Using Alembic (Recommended)
+
+Alembic provides version-controlled database migrations, which is the recommended approach for managing database schema changes:
 
 ```bash
-# Initialize Alembic
+# Initialize Alembic (if not already initialized)
 alembic init alembic
 
-# Create migration
-alembic revision --autogenerate -m "Description"
+# Configure alembic.ini and alembic/env.py
+# Set sqlalchemy.url in alembic.ini or use environment variable
+
+# Create a new migration
+alembic revision --autogenerate -m "Description of changes"
+
+# Review the generated migration file in alembic/versions/
+# Edit if needed to customize the migration
 
 # Apply migration
 alembic upgrade head
+
+# Rollback migration (if needed)
+alembic downgrade -1
 ```
+
+**Setting up Alembic for the first time:**
+
+1. Install Alembic (if not already installed):
+   ```bash
+   pip install alembic
+   ```
+
+2. Initialize Alembic in the project root:
+   ```bash
+   alembic init alembic
+   ```
+
+3. Configure `alembic/env.py`:
+   ```python
+   from app.config import settings
+   from app.models import Base
+   
+   # Set the database URL
+   config.set_main_option("sqlalchemy.url", settings.database_url)
+   
+   # Set target metadata
+   target_metadata = Base.metadata
+   ```
+
+4. Import all models in `alembic/env.py` so Alembic can detect them:
+   ```python
+   from app.models import User, Service
+   ```
+
+5. Create initial migration:
+   ```bash
+   alembic revision --autogenerate -m "Initial migration"
+   ```
+
+6. Apply migration:
+   ```bash
+   alembic upgrade head
+   ```
+
+**Example migration workflow:**
+
+```bash
+# 1. Make changes to models in app/models/
+# 2. Generate migration
+alembic revision --autogenerate -m "Add new column to User model"
+
+# 3. Review generated migration file
+# 4. Apply migration
+alembic upgrade head
+
+# 5. If something goes wrong, rollback
+alembic downgrade -1
+```
+
+#### Deprecated: /init-db Endpoint
+
+The `/api/auth/init-db` endpoint is **deprecated** and will be removed in a future version. It is only available when:
+
+- `ENABLE_DEBUG_ENDPOINTS=True` is set in environment
+- User is authenticated as admin
+- IP address is in whitelist (if `DEBUG_ENDPOINT_ALLOWED_IPS` is configured)
+
+**Security Note**: This endpoint should never be enabled in production. Use Alembic migrations instead for all database schema management.
 
 ## Adding a New Service
 

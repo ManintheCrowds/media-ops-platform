@@ -3,7 +3,7 @@
 import subprocess
 import json
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from ..models.threats import PatchStatus
 
@@ -47,7 +47,7 @@ class PatchManager:
                                 available_version=available_version,
                                 is_security_patch="true" if is_security else "false",
                                 patch_available="true",
-                                last_checked=datetime.utcnow(),
+                                last_checked=datetime.now(timezone.utc),
                                 status="update_available"
                             )
                             
@@ -61,7 +61,7 @@ class PatchManager:
                                 existing.available_version = available_version
                                 existing.patch_available = "true"
                                 existing.is_security_patch = "true" if is_security else "false"
-                                existing.last_checked = datetime.utcnow()
+                                existing.last_checked = datetime.now(timezone.utc)
                                 existing.status = "update_available"
                                 patches.append(existing)
                             else:
@@ -118,7 +118,7 @@ class PatchManager:
                     if existing:
                         existing.available_version = package.get("latest_version", package["version"])
                         existing.patch_available = "true"
-                        existing.last_checked = datetime.utcnow()
+                        existing.last_checked = datetime.now(timezone.utc)
                         patches.append(existing)
                     else:
                         self.db.add(patch)
@@ -141,9 +141,10 @@ class PatchManager:
         patch = self.db.query(PatchStatus).filter(PatchStatus.id == patch_id).first()
         if patch:
             patch.status = "update_applied"
-            patch.last_applied = datetime.utcnow()
+            patch.last_applied = datetime.now(timezone.utc)
             patch.applied_by = applied_by
             patch.current_version = patch.available_version
             patch.patch_available = "false"
             self.db.commit()
+
 

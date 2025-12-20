@@ -1,6 +1,6 @@
 """Firewall automation service."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
@@ -17,7 +17,7 @@ class FirewallAutomation:
     def create_block_rule(self, ip_address: str, reason: str, duration_hours: int = 24,
                           source: str = "automated") -> FirewallRule:
         """Create an IP block rule."""
-        expires_at = datetime.utcnow() + timedelta(hours=duration_hours)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=duration_hours)
         
         rule = FirewallRule(
             rule_type="ip_block",
@@ -25,7 +25,7 @@ class FirewallAutomation:
             action="block",
             reason=reason,
             source=source,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             expires_at=expires_at,
             is_active="true"
         )
@@ -48,7 +48,7 @@ class FirewallAutomation:
             action="rate_limit",
             reason=reason,
             source="automated",
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             is_active="true",
             metadata={
                 "max_requests": max_requests,
@@ -98,7 +98,7 @@ class FirewallAutomation:
             query = query.filter(FirewallRule.rule_type == rule_type)
         
         # Filter out expired rules
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         rules = query.filter(
             (FirewallRule.expires_at.is_(None)) | (FirewallRule.expires_at > now)
         ).all()
@@ -107,7 +107,7 @@ class FirewallAutomation:
     
     def is_ip_blocked(self, ip_address: str) -> bool:
         """Check if an IP address is blocked."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         rule = self.db.query(FirewallRule).filter(
             FirewallRule.target == ip_address,
@@ -135,7 +135,7 @@ class FirewallAutomation:
     
     def cleanup_expired_rules(self):
         """Clean up expired firewall rules."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         expired_rules = self.db.query(FirewallRule).filter(
             FirewallRule.is_active == "true",
@@ -180,4 +180,5 @@ class FirewallAutomation:
         """Remove rule from actual firewall system."""
         # Similar to _apply_firewall_rule but for removal
         print(f"Would remove firewall rule: {rule.id}")
+
 

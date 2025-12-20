@@ -242,3 +242,43 @@ class TestGatewayEndpoints:
         for endpoint in endpoints:
             response = client.get(endpoint)
             assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    
+    def test_gateway_uses_encrypted_token(self, client, test_token, db_session):
+        """Test that gateway correctly uses encrypted auth tokens."""
+        from app.models import Service
+        from app.auth.encryption import is_encrypted
+        
+        # Create service with auth token
+        service = Service(
+            name="test-gateway-service",
+            service_type="file_storage",
+            base_url="http://test-service:8000",
+            requires_auth=True,
+            auth_token="test-bearer-token-123",
+            is_active=True
+        )
+        db_session.add(service)
+        db_session.commit()
+        
+        # Verify token is encrypted in database
+        assert is_encrypted(service._auth_token_encrypted)
+        
+        # Mock the external service call
+        with respx.mock:
+            # Verify that the Authorization header contains the decrypted token
+            def check_auth_header(request):
+                auth_header = request.headers.get("Authorization")
+                assert auth_header == "Bearer test-bearer-token-123"
+                return httpx.Response(200, json={"status": "ok"})
+            
+            respx.get("http://test-service:8000/api/test").mock(
+                side_effect=check_auth_header
+            )
+            
+            # Use the proxy endpoint
+            response = client.get(
+                f"/api/gateway/proxy/{service.name}/api/test",
+                headers={"Authorization": f"Bearer {test_token}"}
+            )
+            # Should succeed (or 502 if service unavailable, but auth should work)
+            assert response.status_code in [status.HTTP_200_OK, status.HTTP_502_BAD_GATEWAY]

@@ -99,3 +99,4 @@ class DeviceCertificate(Base):
     # Relationships
     device = relationship("PiDevice")
 
+

@@ -1,6 +1,6 @@
 """Threat intelligence models."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy import Column, Integer, String, DateTime, Float, Text, JSON, Index
 from sqlalchemy.ext.declarative import declarative_base
@@ -23,8 +23,8 @@ class ThreatIntelligence(Base):
     asn = Column(String(50), nullable=True)
     isp = Column(String(255), nullable=True)
     last_seen = Column(DateTime, nullable=True)
-    first_seen = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    first_seen = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
     metadata = Column(JSON, nullable=True)
     
     __table_args__ = (
@@ -44,7 +44,7 @@ class FirewallRule(Base):
     reason = Column(Text, nullable=True)
     source = Column(String(100), nullable=False)  # automated, manual, threat_intel
     created_by = Column(String(255), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     expires_at = Column(DateTime, nullable=True, index=True)
     is_active = Column(String(10), default="true", nullable=False, index=True)
     metadata = Column(JSON, nullable=True)
@@ -70,7 +70,7 @@ class VulnerabilityScan(Base):
     fixed_version = Column(String(100), nullable=True)
     current_version = Column(String(100), nullable=True)
     package_name = Column(String(255), nullable=True, index=True)
-    detected_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    detected_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     resolved = Column(String(10), default="false", nullable=False, index=True)
     resolved_at = Column(DateTime, nullable=True)
     remediation_notes = Column(Text, nullable=True)
@@ -93,7 +93,7 @@ class PatchStatus(Base):
     available_version = Column(String(100), nullable=True)
     is_security_patch = Column(String(10), default="false", nullable=False, index=True)
     patch_available = Column(String(10), default="false", nullable=False, index=True)
-    last_checked = Column(DateTime, default=datetime.utcnow, nullable=False)
+    last_checked = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     last_applied = Column(DateTime, nullable=True)
     applied_by = Column(String(255), nullable=True)
     status = Column(String(50), nullable=False)  # up_to_date, update_available, update_applied, failed
@@ -120,7 +120,7 @@ class AuditLog(Base):
     user_agent = Column(String(500), nullable=True)
     success = Column(String(10), nullable=False, index=True)
     details = Column(JSON, nullable=True)
-    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     integrity_hash = Column(String(64), nullable=True)  # SHA-256 hash for tamper detection
     
     __table_args__ = (
@@ -128,4 +128,5 @@ class AuditLog(Base):
         Index('idx_audit_logs_type_timestamp', 'event_type', 'timestamp'),
         Index('idx_audit_logs_timestamp', 'timestamp'),
     )
+
 

@@ -6,7 +6,7 @@ import hashlib
 import shutil
 from pathlib import Path
 from typing import Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ class CacheStorage:
         """Save content metadata."""
         try:
             metadata_path = self.get_metadata_path(content_id)
-            metadata["cached_at"] = datetime.utcnow().isoformat()
+            metadata["cached_at"] = datetime.now(timezone.utc).isoformat()
             with open(metadata_path, "w") as f:
                 json.dump(metadata, f, indent=2)
             return True
@@ -114,7 +114,7 @@ class CacheStorage:
     def cleanup_old_files(self, max_age_hours: int = 168) -> int:
         """Clean up files older than max_age_hours. Returns number of files deleted."""
         deleted_count = 0
-        cutoff_time = datetime.utcnow() - timedelta(hours=max_age_hours)
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=max_age_hours)
         
         for dir_path in [self.metadata_dir, self.media_dir]:
             if not dir_path.exists():
@@ -146,4 +146,5 @@ class CacheStorage:
         except Exception as e:
             logger.error(f"Failed to save package {package_id}: {e}")
             return None
+
 

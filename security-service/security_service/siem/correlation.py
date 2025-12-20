@@ -1,6 +1,6 @@
 """Correlation rules engine."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, func
@@ -146,7 +146,7 @@ class CorrelationEngine:
                 if e.id not in event_ids:
                     event_ids.append(e.id)
             existing.related_event_ids = event_ids
-            existing.updated_at = datetime.utcnow()
+            existing.updated_at = datetime.now(timezone.utc)
             self.db.commit()
             return existing
         
@@ -163,8 +163,8 @@ class CorrelationEngine:
             description=rule.description,
             source_ips=source_ips,
             related_event_ids=event_ids,
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
             metadata={
                 "rule_id": rule.rule_id,
                 "correlation_count": len(all_events)
@@ -176,4 +176,5 @@ class CorrelationEngine:
         self.db.refresh(incident)
         
         return incident
+
 

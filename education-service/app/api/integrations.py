@@ -234,3 +234,4 @@ async def fetch_external_resource(
             detail=f"Unknown service: {service}"
         )
 
+

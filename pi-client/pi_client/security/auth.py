@@ -3,7 +3,7 @@
 import logging
 import jwt
 from typing import Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from ..config import Config
 from ..client import PiAPIClient
@@ -50,7 +50,7 @@ class DeviceAuthenticator:
                         self.token_expires_at = datetime.fromtimestamp(exp)
                 except Exception:
                     # Not a JWT or can't decode, assume valid for 1 hour
-                    self.token_expires_at = datetime.utcnow() + timedelta(hours=1)
+                    self.token_expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
             
             return True
             
@@ -64,7 +64,7 @@ class DeviceAuthenticator:
             return False
         
         if self.token_expires_at:
-            return datetime.utcnow() < self.token_expires_at
+            return datetime.now(timezone.utc) < self.token_expires_at
         
         return True
     
@@ -77,4 +77,5 @@ class DeviceAuthenticator:
         self.current_token = None
         self.token_expires_at = None
         return await self.authenticate()
+
 

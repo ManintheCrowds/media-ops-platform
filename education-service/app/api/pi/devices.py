@@ -66,3 +66,4 @@ async def get_device_status(
     status_data = PiDeviceService.get_device_status(db, device_id)
     return status_data
 
+

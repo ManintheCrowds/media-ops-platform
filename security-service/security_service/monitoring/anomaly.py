@@ -1,6 +1,6 @@
 """Anomaly detection engine."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List, Optional
 from collections import defaultdict
 from sqlalchemy.orm import Session
@@ -20,7 +20,7 @@ class AnomalyDetectionEngine:
         
     def establish_baseline(self):
         """Establish baseline metrics from historical data."""
-        end_date = datetime.utcnow()
+        end_date = datetime.now(timezone.utc)
         start_date = end_date - timedelta(days=self.baseline_days)
         
         # Traffic volume baseline
@@ -143,7 +143,7 @@ class AnomalyDetectionEngine:
             return None
         
         # Check last hour
-        end_time = datetime.utcnow()
+        end_time = datetime.now(timezone.utc)
         start_time = end_time - timedelta(hours=1)
         
         recent_count = self.db.query(SecurityEvent).filter(
@@ -172,7 +172,7 @@ class AnomalyDetectionEngine:
             return None
         
         # Check last hour
-        end_time = datetime.utcnow()
+        end_time = datetime.now(timezone.utc)
         start_time = end_time - timedelta(hours=1)
         
         recent_failures = self.db.query(SecurityEvent).filter(
@@ -203,7 +203,7 @@ class AnomalyDetectionEngine:
             return None
         
         # Check for unusual endpoint access patterns
-        end_time = datetime.utcnow()
+        end_time = datetime.now(timezone.utc)
         start_time = end_time - timedelta(hours=1)
         
         endpoint_counts = defaultdict(int)
@@ -242,4 +242,5 @@ class AnomalyDetectionEngine:
             }
         
         return None
+
 

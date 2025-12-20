@@ -2,6 +2,7 @@
 
 import pytest
 from fastapi import status
+from app.auth.encryption import is_encrypted
 
 
 @pytest.mark.integration
@@ -153,3 +154,59 @@ class TestServiceEndpoints:
             headers={"Authorization": f"Bearer {test_token}"}
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
+    
+    def test_create_service_encrypts_token(self, client, admin_token, db_session):
+        """Test that auth_token is encrypted when creating service via API."""
+        response = client.post(
+            "/api/services",
+            headers={"Authorization": f"Bearer {admin_token}"},
+            json={
+                "name": "encrypted-service",
+                "service_type": "file_storage",
+                "base_url": "http://encrypted:8000",
+                "auth_token": "plain-text-token-123"
+            }
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()
+        service_id = data["id"]
+        
+        # Verify token is encrypted in database
+        from app.models import Service
+        service = db_session.query(Service).filter(Service.id == service_id).first()
+        assert service is not None
+        assert is_encrypted(service._auth_token_encrypted)
+        assert service._auth_token_encrypted != "plain-text-token-123"
+        # But should decrypt correctly when accessed
+        assert service.auth_token == "plain-text-token-123"
+    
+    def test_update_service_encrypts_token(self, client, admin_token, test_service, db_session):
+        """Test that auth_token is encrypted when updating service via API."""
+        response = client.put(
+            f"/api/services/{test_service.id}",
+            headers={"Authorization": f"Bearer {admin_token}"},
+            json={
+                "name": test_service.name,
+                "service_type": test_service.service_type,
+                "base_url": test_service.base_url,
+                "auth_token": "updated-plain-token"
+            }
+        )
+        assert response.status_code == status.HTTP_200_OK
+        
+        # Verify token is encrypted in database
+        db_session.refresh(test_service)
+        assert is_encrypted(test_service._auth_token_encrypted)
+        assert test_service._auth_token_encrypted != "updated-plain-token"
+        assert test_service.auth_token == "updated-plain-token"
+    
+    def test_service_response_excludes_auth_token(self, client, admin_token, test_service):
+        """Test that auth_token is not exposed in API responses."""
+        response = client.get(
+            f"/api/services/{test_service.id}",
+            headers={"Authorization": f"Bearer {admin_token}"}
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        # ServiceResponse model should not include auth_token
+        assert "auth_token" not in data

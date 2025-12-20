@@ -59,3 +59,4 @@ def get_oauth2_scheme():
     from fastapi.security import OAuth2PasswordBearer
     return OAuth2PasswordBearer(tokenUrl=f"{settings.platform_url}/api/auth/token")
 
+

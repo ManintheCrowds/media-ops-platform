@@ -5,8 +5,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import Response, StreamingResponse
 import httpx
 from app.models import Service, User
-from app.auth.oauth2 import get_current_user, get_db
+from app.auth.oauth2 import get_current_user
+from app.database import get_db
 from sqlalchemy.orm import Session
+from app.validation import validate_service_url
+from app.config import settings
 from services.file_storage.seafile_client import SeafileClient
 from services.media_server.jellyfin_client import JellyfinClient
 from services.productivity.wiki_client import WikiClient
@@ -27,15 +30,46 @@ async def proxy_request(
     current_user: Optional[User] = None
 ) -> Response:
     """Proxy a request to a service."""
+    # Validate path to prevent path traversal
+    if not path or not isinstance(path, str):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid path parameter"
+        )
+    
+    # Check for path traversal attempts
+    dangerous_path_patterns = ["../", "..\\", "..%2F", "..%5C", "%2e%2e%2f", "%2e%2e%5c"]
+    path_lower = path.lower()
+    for pattern in dangerous_path_patterns:
+        if pattern in path_lower:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Path traversal attempts are not allowed"
+            )
+    
     target_url = f"{service.base_url.rstrip('/')}/{path.lstrip('/')}"
+    
+    # Validate target URL to prevent SSRF attacks
+    is_valid, error_message = validate_service_url(
+        target_url,
+        allowed_internal_patterns=settings.ssrf_allowed_internal_patterns
+    )
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid target URL: {error_message}"
+        )
     
     # Add authentication if required
     request_headers = headers or {}
     if service.requires_auth and service.auth_token:
         request_headers["Authorization"] = f"Bearer {service.auth_token}"
     
+    # Get timeout for service type, default to 30.0 seconds for unknown types
+    timeout = settings.service_timeouts.get(service.service_type, 30.0)
+    
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=timeout) as client:
             if method == "GET":
                 response = await client.get(target_url, headers=request_headers)
             elif method == "POST":
@@ -53,9 +87,14 @@ async def proxy_request(
                 headers=dict(response.headers),
                 media_type=response.headers.get("content-type")
             )
+    except httpx.TimeoutException as e:
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail=f"Service request timed out after {timeout} seconds"
+        )
     except httpx.RequestError as e:
         raise HTTPException(
-            status_code=502,
+            status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Service unavailable: {str(e)}"
         )
 
@@ -240,7 +279,34 @@ async def proxy_to_service(
     if not service:
         raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found")
     
-    body = await request.body() if request.method in ["POST", "PUT"] else None
+    # Validate request size before processing
+    max_size_bytes = int(settings.max_request_size_mb * 1024 * 1024)
+    
+    # Check Content-Length header if present
+    content_length = request.headers.get("content-length")
+    if content_length:
+        try:
+            content_length_int = int(content_length)
+            if content_length_int > max_size_bytes:
+                raise HTTPException(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                    detail=f"Request body too large. Maximum allowed size is {settings.max_request_size_mb}MB"
+                )
+        except ValueError:
+            # Invalid Content-Length header, will validate after reading body
+            pass
+    
+    # Read body for POST/PUT requests
+    body = None
+    if request.method in ["POST", "PUT"]:
+        body = await request.body()
+        # Validate actual body size
+        if body and len(body) > max_size_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"Request body exceeds maximum allowed size of {settings.max_request_size_mb}MB"
+            )
+    
     headers = dict(request.headers)
     
     # Remove host header to avoid conflicts

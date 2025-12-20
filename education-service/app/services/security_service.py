@@ -1,7 +1,7 @@
 """Security service for certificate management and remote wipe."""
 
 from typing import Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.models.pi_device import PiDevice, DeviceCertificate, SecurityStatus
@@ -40,7 +40,7 @@ class SecurityService:
             expires_at = cert.not_valid_after
         except Exception as e:
             # Default to 1 year if parsing fails
-            expires_at = datetime.utcnow() + timedelta(days=365)
+            expires_at = datetime.now(timezone.utc) + timedelta(days=365)
         
         # Create certificate record
         device_cert = DeviceCertificate(
@@ -58,7 +58,7 @@ class SecurityService:
         if device:
             device.certificate_fingerprint = fingerprint
             device.security_status = SecurityStatus.ACTIVE
-            device.last_seen = datetime.utcnow()
+            device.last_seen = datetime.now(timezone.utc)
         
         db.commit()
         db.refresh(device_cert)
@@ -105,7 +105,7 @@ class SecurityService:
             return False
         
         # Check expiration
-        if cert.expires_at < datetime.utcnow():
+        if cert.expires_at < datetime.now(timezone.utc):
             return False
         
         # Check device status
@@ -165,4 +165,5 @@ class SecurityService:
             device.security_status = SecurityStatus.REVOKED
         
         db.commit()
+
 

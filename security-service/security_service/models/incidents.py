@@ -1,6 +1,6 @@
 """Security incident models."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 from sqlalchemy import Column, Integer, String, DateTime, Text, JSON, ForeignKey, Index
@@ -53,8 +53,8 @@ class SecurityIncident(Base):
     affected_resources = Column(JSON, nullable=True)  # List of affected resources
     related_event_ids = Column(JSON, nullable=True)  # List of related security event IDs
     metadata = Column(JSON, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
     resolved_at = Column(DateTime, nullable=True)
     assigned_to = Column(String(255), nullable=True)
     resolution_notes = Column(Text, nullable=True)
@@ -63,4 +63,5 @@ class SecurityIncident(Base):
         Index('idx_incidents_status_severity', 'status', 'severity'),
         Index('idx_incidents_created_at', 'created_at'),
     )
+
 

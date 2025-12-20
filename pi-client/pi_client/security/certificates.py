@@ -3,7 +3,7 @@
 import logging
 from pathlib import Path
 from typing import Optional, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
@@ -67,9 +67,9 @@ class CertificateManager:
         ).serial_number(
             x509.random_serial_number()
         ).not_valid_before(
-            datetime.utcnow()
+            datetime.now(timezone.utc)
         ).not_valid_after(
-            datetime.utcnow() + timedelta(days=validity_days)
+            datetime.now(timezone.utc) + timedelta(days=validity_days)
         ).add_extension(
             x509.SubjectAlternativeName([
                 x509.DNSName(device_id),
@@ -150,7 +150,7 @@ class CertificateManager:
             if not self.load_certificate():
                 return False
         
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return self.cert.not_valid_before <= now <= self.cert.not_valid_after
     
     def needs_renewal(self, days_before_expiry: int = 30) -> bool:
@@ -161,5 +161,6 @@ class CertificateManager:
         
         expiry = self.cert.not_valid_after
         renewal_date = expiry - timedelta(days=days_before_expiry)
-        return datetime.utcnow() >= renewal_date
+        return datetime.now(timezone.utc) >= renewal_date
+
 

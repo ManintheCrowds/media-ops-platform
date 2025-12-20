@@ -2,7 +2,7 @@
 
 import hashlib
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from sqlalchemy.orm import Session
 from ..models.threats import AuditLog
@@ -26,7 +26,7 @@ class AuditLogger:
             "action": action,
             "user_id": user_id,
             "username": username,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         integrity_hash = self._calculate_hash(log_data)
         
@@ -41,7 +41,7 @@ class AuditLogger:
             user_agent=user_agent,
             success="true" if success else "false",
             details=details or {},
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             integrity_hash=integrity_hash
         )
         
@@ -109,4 +109,5 @@ class AuditLogger:
                 tampered.append(entry)
         
         return tampered
+
 

@@ -34,3 +34,4 @@ class Project(Base):
     organization = relationship("Organization", back_populates="projects")
     content_items = relationship("ContentItem", back_populates="project", cascade="all, delete-orphan")
 
+

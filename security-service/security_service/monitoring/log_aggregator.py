@@ -2,7 +2,7 @@
 
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 from sqlalchemy.orm import Session
@@ -22,7 +22,7 @@ class LogAggregator:
                                metadata: Optional[Dict[str, Any]] = None):
         """Collect application log from a service."""
         log_entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "service": service_name,
             "level": level,
             "message": message,
@@ -44,7 +44,7 @@ class LogAggregator:
                           user_id: Optional[int] = None):
         """Collect access log entry."""
         log_entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "type": "access",
             "source_ip": source_ip,
             "method": method,
@@ -65,7 +65,7 @@ class LogAggregator:
                               metadata: Optional[Dict[str, Any]] = None):
         """Collect security event log."""
         log_entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "type": "security_event",
             "event_type": event_type,
             "severity": severity,
@@ -128,7 +128,7 @@ class LogAggregator:
     
     def get_log_statistics(self, hours: int = 24) -> Dict[str, Any]:
         """Get log statistics for the specified time period."""
-        end_time = datetime.utcnow()
+        end_time = datetime.now(timezone.utc)
         start_time = end_time - timedelta(hours=hours)
         
         stats = {
@@ -171,10 +171,11 @@ class LogAggregator:
     
     def cleanup_old_logs(self, retention_days: int = 90):
         """Clean up logs older than retention period."""
-        cutoff_date = datetime.utcnow() - timedelta(days=retention_days)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=retention_days)
         
         for log_file in self.log_dir.glob("*.log"):
             # For file-based logs, we could implement rotation
             # For now, we'll keep all logs and let the system handle rotation
             pass
+
 

@@ -42,7 +42,7 @@ async def submit_sensor_data(
         "status": "received",
         "device_id": device_id,
         "sensor_type": data.sensor_type,
-        "timestamp": data.timestamp or datetime.utcnow(),
+        "timestamp": data.timestamp or datetime.now(timezone.utc),
     }
 
 
@@ -92,4 +92,5 @@ async def query_sensor_data(
         "data": [],
         "message": "Sensor data storage not yet implemented",
     }
+
 

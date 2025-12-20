@@ -2,7 +2,7 @@
 
 import hashlib
 import subprocess
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 
@@ -22,7 +22,7 @@ class BackupVerifier:
             return {
                 "valid": False,
                 "error": "Backup file not found",
-                "verified_at": datetime.utcnow().isoformat()
+                "verified_at": datetime.now(timezone.utc).isoformat()
             }
         
         # Check file size
@@ -31,7 +31,7 @@ class BackupVerifier:
             return {
                 "valid": False,
                 "error": "Backup file is empty",
-                "verified_at": datetime.utcnow().isoformat()
+                "verified_at": datetime.now(timezone.utc).isoformat()
             }
         
         # Calculate checksum
@@ -48,7 +48,7 @@ class BackupVerifier:
             "backup_path": backup_path,
             "file_size": file_size,
             "checksum": checksum,
-            "verified_at": datetime.utcnow().isoformat()
+            "verified_at": datetime.now(timezone.utc).isoformat()
         }
         
         if not structure_valid:
@@ -87,7 +87,7 @@ class BackupVerifier:
             "tested": False,
             "message": "Backup restoration testing requires manual intervention",
             "backup_path": backup_path,
-            "tested_at": datetime.utcnow().isoformat()
+            "tested_at": datetime.now(timezone.utc).isoformat()
         }
     
     def check_backup_schedule(self, expected_schedule: Dict[str, Any]) -> Dict[str, Any]:
@@ -95,7 +95,7 @@ class BackupVerifier:
         results = {
             "on_schedule": True,
             "missing_backups": [],
-            "checked_at": datetime.utcnow().isoformat()
+            "checked_at": datetime.now(timezone.utc).isoformat()
         }
         
         # Check each backup directory
@@ -147,4 +147,5 @@ class BackupVerifier:
             "oldest_backup": oldest_backup.isoformat() if oldest_backup else None,
             "newest_backup": newest_backup.isoformat() if newest_backup else None
         }
+
 

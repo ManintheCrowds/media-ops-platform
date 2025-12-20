@@ -158,19 +158,64 @@ def validate_service_url(url: str) -> bool:
 
 ### CORS Configuration
 
+**Security Risk:**
+The default CORS configuration requires explicit origin specification. Using `cors_origins=["*"]` with `cors_allow_credentials=True` creates a **CSRF vulnerability** that allows any website to make authenticated requests to your API. The application validates this configuration and will raise an error if this insecure combination is detected.
+
+**Default Behavior:**
+- `cors_origins` defaults to `[]` (empty list) - blocks all cross-origin requests by default
+- `cors_allow_credentials` defaults to `True`
+- You **must** explicitly configure `CORS_ORIGINS` environment variable for cross-origin requests to work
+
 **Production Configuration:**
-```python
-# app/config.py
-CORS_ORIGINS = ["https://yourdomain.com"]  # Specific domains
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE"]
-CORS_ALLOW_HEADERS = ["Authorization", "Content-Type"]
+
+Using environment variables (recommended):
+```bash
+# .env file or environment variables
+CORS_ORIGINS=https://app.example.com,https://www.example.com
+CORS_ALLOW_CREDENTIALS=true
+CORS_ALLOW_METHODS=GET,POST,PUT,DELETE,OPTIONS
+CORS_ALLOW_HEADERS=Authorization,Content-Type
 ```
 
-**Development:**
-```python
-CORS_ORIGINS = ["*"]  # Allow all (development only)
+Or as JSON array:
+```bash
+CORS_ORIGINS=["https://app.example.com","https://www.example.com"]
 ```
+
+**Development Configuration:**
+
+For local development with frontend on different port:
+```bash
+# .env file
+CORS_ORIGINS=http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000
+CORS_ALLOW_CREDENTIALS=true
+DEBUG=true
+```
+
+**Important Notes:**
+- Never use `["*"]` with `cors_allow_credentials=True` - this will raise a validation error
+- Always specify exact origins in production (no wildcards)
+- Include protocol (`http://` or `https://`) in origin URLs
+- For production, use HTTPS origins only
+- The application will log a warning if `cors_allow_credentials=True` but `cors_origins` is empty in non-debug mode
+
+**Environment Variable Format:**
+- Comma-separated list: `CORS_ORIGINS=https://example.com,https://app.example.com`
+- JSON array: `CORS_ORIGINS=["https://example.com","https://app.example.com"]`
+- Pydantic Settings automatically parses both formats
+
+**CORS Security Best Practices:**
+1. **Never use wildcard origins with credentials** - Always specify exact origins
+2. **Use HTTPS in production** - Only allow HTTPS origins in production environments
+3. **Minimize allowed origins** - Only include origins that actually need access
+4. **Review regularly** - Audit CORS configuration as part of security reviews
+5. **Test thoroughly** - Verify CORS works correctly before deploying to production
+
+**Troubleshooting:**
+- **"CORS configuration error"** - You have `cors_origins=["*"]` with `cors_allow_credentials=True`. Remove the wildcard and specify exact origins.
+- **"CORS configuration warning"** - `cors_origins` is empty but credentials are enabled. Configure `CORS_ORIGINS` environment variable.
+- **CORS requests blocked** - Check that your frontend origin is included in `CORS_ORIGINS` and matches exactly (including protocol and port).
+- **Preflight requests failing** - Ensure `CORS_ALLOW_METHODS` includes `OPTIONS` and required HTTP methods.
 
 ### HTTPS/TLS
 
@@ -385,6 +430,139 @@ pip install --upgrade <package>
 - [ ] Security testing
 - [ ] Documentation updates
 
+## Debug Mode Security
+
+### Security Implications
+
+Debug mode can expose sensitive information and should **never** be enabled in production environments. When debug mode is enabled:
+
+- **Detailed error messages** are exposed to clients, potentially revealing:
+  - Database schema information
+  - Internal file paths
+  - Stack traces with code structure
+  - Configuration details
+  - Service URLs and endpoints
+
+- **Debug endpoints** may be accessible, allowing:
+  - Database initialization/reset
+  - Internal state inspection
+  - Development-only operations
+
+### Configuration Options
+
+The platform provides multiple layers of security for debug functionality:
+
+#### Environment Variables
+
+```bash
+# FastAPI debug mode (affects error message detail)
+DEBUG=False  # MUST be False in production
+
+# Explicit enable flag for debug endpoints (separate from FastAPI debug)
+ENABLE_DEBUG_ENDPOINTS=False  # MUST be False in production
+
+# Require admin authentication for debug endpoints
+DEBUG_ENDPOINT_REQUIRE_ADMIN=True  # Recommended: True
+
+# IP whitelist for debug endpoints (comma-separated)
+DEBUG_ENDPOINT_ALLOWED_IPS=127.0.0.1,192.168.1.100  # Optional, but recommended
+```
+
+#### Security Layers
+
+Debug endpoints (like `/api/auth/init-db`) are protected by multiple security layers:
+
+1. **Explicit Enable Flag**: `ENABLE_DEBUG_ENDPOINTS` must be explicitly set to `True`
+2. **Admin Authentication**: Requires authenticated admin user (if `DEBUG_ENDPOINT_REQUIRE_ADMIN=True`)
+3. **IP Whitelist**: Only allows access from specified IP addresses (if configured)
+
+All access attempts are logged for security auditing.
+
+### Production Configuration
+
+**Required settings for production:**
+
+```bash
+DEBUG=False
+ENABLE_DEBUG_ENDPOINTS=False
+DEBUG_ENDPOINT_REQUIRE_ADMIN=True
+```
+
+**Never set these to `True` in production!**
+
+### Development Configuration
+
+For local development only:
+
+```bash
+DEBUG=True
+ENABLE_DEBUG_ENDPOINTS=True
+DEBUG_ENDPOINT_REQUIRE_ADMIN=True
+DEBUG_ENDPOINT_ALLOWED_IPS=127.0.0.1,::1
+```
+
+**Important**: 
+- Only enable on local development machines
+- Never commit `.env` files with debug enabled
+- Use IP whitelist to restrict access
+- Always require admin authentication
+
+### Error Message Sanitization
+
+The application automatically sanitizes error messages based on debug mode:
+
+- **Debug mode ON**: Detailed error messages with stack traces
+- **Debug mode OFF**: Generic error messages ("An internal error occurred")
+
+Full error details are always logged server-side for debugging, but not exposed to clients in production.
+
+### Debug Endpoints
+
+#### `/api/auth/init-db` (Deprecated)
+
+**Status**: Deprecated - Use Alembic migrations instead
+
+**Security Requirements**:
+- `ENABLE_DEBUG_ENDPOINTS=True`
+- Admin authentication required
+- IP whitelist check (if configured)
+
+**Warning**: This endpoint should never be enabled in production. Use Alembic migrations for database schema management.
+
+### Best Practices
+
+1. **Default Deny**: Debug endpoints are disabled by default
+2. **Explicit Enable**: Require explicit configuration to enable
+3. **Multiple Layers**: Use admin auth + IP whitelist for defense in depth
+4. **Audit Logging**: All debug endpoint access is logged
+5. **Error Sanitization**: Never expose detailed errors in production
+6. **Use Migrations**: Replace debug endpoints with proper migration tools
+
+### Monitoring and Auditing
+
+All debug endpoint access attempts are logged:
+
+- **Successful access**: Logged with user and IP address
+- **Blocked access**: Logged with reason (unauthorized user, IP not whitelisted, etc.)
+
+Review logs regularly to detect unauthorized access attempts:
+
+```bash
+# Check for debug endpoint access
+grep "init-db" /var/log/platform/app.log
+
+# Check for blocked access attempts
+grep "Blocked.*init-db" /var/log/platform/app.log
+```
+
+### Migration from Debug Endpoints
+
+**Current**: Using `/api/auth/init-db` endpoint (deprecated)
+
+**Recommended**: Use Alembic migrations
+
+See [Development Guide - Database Migrations](DEVELOPMENT.md#database-migrations) for migration instructions.
+
 ## Security Best Practices Summary
 
 1. **Never commit secrets** to version control
@@ -397,6 +575,8 @@ pip install --upgrade <package>
 8. **Use strong passwords** and keys
 9. **Restrict access** to admin functions
 10. **Regular security audits**
+11. **Never enable debug mode in production**
+12. **Sanitize error messages in production**
 
 ## Additional Resources
 

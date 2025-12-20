@@ -4,7 +4,7 @@ import logging
 import time
 from collections import OrderedDict
 from typing import Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from .storage import CacheStorage
 from ..config import Config
 
@@ -34,7 +34,7 @@ class CacheManager:
             
             # Check TTL
             cached_at = datetime.fromisoformat(metadata.get("cached_at", ""))
-            if datetime.utcnow() - cached_at < timedelta(seconds=self.ttl_seconds):
+            if datetime.now(timezone.utc) - cached_at < timedelta(seconds=self.ttl_seconds):
                 return metadata
             else:
                 # Expired, remove from cache
@@ -44,7 +44,7 @@ class CacheManager:
         metadata = self.storage.load_metadata(content_id)
         if metadata:
             cached_at = datetime.fromisoformat(metadata.get("cached_at", ""))
-            if datetime.utcnow() - cached_at < timedelta(seconds=self.ttl_seconds):
+            if datetime.now(timezone.utc) - cached_at < timedelta(seconds=self.ttl_seconds):
                 # Add to in-memory cache
                 self._add_to_metadata_cache(content_id, metadata)
                 return metadata
@@ -142,4 +142,5 @@ class CacheManager:
             "usage_percent": (cache_size / self.max_size_bytes) * 100,
             "metadata_items": len(self._metadata_cache),
         }
+
 

@@ -3,7 +3,7 @@
 import smtplib
 import hashlib
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List, Optional
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -40,7 +40,7 @@ class AlertManager:
             return
         
         # Mark as sent
-        self.sent_alerts[alert_key] = datetime.utcnow()
+        self.sent_alerts[alert_key] = datetime.now(timezone.utc)
         
         # Send through all enabled channels
         if config.alert_email_enabled:
@@ -63,7 +63,7 @@ class AlertManager:
             return False
         
         sent_time = self.sent_alerts[alert_key]
-        if datetime.utcnow() - sent_time > self.deduplication_window:
+        if datetime.now(timezone.utc) - sent_time > self.deduplication_window:
             # Expired, remove from cache
             del self.sent_alerts[alert_key]
             return False
@@ -89,7 +89,7 @@ Severity: {severity.upper()}
 Title: {title}
 Description: {description}
 
-Timestamp: {datetime.utcnow().isoformat()}
+Timestamp: {datetime.now(timezone.utc).isoformat()}
 """
             if metadata:
                 body += f"\nMetadata:\n{json.dumps(metadata, indent=2)}"
@@ -132,12 +132,12 @@ Timestamp: {datetime.utcnow().isoformat()}
                     },
                     {
                         "title": "Timestamp",
-                        "value": datetime.utcnow().isoformat(),
+                        "value": datetime.now(timezone.utc).isoformat(),
                         "short": True
                     }
                 ],
                 "footer": "Security Monitoring System",
-                "ts": int(datetime.utcnow().timestamp())
+                "ts": int(datetime.now(timezone.utc).timestamp())
             }]
         }
         
@@ -165,7 +165,7 @@ Timestamp: {datetime.utcnow().isoformat()}
             "severity": severity,
             "title": title,
             "description": description,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "event_id": event_id,
             "metadata": metadata or {}
         }
@@ -226,11 +226,12 @@ Timestamp: {datetime.utcnow().isoformat()}
     
     def cleanup_old_alerts(self):
         """Clean up old alert deduplication cache."""
-        cutoff = datetime.utcnow() - self.deduplication_window
+        cutoff = datetime.now(timezone.utc) - self.deduplication_window
         keys_to_remove = [
             key for key, timestamp in self.sent_alerts.items()
             if timestamp < cutoff
         ]
         for key in keys_to_remove:
             del self.sent_alerts[key]
+
 

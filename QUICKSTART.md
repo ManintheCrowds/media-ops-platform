@@ -14,10 +14,15 @@ Get your self-hosted platform up and running in minutes!
 # Copy environment file
 cp .env.example .env
 
-# Edit .env and change the secrets (IMPORTANT!)
-# At minimum, change:
-# - SECRET_KEY
-# - JWT_SECRET_KEY
+# Edit .env and set the REQUIRED secrets (MANDATORY!)
+# ⚠️ WARNING: The application will NOT start without these variables set.
+# At minimum, you MUST set:
+# - SECRET_KEY (must be at least 32 characters)
+# - JWT_SECRET_KEY (must be at least 32 characters)
+
+# Generate secure secrets:
+python -c "import secrets; print('SECRET_KEY=' + secrets.token_urlsafe(32))"
+python -c "import secrets; print('JWT_SECRET_KEY=' + secrets.token_urlsafe(32))"
 ```
 
 ## Step 2: Start Services
@@ -132,6 +137,26 @@ Once services are running, you can access them directly:
 - **Vaultwarden**: http://localhost/vaultwarden
 
 ## Troubleshooting
+
+### Application fails to start - missing secrets
+
+If you see errors about `SECRET_KEY` or `JWT_SECRET_KEY` being missing or too short:
+
+```bash
+# Check platform logs for specific error
+docker-compose logs platform
+
+# Verify your .env file has the required variables set
+# Both SECRET_KEY and JWT_SECRET_KEY must be at least 32 characters
+
+# Generate and set secrets:
+python -c "import secrets; print('SECRET_KEY=' + secrets.token_urlsafe(32))"
+python -c "import secrets; print('JWT_SECRET_KEY=' + secrets.token_urlsafe(32))"
+```
+
+**Error messages you might see:**
+- `Field required [type=missing, input_value=None, input_type=NoneType]` - Secret not set
+- `Secret must be at least 32 characters long` - Secret too short
 
 ### Services won't start
 

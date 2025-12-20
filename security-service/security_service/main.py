@@ -31,7 +31,7 @@ from .models.threats import ThreatIntelligence, FirewallRule, VulnerabilityScan,
 
 import pydantic
 from typing import List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 @asynccontextmanager
@@ -426,7 +426,7 @@ async def get_compliance_report(
 ):
     """Get compliance report."""
     reporter = ComplianceReporter(db)
-    end_date = datetime.utcnow()
+    end_date = datetime.now(timezone.utc)
     start_date = end_date - timedelta(days=days)
     
     if report_type == "security_audit":
@@ -437,4 +437,5 @@ async def get_compliance_report(
         raise HTTPException(status_code=400, detail="Invalid report type")
     
     return report
+
 

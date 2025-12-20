@@ -2,7 +2,7 @@
 
 from typing import Optional, List, Dict
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException, status
 from app.models.pi_device import PiDevice, PiSyncPackage, DeviceType, SyncStatus, PackageType
 from app.models.organization import Organization
@@ -122,7 +122,7 @@ class PiSyncService:
             )
         
         # Get available packages that haven't expired
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         packages = db.query(PiSyncPackage).filter(
             PiSyncPackage.device_id == device.id,
             PiSyncPackage.expires_at > now
@@ -161,7 +161,7 @@ class PiSyncService:
             device_id=device.id,
             package_type=package_type,
             content_ids=content_ids or [],
-            expires_at=datetime.utcnow() + timedelta(hours=24)  # 24 hour expiry
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=24)  # 24 hour expiry
         )
         
         db.add(package)
@@ -199,9 +199,10 @@ class PiSyncService:
             )
         
         device.sync_status = SyncStatus.SYNCED
-        device.last_sync = datetime.utcnow()
+        device.last_sync = datetime.now(timezone.utc)
         
         db.commit()
         
         return True
+
 

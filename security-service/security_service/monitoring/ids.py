@@ -1,7 +1,7 @@
 """Intrusion Detection System."""
 
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List
 from fastapi import Request
 from sqlalchemy.orm import Session
@@ -151,7 +151,7 @@ class IntrusionDetectionSystem:
                                  username: Optional[str]) -> Optional[SecurityEvent]:
         """Check for brute force login attempts."""
         # Count failed login attempts in the time window
-        window_start = datetime.utcnow() - self.brute_force_window
+        window_start = datetime.now(timezone.utc) - self.brute_force_window
         
         failed_attempts = self.db.query(SecurityEvent).filter(
             SecurityEvent.source_ip == source_ip,
@@ -176,7 +176,7 @@ class IntrusionDetectionSystem:
                                     user_id: Optional[int], username: Optional[str]) -> Optional[SecurityEvent]:
         """Check for unusual access patterns."""
         # Check for port scanning patterns (multiple endpoints in short time)
-        window_start = datetime.utcnow() - timedelta(seconds=60)
+        window_start = datetime.now(timezone.utc) - timedelta(seconds=60)
         
         recent_requests = self.db.query(SecurityEvent).filter(
             SecurityEvent.source_ip == source_ip,
@@ -217,7 +217,7 @@ class IntrusionDetectionSystem:
             description=description,
             raw_data=raw_data,
             metadata=metadata,
-            detected_at=datetime.utcnow()
+            detected_at=datetime.now(timezone.utc)
         )
         
         self.db.add(event)
@@ -236,4 +236,5 @@ class IntrusionDetectionSystem:
             description=f"Failed login attempt from {source_ip}",
             metadata={"action": "failed_login"}
         )
+
 

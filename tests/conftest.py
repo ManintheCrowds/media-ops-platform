@@ -13,7 +13,8 @@ from faker import Faker
 from app.main import app
 from app.models import Base, User, Service
 from app.config import settings
-from app.auth.oauth2 import get_db, get_password_hash
+from app.auth.oauth2 import get_password_hash
+from app.database import get_db
 from app.auth.jwt_handler import create_access_token
 from datetime import timedelta
 

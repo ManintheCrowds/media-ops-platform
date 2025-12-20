@@ -1,6 +1,6 @@
 """Incident management service."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
@@ -27,8 +27,8 @@ class IncidentManager:
             source_ips=source_ips or [],
             related_event_ids=related_event_ids or [],
             metadata=metadata or {},
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc)
         )
         
         self.db.add(incident)
@@ -67,13 +67,13 @@ class IncidentManager:
             return False
         
         incident.status = status
-        incident.updated_at = datetime.utcnow()
+        incident.updated_at = datetime.now(timezone.utc)
         
         if assigned_to:
             incident.assigned_to = assigned_to
         
         if status == IncidentStatus.RESOLVED.value or status == IncidentStatus.CLOSED.value:
-            incident.resolved_at = datetime.utcnow()
+            incident.resolved_at = datetime.now(timezone.utc)
             if resolution_notes:
                 incident.resolution_notes = resolution_notes
         
@@ -87,14 +87,14 @@ class IncidentManager:
             return False
         
         incident.assigned_to = assigned_to
-        incident.updated_at = datetime.utcnow()
+        incident.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         
         return True
     
     def get_incident_statistics(self, days: int = 30) -> Dict[str, Any]:
         """Get incident statistics."""
-        start_date = datetime.utcnow() - timedelta(days=days)
+        start_date = datetime.now(timezone.utc) - timedelta(days=days)
         
         total_incidents = self.db.query(SecurityIncident).filter(
             SecurityIncident.created_at >= start_date
@@ -133,4 +133,5 @@ class IncidentManager:
             "mean_time_to_resolution_hours": mttr,
             "period_days": days
         }
+
 

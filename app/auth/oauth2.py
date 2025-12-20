@@ -1,16 +1,18 @@
 """OAuth2 authentication endpoints."""
 
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from pydantic import BaseModel
+import logging
 from app.config import settings
 from app.models import User, Base
 from app.auth.jwt_handler import create_access_token, verify_token
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from app.database import get_db
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -19,19 +21,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
-
-# Database setup
-engine = create_engine(settings.database_url)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def get_db():
-    """Get database session."""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -162,15 +151,39 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
 
 
 @router.post("/init-db")
-async def init_database():
-    """Initialize database tables (development only)."""
-    if not settings.debug:
+async def init_database(
+    request: Request,
+    current_user: User = Depends(get_current_user)
+):
+    """Initialize database tables (development only - requires explicit enable)."""
+    # Layer 1: Check explicit enable flag
+    if not settings.enable_debug_endpoints:
+        logger.warning(f"Blocked /init-db access from {request.client.host}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+    
+    # Layer 2: Require admin authentication
+    if settings.debug_endpoint_require_admin and not current_user.is_admin:
+        logger.warning(f"Blocked /init-db access - non-admin user: {current_user.username}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Database initialization only available in debug mode"
+            detail="Admin access required"
         )
     
-    Base.metadata.create_all(bind=engine)
+    # Layer 3: IP whitelist check
+    if settings.debug_endpoint_allowed_ips:
+        client_ip = request.client.host
+        if client_ip not in settings.debug_endpoint_allowed_ips:
+            logger.warning(f"Blocked /init-db access from unauthorized IP: {client_ip}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied"
+            )
+    
+    # Log successful access
+    logger.info(f"Database initialization triggered by admin user: {current_user.username} from {request.client.host}")
+    
+    from app.database import init_db
+    init_db()
     return {"message": "Database initialized"}
 
 

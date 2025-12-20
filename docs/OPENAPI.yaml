@@ -1055,3 +1055,4 @@ components:
             $ref: '#/components/schemas/Error'
           example:
             detail: Service unavailable: Connection timeout
+

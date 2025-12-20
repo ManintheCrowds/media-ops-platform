@@ -44,8 +44,12 @@ services:
     container_name: platform-api
     environment:
       DATABASE_URL: postgresql://platform:platform@postgres:5432/platform
-      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-production-jwt}
+      # REQUIRED: Application secret key (must be at least 32 characters)
+      # Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+      SECRET_KEY: ${SECRET_KEY}
+      # REQUIRED: JWT secret key (must be at least 32 characters)
+      # Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       DEBUG: ${DEBUG:-False}
     volumes:
       - .:/app
@@ -83,10 +87,10 @@ services:
     image: seafileltd/seafile-mc:latest
     container_name: platform-seafile
     environment:
-      - SEAFILE_ADMIN_EMAIL=admin@example.com
-      - SEAFILE_ADMIN_PASSWORD=changeme
+      - SEAFILE_ADMIN_EMAIL=art.int.interface@gmail.com
+      - SEAFILE_ADMIN_PASSWORD=cableTV21
       - DB_HOST=seafile-db
-      - DB_ROOT_PASSWD=changeme
+      - DB_ROOT_PASSWD=cableTV21
     volumes:
       - seafile_data:/shared
     ports:
@@ -122,7 +126,7 @@ services:
     image: mariadb:10.11
     container_name: platform-seafile-db
     environment:
-      - MYSQL_ROOT_PASSWORD=changeme
+      - MYSQL_ROOT_PASSWORD=cableTV21
       - MYSQL_DATABASE=seafile
     volumes:
       - seafile_db_data:/var/lib/mysql
@@ -334,7 +338,8 @@ services:
     environment:
       - DATABASE_URL=postgresql://education:password@education-db:5432/education
       - PLATFORM_URL=http://platform:8000
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-change-me-in-production-jwt}
+      # REQUIRED: JWT secret key (must match main platform, at least 32 characters)
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - BOOKSTACK_URL=http://bookstack:80
       - GITEA_URL=http://gitea:3000
       - SEAFILE_URL=http://seafile:8000

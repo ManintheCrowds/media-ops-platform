@@ -5,7 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from app.models import Service, User
-from app.auth.oauth2 import get_current_user, get_db
+from app.auth.oauth2 import get_current_user
+from app.database import get_db
+from app.validation import validate_service_url
+from app.config import settings
 
 router = APIRouter()
 
@@ -84,6 +87,25 @@ async def create_service(
             detail="Service name already exists"
         )
     
+    # Validate service URLs to prevent SSRF attacks
+    urls_to_validate = [
+        ("base_url", service_data.base_url),
+        ("api_url", service_data.api_url),
+        ("health_check_url", service_data.health_check_url)
+    ]
+    
+    for url_field, url_value in urls_to_validate:
+        if url_value:
+            is_valid, error_message = validate_service_url(
+                url_value,
+                allowed_internal_patterns=settings.ssrf_allowed_internal_patterns
+            )
+            if not is_valid:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid {url_field}: {error_message}"
+                )
+    
     service = Service(**service_data.dict())
     db.add(service)
     db.commit()
@@ -112,6 +134,25 @@ async def update_service(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Service not found"
         )
+    
+    # Validate service URLs to prevent SSRF attacks
+    urls_to_validate = [
+        ("base_url", service_data.base_url),
+        ("api_url", service_data.api_url),
+        ("health_check_url", service_data.health_check_url)
+    ]
+    
+    for url_field, url_value in urls_to_validate:
+        if url_value:
+            is_valid, error_message = validate_service_url(
+                url_value,
+                allowed_internal_patterns=settings.ssrf_allowed_internal_patterns
+            )
+            if not is_valid:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid {url_field}: {error_message}"
+                )
     
     for key, value in service_data.dict().items():
         setattr(service, key, value)

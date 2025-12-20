@@ -31,3 +31,4 @@ class UserProgress(Base):
     # Relationships
     content_item = relationship("ContentItem", back_populates="progress_records")
 
+

@@ -141,3 +141,4 @@ async def revert_to_version(
     content = ContentService.revert_to_version(db, content_id, version_number, current_user)
     return ContentItemResponse.model_validate(content)
 
+

@@ -2,19 +2,30 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
+from fastapi.exceptions import RequestValidationError
 from app.config import settings
 from app.api import services, health, gateway
 from app.auth import oauth2, jwt_handler
 import os
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+
+logger = logging.getLogger(__name__)
+security_logger = logging.getLogger("security")
 
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    debug=settings.debug
+    debug=settings.debug and settings.enable_debug_endpoints  # More restrictive
 )
 
 # Static files and templates
@@ -34,6 +45,47 @@ app.add_middleware(
     allow_methods=settings.cors_allow_methods,
     allow_headers=settings.cors_allow_headers,
 )
+
+# Global exception handlers
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Global exception handler that sanitizes error messages in production."""
+    # Log full error details server-side
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    
+    # Return sanitized error to client
+    if settings.debug:
+        # In debug mode, return detailed error
+        return JSONResponse(
+            status_code=500,
+            content={
+                "detail": str(exc),
+                "type": type(exc).__name__,
+                "path": str(request.url)
+            }
+        )
+    else:
+        # In production, return generic error
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "An internal error occurred"}
+        )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle validation errors with appropriate detail level."""
+    if settings.debug:
+        return JSONResponse(
+            status_code=422,
+            content={"detail": exc.errors(), "body": exc.body}
+        )
+    else:
+        return JSONResponse(
+            status_code=422,
+            content={"detail": "Invalid request data"}
+        )
+
 
 # Include routers
 app.include_router(oauth2.router, prefix="/api/auth", tags=["authentication"])

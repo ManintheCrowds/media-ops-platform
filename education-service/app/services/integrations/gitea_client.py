@@ -49,3 +49,4 @@ class GiteaClient:
             pass
         return None
 
+

@@ -271,3 +271,4 @@ education-service:
 3. **Caching**: Implement Redis for frequently accessed data
 4. **Async Operations**: Use background tasks for heavy operations
 
+

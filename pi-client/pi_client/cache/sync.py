@@ -6,7 +6,7 @@ import tarfile
 import hashlib
 from pathlib import Path
 from typing import Optional, Dict, Any, List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from ..config import Config
 from ..client import PiAPIClient
@@ -76,7 +76,7 @@ class SyncManager:
                 for package_info in packages:
                     await self._process_package(client, package_info)
                 
-                self._last_sync = datetime.utcnow()
+                self._last_sync = datetime.now(timezone.utc)
                 return True
                 
         except Exception as e:
@@ -209,4 +209,5 @@ class SyncManager:
         except Exception as e:
             logger.error(f"Failed to request incremental sync: {e}", exc_info=True)
             return False
+
 

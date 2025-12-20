@@ -3,10 +3,15 @@
 from typing import Dict, List, Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timezone
 import httpx
+import logging
 from app.models import Service, User
-from app.auth.oauth2 import get_current_user, get_db
+from app.auth.oauth2 import get_current_user
+from app.database import get_db
+from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -16,7 +21,7 @@ async def health_check():
     """Basic health check endpoint."""
     return {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 
@@ -33,7 +38,7 @@ async def check_all_services(
         # If no services are registered, return empty results
         if not services:
             return {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "services": {}
             }
         
@@ -51,32 +56,33 @@ async def check_all_services(
                     
                     # Update service health status
                     service.health_status = status
-                    service.last_health_check = datetime.utcnow()
+                    service.last_health_check = datetime.now(timezone.utc)
                     db.commit()
                 except Exception as e:
+                    logger.error(f"Error checking service {service.name}: {e}", exc_info=True)
+                    error_detail = str(e) if settings.debug else "Service check failed"
                     results[service.name] = {
                         "status": "unhealthy",
-                        "error": str(e)
+                        "error": error_detail
                     }
                     service.health_status = "unhealthy"
-                    service.last_health_check = datetime.utcnow()
+                    service.last_health_check = datetime.now(timezone.utc)
                     try:
                         db.commit()
                     except Exception:
                         db.rollback()
         
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "services": results
         }
     except Exception as e:
         # Log the error and return a proper error response
-        import traceback
-        print(f"Error in check_all_services: {e}")
-        print(traceback.format_exc())
+        logger.error(f"Error in check_all_services: {e}", exc_info=True)
+        error_detail = f"Error checking services: {str(e)}" if settings.debug else "Error checking services"
         raise HTTPException(
             status_code=500,
-            detail=f"Error checking services: {str(e)}"
+            detail=error_detail
         )
 
 
@@ -103,7 +109,7 @@ async def check_service(
             
             # Update service health status
             service.health_status = status
-            service.last_health_check = datetime.utcnow()
+            service.last_health_check = datetime.now(timezone.utc)
             db.commit()
             
             return {
@@ -111,18 +117,20 @@ async def check_service(
                 "status": status,
                 "status_code": response.status_code,
                 "response_time_ms": response.elapsed.total_seconds() * 1000,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
     except Exception as e:
+        logger.error(f"Error checking service {service.id}: {e}", exc_info=True)
         service.health_status = "unhealthy"
-        service.last_health_check = datetime.utcnow()
+        service.last_health_check = datetime.now(timezone.utc)
         db.commit()
         
+        error_detail = str(e) if settings.debug else "Service check failed"
         return {
             "service": service.name,
             "status": "unhealthy",
-            "error": str(e),
-            "timestamp": datetime.utcnow().isoformat()
+            "error": error_detail,
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
 

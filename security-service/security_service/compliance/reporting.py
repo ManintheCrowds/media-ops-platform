@@ -1,7 +1,7 @@
 """Compliance reporting service."""
 
 import csv
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -70,7 +70,7 @@ class ComplianceReporter:
                 "start": start_date.isoformat(),
                 "end": end_date.isoformat()
             },
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "summary": {
                 "total_security_events": total_events,
                 "events_by_type": events_by_type,
@@ -113,7 +113,7 @@ class ComplianceReporter:
                 "start": start_date.isoformat(),
                 "end": end_date.isoformat()
             },
-            "generated_at": datetime.utcnow().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "summary": {
                 "total_logins": total_logins,
                 "failed_logins": failed_logins,
@@ -146,4 +146,5 @@ class ComplianceReporter:
                     writer.writerow([key, value])
         
         return filepath
+
 

@@ -102,3 +102,4 @@ education-service/
 
 This project integrates with the main self-hosted platform.
 
+

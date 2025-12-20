@@ -69,3 +69,4 @@ class ContentListResponse(BaseModel):
     page_size: int
     pages: int
 
+

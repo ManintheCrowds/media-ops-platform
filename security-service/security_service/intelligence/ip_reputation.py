@@ -24,7 +24,7 @@ class IPReputationService:
                 ThreatIntelligence.ip_address == ip_address
             ).first()
             
-            if cached and cached.updated_at > datetime.utcnow() - self.cache_ttl:
+            if cached and cached.updated_at > datetime.now(timezone.utc) - self.cache_ttl:
                 return cached
         
         # Query threat intelligence feeds
@@ -45,8 +45,8 @@ class IPReputationService:
             threat_intel.country = reputation_data.get("country")
             threat_intel.asn = reputation_data.get("asn")
             threat_intel.isp = reputation_data.get("isp")
-            threat_intel.last_seen = datetime.utcnow()
-            threat_intel.updated_at = datetime.utcnow()
+            threat_intel.last_seen = datetime.now(timezone.utc)
+            threat_intel.updated_at = datetime.now(timezone.utc)
             threat_intel.metadata = reputation_data.get("metadata", {})
         else:
             # Create new
@@ -60,9 +60,9 @@ class IPReputationService:
                 country=reputation_data.get("country"),
                 asn=reputation_data.get("asn"),
                 isp=reputation_data.get("isp"),
-                first_seen=datetime.utcnow(),
-                last_seen=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
+                first_seen=datetime.now(timezone.utc),
+                last_seen=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
                 metadata=reputation_data.get("metadata", {})
             )
             self.db.add(threat_intel)
@@ -226,4 +226,5 @@ class IPReputationService:
             "source": ",".join(sources),
             "metadata": {"sources": sources, "result_count": len(results)}
         }
+
 

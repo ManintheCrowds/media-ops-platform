@@ -58,3 +58,4 @@ def test_config_validate():
     with pytest.raises(ValueError):
         config.validate()
 
+
