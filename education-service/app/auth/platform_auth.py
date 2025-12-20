@@ -60,3 +60,4 @@ def get_oauth2_scheme():
     return OAuth2PasswordBearer(tokenUrl=f"{settings.platform_url}/api/auth/token")
 
 
+

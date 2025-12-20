@@ -24,3 +24,4 @@ class Organization(Base):
     pi_devices = relationship("PiDevice", back_populates="organization", cascade="all, delete-orphan")
 
 
+

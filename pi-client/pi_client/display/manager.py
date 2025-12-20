@@ -124,3 +124,4 @@ class DisplayManager:
             asyncio.create_task(self._rotate_to_next_content())
 
 
+

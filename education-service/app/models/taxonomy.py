@@ -52,3 +52,4 @@ class TaxonomyNode(Base):
     content_items = relationship("ContentItem", secondary=content_taxonomy, back_populates="taxonomy_nodes")
 
 
+

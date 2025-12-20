@@ -129,3 +129,4 @@ def is_encrypted(value: str) -> bool:
     except Exception:
         # Not valid base64, definitely not encrypted
         return False
+

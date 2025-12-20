@@ -94,3 +94,4 @@ echo "2. Start the service: sudo systemctl start pi-client"
 echo "3. Enable auto-start: sudo systemctl enable pi-client"
 
 
+

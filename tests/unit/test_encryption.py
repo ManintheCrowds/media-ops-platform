@@ -220,3 +220,4 @@ class TestEncryptionIntegration:
             encrypted = encrypt_token(token, "test-secret")
             decrypted = decrypt_token(encrypted, "test-secret")
             assert decrypted == token
+

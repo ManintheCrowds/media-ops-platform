@@ -59,3 +59,8 @@ htmlcov/
 coverage.xml
 *.log
 
+# Cursor Monitoring
+cursor-metrics/
+cursor-quality-metrics/
+cursor-event-logs/
+
