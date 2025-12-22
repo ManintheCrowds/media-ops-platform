@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Archivist: Automated government meeting transcription serving 9 cities. 256+ caption files, 330+ hours processed, 93.5% success rate, 100% uptime. Built with WhisperX, Flask, FastAPI.">
+    <title>Case Study: Archivist - Government Meeting Transcription - Xanadu Media</title>
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Archivist - Government Meeting Transcription System">
+    <meta property="og:description" content="End-to-end automated transcription system serving 9 municipalities with 100% uptime, processing 256+ caption files with 93.5% success rate.">
+    <meta property="og:image" content="../assets/diagrams/architecture-high-level.png">
+    <meta property="og:url" content="https://xanadumedia.com/case-studies/archivist.html">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Archivist - Government Meeting Transcription System">
+    <meta name="twitter:description" content="Automated transcription system serving 9 cities with 100% uptime, 93.5% success rate.">
+    <meta name="twitter:image" content="../assets/diagrams/architecture-high-level.png">
+    
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/print.css" media="print">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <a href="../index.html" class="logo">Xanadu Media</a>
+                <ul class="nav-menu">
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="../services.html">Services</a></li>
+                    <li><a href="archivist.html" class="active">Case Studies</a></li>
+                    <li><a href="../about.html">About</a></li>
+                    <li><a href="../contact.html">Contact</a></li>
+                </ul>
+                <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <main id="main-content">
+        <section class="hero">
+            <div class="hero-content">
+                <h1 class="hero-title">Archivist - Government Meeting Transcription</h1>
+                <p class="hero-subtitle">Automated transcription and captioning system for government meetings across 9 cities</p>
+            </div>
+        </section>
+
+        <section class="quick-stats-bar">
+            <div class="container">
+                <div class="quick-stats-grid">
+                    <div class="quick-stat">
+                        <span class="quick-stat-number" data-target="256">0</span><span class="quick-stat-plus">+</span>
+                        <span class="quick-stat-label">Caption Files</span>
+                    </div>
+                    <div class="quick-stat">
+                        <span class="quick-stat-number" data-target="93.5">0</span><span class="quick-stat-percent">%</span>
+                        <span class="quick-stat-label">Success Rate</span>
+                    </div>
+                    <div class="quick-stat">
+                        <span class="quick-stat-number" data-target="100">0</span><span class="quick-stat-percent">%</span>
+                        <span class="quick-stat-label">Uptime</span>
+                    </div>
+                    <div class="quick-stat">
+                        <span class="quick-stat-number" data-target="9">0</span>
+                        <span class="quick-stat-label">Cities Served</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="case-study-content">
+            <div class="container">
+                <article class="case-study-article">
+                    <div class="case-study-header">
+                        <div class="case-study-meta">
+                            <span class="meta-item">Client: Suburban Cable Commission</span>
+                            <span class="meta-item">Industry: Government / Public Access</span>
+                            <span class="meta-item">Year: 2024</span>
+                        </div>
+                    </div>
+
+                        <nav class="table-of-contents" aria-label="Table of Contents">
+                        <h3>Contents</h3>
+                        <ul>
+                            <li><a href="#executive-summary">Executive Summary</a></li>
+                            <li><a href="#problem">The Problem</a></li>
+                            <li><a href="#solution">The Solution</a></li>
+                            <li><a href="#results-impact">Results & Impact</a></li>
+                            <li><a href="#architecture">Architecture</a></li>
+                            <li><a href="#technical-architecture">Technical Architecture</a></li>
+                            <li><a href="#challenges-overcome">Challenges Overcome</a></li>
+                            <li><a href="#technology-decisions">Technology Decisions</a></li>
+                            <li><a href="#performance-optimization">Performance Optimization</a></li>
+                            <li><a href="#security-considerations">Security Considerations</a></li>
+                            <li><a href="#timeline">Project Timeline</a></li>
+                            <li><a href="#technical-stack">Technical Stack & Workflow</a></li>
+                            <li><a href="#monitoring">Monitoring & Reliability</a></li>
+                            <li><a href="#transparency">Transparency & Roadmap</a></li>
+                            <li><a href="#lessons-learned">Lessons Learned</a></li>
+                        </ul>
+                    </nav>
+
+                    <div class="case-study-section" id="executive-summary">
+                        <h2>Executive Summary</h2>
+                        <p>Archivist is an end-to-end system that ingests government meeting videos from nine city storage locations, runs WhisperX transcription, generates broadcast-ready SCC captions, validates quality, publishes to VOD/search, and archives everything—backed by health checks and monitoring.</p>
+                        <p>The system removes barriers to understanding local proceedings by automating captioning and search across nine member cities, making meetings transparent and accessible for citizens, staff, journalists, and advocates while reducing manual labor costs and ensuring consistent quality.</p>
+                    </div>
+
+                    <div class="case-study-section" id="problem">
+                        <h2>The Problem</h2>
+                        <p>Government meeting videos were hard to search and inaccessible for citizens with hearing needs. Manual captioning didn't scale across nine cities, creating significant barriers to civic engagement and transparency.</p>
+                        
+                        <div class="before-after-comparison">
+                            <div class="comparison-container">
+                                <div class="comparison-item before">
+                                    <h3>Before: Manual Process</h3>
+                                    <ul>
+                                        <li>Hours of manual transcription per meeting</li>
+                                        <li>High labor costs ($50-100+ per hour)</li>
+                                        <li>Inconsistent quality across cities</li>
+                                        <li>Delays of days or weeks</li>
+                                        <li>Limited searchability</li>
+                                        <li>Error-prone human transcription</li>
+                                    </ul>
+                                </div>
+                                <div class="comparison-item after">
+                                    <h3>After: Automated System</h3>
+                                    <ul>
+                                        <li>Under 90 minutes automated processing</li>
+                                        <li>Minimal operational costs</li>
+                                        <li>Consistent, validated quality</li>
+                                        <li>Same-day processing</li>
+                                        <li>Fully searchable transcripts</li>
+                                        <li>93.5%+ success rate</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <p>The challenges included:</p>
+                        <ul class="problem-list">
+                            <li><strong>Time-consuming:</strong> Manual transcription and captioning took hours per meeting</li>
+                            <li><strong>Error-prone:</strong> Human transcription introduced errors and inconsistencies</li>
+                            <li><strong>Expensive:</strong> High labor costs for manual captioning</li>
+                            <li><strong>Inconsistent:</strong> Different quality and formats across cities</li>
+                            <li><strong>Not scalable:</strong> Couldn't handle increasing volume of meetings</li>
+                            <li><strong>Compliance challenges:</strong> Difficulty ensuring all meetings met accessibility requirements</li>
+                            <li><strong>Search limitations:</strong> Videos without transcripts were difficult to search and navigate</li>
+                        </ul>
+                        <p>The Suburban Cable Commission needed a solution that could automatically process meeting recordings from nine different cities, generate compliant captions, and make content searchable for public access.</p>
+                    </div>
+
+                    <div class="case-study-section" id="solution">
+                        <h2>The Solution</h2>
+                        <p>Archivist automates the complete workflow from video ingest to publication: <strong>ingest → WhisperX transcription → SCC caption generation → publication to VOD/search</strong> with comprehensive monitoring and alerting.</p>
+                        <p>The system continuously detects new videos from multiple storage locations across nine cities, processes them through an AI-powered transcription pipeline, generates compliant captions, validates quality, and publishes everything to VOD platforms and searchable archives—all while maintaining comprehensive health checks and monitoring.</p>
+                        <p>The end-to-end automated transcription and captioning pipeline includes:</p>
+                        <ul class="solution-list">
+                            <li><strong>Automated Detection:</strong> Continuously monitors nine city storage locations for new videos</li>
+                            <li><strong>AI Transcription:</strong> Uses WhisperX for accurate transcription with timestamp alignment</li>
+                            <li><strong>Caption Generation:</strong> Automatically generates broadcast-ready SCC caption files</li>
+                            <li><strong>Quality Validation:</strong> Validates caption quality and compliance before publishing</li>
+                            <li><strong>VOD Integration:</strong> Publishes captions and transcripts to VOD platforms</li>
+                            <li><strong>Archival System:</strong> Archives all content with searchable metadata</li>
+                            <li><strong>Health Monitoring:</strong> Comprehensive health checks and alerting</li>
+                        </ul>
+                    </div>
+
+                    <div class="case-study-section" id="results-impact">
+                        <h2>Results & Impact</h2>
+                        <p class="impact-intro"><strong>Dec 2025 Snapshot:</strong> The system has achieved significant operational success with measurable impact across all metrics.</p>
+                        <div class="results-grid">
+                            <div class="result-item highlight">
+                                <h3>256+ Caption Files</h3>
+                                <p>Successfully processed and published</p>
+                            </div>
+                            <div class="result-item highlight">
+                                <h3>330+ Content Hours</h3>
+                                <p>Of meeting content transcribed and archived</p>
+                            </div>
+                            <div class="result-item highlight">
+                                <h3>93.5%+ Success Rate</h3>
+                                <p>Reliable processing with minimal errors</p>
+                            </div>
+                            <div class="result-item highlight">
+                                <h3>&lt;90 Minutes</h3>
+                                <p>Average processing time per meeting</p>
+                            </div>
+                            <div class="result-item highlight">
+                                <h3>&lt;1% Error Rate</h3>
+                                <p>System reliability with robust error handling</p>
+                            </div>
+                            <div class="result-item highlight">
+                                <h3>100% Uptime</h3>
+                                <p>Since deployment with comprehensive monitoring</p>
+                            </div>
+                            <div class="result-item">
+                                <h3>9 Cities Served</h3>
+                                <p>Multiple municipalities across the region</p>
+                            </div>
+                            <div class="result-item">
+                                <h3>~20 Files/Day Average</h3>
+                                <p>With peaks over 100 files/day</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="case-study-section" id="architecture">
+                        <h2>Architecture</h2>
+                        <p>The system architecture follows a clear flow from input sources through processing to outputs and integrations.</p>
+                        
+                        <h3>High-Level System Flow</h3>
+                        <div class="architecture-diagram-image">
+                            <img src="../assets/diagrams/architecture-high-level.png" alt="Archivist high-level system flow diagram showing input sources (Government Meeting Videos, City Storage Systems, City Council Recordings) flowing into Archivist Processing (Video Upload & Queue, WhisperX Transcription, SCC Caption Generation, Content Publishing) and then to Output & Access (Closed Caption Files, Searchable Transcripts, VOD Platform Integration, Public Accessibility)" class="diagram-image">
+                            <p class="diagram-caption">High-level flow: Input sources → Processing pipeline → Output & Access</p>
+                        </div>
+
+                        <h3>Detailed System Architecture</h3>
+                        <div class="architecture-diagram-image">
+                            <img src="../assets/diagrams/architecture-detailed.png" alt="Archivist detailed system architecture diagram showing Content Sources (9 city storage locations), Archivist Core System (File Management Service, Transcription Engine, Caption Generation, Content Publishing, Queue Management), Processing Pipeline (Video File Detection, WhisperX AI Processing, SCC Format Output, Quality Validation, Storage & Organization), and Output & Integration (Closed Caption Files, Searchable Transcripts, Cablecast VOD Platform, Public Access Portal, Archive Storage)" class="diagram-image">
+                            <p class="diagram-caption">Detailed architecture showing content sources, core system components, processing pipeline, and output integrations</p>
+                        </div>
+
+                        <div class="architecture-diagram">
+                            <div class="arch-layer">
+                                <h3>Input Layer</h3>
+                                <p>9 City Storage Locations, Cablecast Schedules, Streaming Devices</p>
+                            </div>
+                            <div class="arch-arrow">↓</div>
+                            <div class="arch-layer">
+                                <h3>Processing Layer</h3>
+                                <p>Video Detection → WhisperX Transcription → SCC Caption Generation → Quality Validation</p>
+                            </div>
+                            <div class="arch-arrow">↓</div>
+                            <div class="arch-layer">
+                                <h3>Service Layer</h3>
+                                <p>Flask REST API + FastAPI Async API, Celery Workers, Redis Queues</p>
+                            </div>
+                            <div class="arch-arrow">↓</div>
+                            <div class="arch-layer">
+                                <h3>Output Layer</h3>
+                                <p>VOD Platforms, Caption Storage, Searchable Archive, Health Monitoring</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="case-study-section" id="technical-architecture">
+                        <h2>Technical Architecture</h2>
+                        <p>Comprehensive technical architecture diagrams showing the complete system design from service layers to deployment topology.</p>
+                        
+                        <div class="diagram-tabs">
+                            <button class="tab-btn active" data-tab="overview" aria-label="Overview diagrams">Overview</button>
+                            <button class="tab-btn" data-tab="technical" aria-label="Technical diagrams">Technical Details</button>
+                            <button class="tab-btn" data-tab="operations" aria-label="Operations diagrams">Operations</button>
+                        </div>
+
+                        <div class="tab-content active" id="overview">
+                            <h3>High-Level System Flow</h3>
+                            <div class="architecture-diagram-image">
+                                <img src="../assets/diagrams/architecture-high-level.png" alt="Archivist high-level system flow diagram showing input sources (Government Meeting Videos, City Storage Systems, City Council Recordings) flowing into Archivist Processing (Video Upload & Queue, WhisperX Transcription, SCC Caption Generation, Content Publishing) and then to Output & Access (Closed Caption Files, Searchable Transcripts, VOD Platform Integration, Public Accessibility)" class="diagram-image">
+                                <p class="diagram-caption">High-level flow: Input sources → Processing pipeline → Output & Access</p>
+                            </div>
+
+                            <h3>Detailed System Architecture</h3>
+                            <div class="architecture-diagram-image">
+                                <img src="../assets/diagrams/architecture-detailed.png" alt="Archivist detailed system architecture diagram showing Content Sources (9 city storage locations), Archivist Core System (File Management Service, Transcription Engine, Caption Generation, Content Publishing, Queue Management), Processing Pipeline (Video File Detection, WhisperX AI Processing, SCC Format Output, Quality Validation, Storage & Organization), and Output & Integration (Closed Caption Files, Searchable Transcripts, Cablecast VOD Platform, Public Access Portal, Archive Storage)" class="diagram-image">
+                                <p class="diagram-caption">Detailed architecture showing content sources, core system components, processing pipeline, and output integrations</p>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="technical">
+                            <h3>Service Layer Design</h3>
+                        <div class="architecture-diagram-image">
+                            <img src="../assets/diagrams/service-layer-design.png" alt="Service layer design diagram showing API Layer (Flask REST API, FastAPI Async API, Monitoring Dashboard, Grafana, Prometheus, Authentication & Rate Limiting), Service Layer (TranscriptionService, VODService, FileService, QueueService, AsyncTranscriptionService, CaptionStoreService, StreamingService, CablecastScheduleService, RecordingService), Data Layer (PostgreSQL Database, Redis Cache & Message Broker, File Storage Mounts), External Integrations (Cablecast API, City Storage Servers, VOD Platforms, Cablecast Schedule API, Recording Systems, Streaming Devices, CaptionStore Service), and Background Processing (Celery Workers, Celery Beat Scheduler, VOD Sync Monitor)" class="diagram-image">
+                            <p class="diagram-caption">Service layer architecture showing API layer, service layer, data layer, and external integrations</p>
+                        </div>
+
+                        <h3>Processing Pipeline</h3>
+                        <div class="architecture-diagram-image">
+                            <img src="../assets/diagrams/processing-pipeline.png" alt="Processing pipeline diagram showing Input Stage (Video File Detection, File Validation, Queue Assignment) flowing to Processing Stage (WhisperX Transcription, Timestamp Alignment, SCC Generation, Quality Validation) and then to Output Stage (File Storage, Database Update, VOD Publishing, Notification)" class="diagram-image">
+                            <p class="diagram-caption">Detailed processing stages from video file detection through transcription, caption generation, validation, and publication</p>
+                        </div>
+
+                        <h3>Data Model</h3>
+                        <div class="architecture-diagram-image">
+                            <img src="../assets/diagrams/data-model-sketch.png" alt="Data model class diagram showing relationships: Video entity (id, city, source_path, recorded_at) relates to CitySource (id, name, storage_mount), Video has one-to-many relationship with Job (id, video_id, status, retries, started_at, completed_at), Job has one-to-one relationship with CaptionFile (id, job_id, format, path, duration), Job has optional one-to-one relationship with VODPublish (id, job_id, published_at, platform_id), and CitySource has one-to-many relationship with Video" class="diagram-image">
+                            <p class="diagram-caption">Data model relationships between Video, Job, CaptionFile, CitySource, and VODPublish entities</p>
+                        </div>
+
+                        <h3>Job Lifecycle State Machine</h3>
+                        <div class="architecture-diagram-image">
+                            <img src="../assets/diagrams/job-lifecycle-state.png" alt="Job lifecycle state machine diagram showing state transitions: starting state to queued, queued to in_progress when worker claims, in_progress to validating when transcription done, validating to published if quality ok or to failed if validation error, published to archived when archive complete, in_progress can also go to failed on processing error, failed can retry to queued if retries remaining, or go to end state if retries exhausted, archived goes to end state" class="diagram-image">
+                            <p class="diagram-caption">State machine showing job lifecycle from queued through processing, validation, publishing, and archival</p>
+                        </div>
+
+                        <h3>Testing & Observability Flow</h3>
+                        <div class="architecture-diagram-image">
+                            <img src="../assets/diagrams/testing-observability-flow.png" alt="Testing and observability flow diagram showing metrics pipeline: Infrastructure exporters (Node Exporter, App Metrics/Custom Exporters, Device Exporters) feed into Prometheus Stack (Prometheus, Alertmanager), which then connects to Dashboards (Grafana Dashboards, Daily Digest/Reports) and People (On-call/Ops, Stakeholders), with Alertmanager also directly notifying People" class="diagram-image">
+                            <p class="diagram-caption">Metrics pipeline from exporters through Prometheus and Alertmanager to Grafana dashboards and stakeholders</p>
+                        </div>
+                        </div>
+
+                        <div class="tab-content" id="operations">
+                            <h3>Deployment Topology</h3>
+                            <div class="architecture-diagram-image">
+                                <img src="../assets/diagrams/deployment-topology.png" alt="Deployment topology diagram showing Frontend (Flask API, FastAPI), Workers (Celery Workers, Celery Beat, VOD Sync Monitor), Data (PostgreSQL, Redis, Storage Mounts), Monitoring (Prometheus, Grafana, Node/App Exporters), and External integrations (Cablecast API/VOD, Streaming Devices, Recording Systems) with connections showing data flow and service interactions" class="diagram-image">
+                                <p class="diagram-caption">Runtime topology showing frontend APIs, background workers, data stores, monitoring stack, and external integrations</p>
+                            </div>
+
+                            <h3>Job Lifecycle State Machine</h3>
+                            <div class="architecture-diagram-image">
+                                <img src="../assets/diagrams/job-lifecycle-state.png" alt="Job lifecycle state machine diagram showing state transitions: starting state to queued, queued to in_progress when worker claims, in_progress to validating when transcription done, validating to published if quality ok or to failed if validation error, published to archived when archive complete, in_progress can also go to failed on processing error, failed can retry to queued if retries remaining, or go to end state if retries exhausted, archived goes to end state" class="diagram-image">
+                                <p class="diagram-caption">State machine showing job lifecycle from queued through processing, validation, publishing, and archival</p>
+                            </div>
+
+                            <h3>Testing & Observability Flow</h3>
+                            <div class="architecture-diagram-image">
+                                <img src="../assets/diagrams/testing-observability-flow.png" alt="Testing and observability flow diagram showing metrics pipeline: Infrastructure exporters (Node Exporter, App Metrics/Custom Exporters, Device Exporters) feed into Prometheus Stack (Prometheus, Alertmanager), which then connects to Dashboards (Grafana Dashboards, Daily Digest/Reports) and People (On-call/Ops, Stakeholders), with Alertmanager also directly notifying People" class="diagram-image">
+                                <p class="diagram-caption">Metrics pipeline from exporters through Prometheus and Alertmanager to Grafana dashboards and stakeholders</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="case-study-section" id="challenges-overcome">
+                        <h2>Challenges Overcome</h2>
+                        <p>Building a production-ready system that processes government meeting videos across multiple cities presented several technical and operational challenges. Here's how we addressed them:</p>
+                        
+                        <h3>Multi-City Storage Integration</h3>
+                        <p><strong>Challenge:</strong> Integrating with nine different city storage systems, each with unique mount points, file naming conventions, and access patterns.</p>
+                        <p><strong>Solution:</strong> Developed a flexible file detection service that abstracts storage differences behind a unified interface, with city-specific configuration for each storage mount point. This allows the system to scale to additional cities without code changes.</p>
+
+                        <h3>Variable Processing Loads</h3>
+                        <p><strong>Challenge:</strong> Meeting volumes vary significantly—from quiet periods to peak days with over 100 files requiring processing.</p>
+                        <p><strong>Solution:</strong> Implemented Celery-based queue system with Redis backing, allowing dynamic worker scaling. The queue absorbs spikes while maintaining consistent processing times, with priority queuing for urgent content.</p>
+
+                        <h3>Transcription Accuracy & Timestamps</h3>
+                        <p><strong>Challenge:</strong> Government meetings require accurate transcriptions with precise timestamps for broadcast compliance and searchability.</p>
+                        <p><strong>Solution:</strong> Selected WhisperX for its superior timestamp alignment capabilities. Implemented quality validation checks to ensure transcriptions meet accuracy thresholds before caption generation.</p>
+
+                        <h3>Broadcast Compliance</h3>
+                        <p><strong>Challenge:</strong> Generating broadcast-ready SCC caption files that meet industry standards and work across different VOD platforms.</p>
+                        <p><strong>Solution:</strong> Built custom SCC generation pipeline that validates format compliance, timing accuracy, and character limits per caption frame. Quality checks prevent publishing non-compliant files.</p>
+
+                        <h3>System Reliability & Monitoring</h3>
+                        <p><strong>Challenge:</strong> Ensuring 100% uptime for a system processing critical government content with minimal manual intervention.</p>
+                        <p><strong>Solution:</strong> Comprehensive monitoring stack with Prometheus metrics, Grafana dashboards, and intelligent alerting. Health endpoints for all services enable automated recovery and proactive issue detection.</p>
+                    </div>
+
+                    <div class="case-study-section" id="technology-decisions">
+                        <h2>Technology Decisions</h2>
+                        <p>Every technology choice was made with specific requirements in mind. Here's the reasoning behind our key decisions:</p>
+                        
+                        <h3>Dual API Architecture: Flask + FastAPI</h3>
+                        <p><strong>Why:</strong> Flask provides a mature, synchronous REST API for straightforward operations like file management and status checks. FastAPI handles high-performance async operations like bulk transcription requests and real-time monitoring. This separation allows each API to excel at its specific use case.</p>
+
+                        <h3>Celery for Background Processing</h3>
+                        <p><strong>Why:</strong> Transcription jobs are CPU-intensive and can take 90+ minutes. Celery's distributed task queue allows horizontal scaling of workers, retry logic for transient failures, and priority queuing for urgent content. Redis as the message broker provides fast, reliable job distribution.</p>
+
+                        <h3>WhisperX for Transcription</h3>
+                        <p><strong>Why:</strong> WhisperX builds on OpenAI's Whisper but adds precise word-level timestamp alignment, which is critical for broadcast captioning. It provides excellent accuracy for government meeting audio (often with multiple speakers, background noise, and technical terminology) while maintaining reasonable processing times.</p>
+
+                        <h3>PostgreSQL for Metadata</h3>
+                        <p><strong>Why:</strong> Relational database provides ACID guarantees for job tracking, supports complex queries for reporting and analytics, and enables full-text search on transcripts. The structured schema ensures data integrity across multiple cities and content types.</p>
+
+                        <h3>Prometheus + Grafana for Monitoring</h3>
+                        <p><strong>Why:</strong> Prometheus's pull-based metrics collection works well with our service architecture. Grafana provides rich visualization and alerting capabilities. This stack is industry-standard, well-documented, and integrates with our existing infrastructure.</p>
+
+                        <h3>SCC Caption Format</h3>
+                        <p><strong>Why:</strong> SCC (Scenarist Closed Caption) is the broadcast industry standard. It's supported by all major VOD platforms and ensures compatibility with Cablecast and other public access systems. The format supports precise timing and styling required for compliance.</p>
+                    </div>
+
+                    <div class="case-study-section" id="performance-optimization">
+                        <h2>Performance Optimization</h2>
+                        <p>Several optimizations were implemented to achieve under 90-minute average processing time and handle peak loads over 100 files/day:</p>
+                        
+                        <h3>Parallel Processing</h3>
+                        <p>Multiple Celery workers process jobs concurrently. The system can scale workers horizontally based on queue depth, ensuring consistent processing times even during peak periods.</p>
+
+                        <h3>Efficient Video Handling</h3>
+                        <p>Video files are processed in-place on city storage systems to avoid unnecessary copying. Only required segments are loaded into memory during transcription, reducing I/O overhead.</p>
+
+                        <h3>Queue Prioritization</h3>
+                        <p>Urgent content (e.g., time-sensitive meetings) can be prioritized in the queue. The system also implements fair scheduling to prevent any single city from monopolizing processing resources.</p>
+
+                        <h3>Database Optimization</h3>
+                        <p>Indexed queries for job lookup and status checks. Batch operations for bulk updates. Connection pooling to handle concurrent database access efficiently.</p>
+
+                        <h3>Caching Strategy</h3>
+                        <p>Redis caches frequently accessed metadata and configuration. This reduces database load and improves response times for API endpoints.</p>
+
+                        <h3>Result</h3>
+                        <p>These optimizations enable the system to maintain consistent performance under variable loads, with 93.5%+ success rate and <1% error rate even during peak processing periods.</p>
+                    </div>
+
+                    <div class="case-study-section" id="security-considerations">
+                        <h2>Security Considerations</h2>
+                        <p>Government content requires careful security measures. Here's how we addressed security requirements:</p>
+                        
+                        <h3>Access Control</h3>
+                        <p>API endpoints require authentication. Role-based access control ensures only authorized users can trigger processing or access sensitive content. All API requests are logged for audit trails.</p>
+
+                        <h3>Data Protection</h3>
+                        <p>Video files remain on secure city storage systems with existing city-level access controls. The system never stores video content permanently—only metadata, transcripts, and caption files are stored in the database.</p>
+
+                        <h3>Network Security</h3>
+                        <p>Services communicate over internal networks. External integrations (Cablecast, VOD platforms) use authenticated APIs with encrypted connections. Health endpoints are rate-limited to prevent abuse.</p>
+
+                        <h3>Error Handling</h3>
+                        <p>Sensitive information is never exposed in error messages or logs. Structured logging captures operational data without including personal or sensitive content.</p>
+
+                        <h3>Monitoring & Alerting</h3>
+                        <p>Security events (failed authentication, unusual access patterns) trigger alerts. Monitoring dashboards track system health without exposing sensitive data.</p>
+                    </div>
+
+                    <div class="case-study-section" id="timeline">
+                        <h2>Project Timeline</h2>
+                        <p>The Archivist system was developed and deployed through several key phases:</p>
+                        
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h3>Phase 1: Discovery & Planning</h3>
+                                    <p class="timeline-date">Q1 2024</p>
+                                    <p>Analyzed requirements across nine cities, assessed existing infrastructure, and designed system architecture. Identified key integrations (Cablecast, recording systems, streaming devices) and defined success metrics.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h3>Phase 2: Core Development</h3>
+                                    <p class="timeline-date">Q2 2024</p>
+                                    <p>Built dual API architecture (Flask + FastAPI), implemented WhisperX transcription pipeline, developed SCC caption generation, and created queue management system with Celery workers.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h3>Phase 3: Integration & Testing</h3>
+                                    <p class="timeline-date">Q3 2024</p>
+                                    <p>Integrated with all nine city storage systems, connected to Cablecast VOD platforms, implemented monitoring stack (Prometheus + Grafana), and conducted comprehensive testing with real meeting content.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h3>Phase 4: Deployment & Optimization</h3>
+                                    <p class="timeline-date">Q4 2024</p>
+                                    <p>Deployed to production, optimized processing pipelines for performance, fine-tuned monitoring and alerting, and achieved 100% uptime with <1% error rate.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-content">
+                                    <h3>Ongoing: Continuous Improvement</h3>
+                                    <p class="timeline-date">2025+</p>
+                                    <p>System continues to process approximately 20 files/day average with peaks over 100 files/day. Ongoing enhancements include ADA compliance improvements, performance tuning, and scalability planning for additional cities.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="case-study-section" id="technical-stack">
+                        <h2>Technical Stack & Workflow</h2>
+                        
+                        <h3>Technology Stack</h3>
+                        <p>The system is built with a modern, scalable architecture:</p>
+                        <ul class="tech-list">
+                            <li><strong>APIs:</strong> Flask REST API for synchronous operations; FastAPI async API for high-performance operations</li>
+                            <li><strong>Background Processing:</strong> Celery workers with Redis-backed queues for async transcription and caption generation</li>
+                            <li><strong>Database:</strong> PostgreSQL for metadata, job tracking, and searchable content</li>
+                            <li><strong>AI Transcription:</strong> WhisperX for accurate speech-to-text with precise timestamp alignment</li>
+                            <li><strong>Caption Format:</strong> SCC (Scenarist Closed Caption) file generation for broadcast compliance</li>
+                            <li><strong>Monitoring:</strong> Prometheus metrics, Grafana dashboards, structured logging, and alert correlation</li>
+                            <li><strong>Integrations:</strong> Cablecast, recording systems, and streaming device integrations for seamless workflow</li>
+                        </ul>
+
+                        <h3>Processing Workflow</h3>
+                        <p>The complete workflow automates the entire process from detection to publication:</p>
+                        <ol class="workflow-list">
+                            <li><strong>Detect Videos:</strong> Continuously monitor 9 storage mounts across different city locations</li>
+                            <li><strong>Transcribe:</strong> Process videos through WhisperX AI for accurate transcription with timestamps</li>
+                            <li><strong>Generate SCC:</strong> Create broadcast-ready SCC caption files from transcriptions</li>
+                            <li><strong>Quality Check:</strong> Validate caption quality and compliance before publishing</li>
+                            <li><strong>Publish:</strong> Deploy captions and transcripts to VOD platforms and public access portals</li>
+                            <li><strong>Archive:</strong> Store all content with searchable metadata for long-term access</li>
+                            <li><strong>Monitor Health:</strong> Track system health, performance metrics, and alert on issues</li>
+                        </ol>
+
+                        <h3>Operational Scope</h3>
+                        <ul class="feature-list">
+                            <li><strong>Nine municipalities served:</strong> Multiple cities across the region with unified processing infrastructure</li>
+                            <li><strong>100% uptime</strong> since deployment with comprehensive monitoring</li>
+                            <li><strong>Error rate &lt;1%</strong> with robust error handling and retry logic</li>
+                        </ul>
+
+                        <h3>Throughput Highlights</h3>
+                        <ul class="feature-list">
+                            <li><strong>Approximately 20 files/day average</strong> processing rate</li>
+                            <li><strong>Peak capacity over 100 files/day</strong> demonstrated</li>
+                            <li><strong>330+ hours</strong> of content processed and archived</li>
+                        </ul>
+
+                        <h3>Integrations</h3>
+                        <ul class="feature-list">
+                            <li>City storage servers for video detection</li>
+                            <li>Cablecast APIs for schedule and VOD platform integration</li>
+                            <li>Recording systems for automated video capture</li>
+                            <li>Streaming devices for live integration</li>
+                            <li>Caption storage services for archival</li>
+                        </ul>
+                    </div>
+
+                    <div class="case-study-section">
+                        <h2>Technologies Used</h2>
+                        <div class="tech-tags">
+                            <span class="tech-tag">WhisperX</span>
+                            <span class="tech-tag">Flask</span>
+                            <span class="tech-tag">FastAPI</span>
+                            <span class="tech-tag">Celery</span>
+                            <span class="tech-tag">Redis</span>
+                            <span class="tech-tag">PostgreSQL</span>
+                            <span class="tech-tag">Prometheus</span>
+                            <span class="tech-tag">Grafana</span>
+                            <span class="tech-tag">Python</span>
+                            <span class="tech-tag">Docker</span>
+                            <span class="tech-tag">SCC Format</span>
+                        </div>
+                    </div>
+
+                    <div class="case-study-section" id="monitoring">
+                        <h2>Monitoring & Reliability</h2>
+                        <p>Comprehensive monitoring and observability ensure system reliability and provide insights into operational performance.</p>
+                        
+                        <h3>Monitoring Infrastructure</h3>
+                        <p>The system is backed by a comprehensive observability stack:</p>
+                        <ul class="feature-list">
+                            <li><strong>Prometheus Metrics:</strong> Collection from all services including APIs, workers, and background processes</li>
+                            <li><strong>Grafana Dashboards:</strong> Visualization and analysis of system performance, throughput, and health metrics</li>
+                            <li><strong>Alert Correlation:</strong> Intelligent alerting system that prevents notification fatigue and ensures critical issues are addressed</li>
+                            <li><strong>Health Endpoints:</strong> Automated health checks for all components with structured responses</li>
+                            <li><strong>Structured Logging:</strong> Comprehensive logging for debugging, audit trails, and operational insights</li>
+                            <li><strong>Metrics Pipeline:</strong> Node exporters, application metrics, and custom exporters feed into Prometheus for complete visibility</li>
+                        </ul>
+
+                        <h3>Operational Metrics</h3>
+                        <ul class="metrics-list">
+                            <li>✅ 100% uptime since deployment with comprehensive monitoring</li>
+                            <li>✅ &lt;1% error rate with robust error handling and retry logic</li>
+                            <li>✅ 93.5%+ success rate with reliable processing</li>
+                            <li>✅ 256+ caption files produced covering 330+ hours of content</li>
+                            <li>✅ Under 90-minute average processing time per meeting</li>
+                            <li>✅ 9 operational cities with full system support</li>
+                            <li>✅ Handles approximately 20 files/day average, with peaks over 100 files/day</li>
+                            <li>✅ Broadcast-ready SCC captions for compliance</li>
+                            <li>✅ Searchable transcripts for public access</li>
+                        </ul>
+                    </div>
+
+                    <div class="case-study-section">
+                        <h2>Outcome</h2>
+                        <p>Archivist delivers an end-to-end, monitored accessibility pipeline that reliably transforms raw government meeting recordings into compliant captions and searchable transcripts. The system enables transparent civic engagement across multiple municipalities while reducing manual labor costs and ensuring consistent quality.</p>
+                        <p>The automated system has processed hundreds of hours of content with minimal intervention, making government proceedings more accessible to citizens, staff, journalists, and advocates.</p>
+                    </div>
+
+                    <div class="case-study-section" id="transparency">
+                        <h2>Transparency & Roadmap</h2>
+                        <p>We believe in honest communication about current capabilities, known limitations, and our path forward. This transparency demonstrates rigor and realistic project management.</p>
+                        
+                        <h3>ADA Compliance Status</h3>
+                        <p>The system acknowledges current gaps in caption validation and accessibility features. Our approach includes:</p>
+                        <ul class="feature-list">
+                            <li><strong>Current Implementation:</strong> Automated SCC caption generation with quality validation</li>
+                            <li><strong>Known Limitations:</strong> Some caption validation features are still in development</li>
+                            <li><strong>Planned Improvements:</strong> Enhanced caption validation, accessibility features, and compliance verification</li>
+                            <li><strong>Roadmap:</strong> Clear timeline for compliance milestones and accessibility enhancements</li>
+                        </ul>
+                        <p>Rather than claiming perfection, we document gaps and have a clear, realistic path forward. This honesty builds trust and demonstrates our commitment to continuous improvement.</p>
+
+                        <h3>Operational Excellence & Continuous Improvement</h3>
+                        <p>Implementation summaries capture ongoing improvements and tuning needs:</p>
+                        <ul class="feature-list">
+                            <li><strong>Alerting & Dashboards:</strong> Continuous refinement of monitoring and alerting systems</li>
+                            <li><strong>Performance Tuning:</strong> Ongoing optimization of processing pipelines and resource utilization</li>
+                            <li><strong>Scalability Considerations:</strong> Planning for increased volume and additional city integrations</li>
+                            <li><strong>Future Enhancements:</strong> Feature improvements based on operational experience and stakeholder feedback</li>
+                        </ul>
+                        <p>These provide excellent material for "lessons learned" and demonstrate a continuous improvement mindset that values both current success and future growth.</p>
+                    </div>
+
+                    <div class="cta-inline">
+                        <h3>Interested in Similar Solutions?</h3>
+                        <p>We specialize in AI-powered automation for government and enterprise clients.</p>
+                        <a href="../contact.html?project=automation" class="btn btn-primary">Start a Conversation</a>
+                    </div>
+
+                    <div class="case-study-section" id="lessons-learned">
+                        <h2>Lessons Learned</h2>
+                        <ul class="lessons-list">
+                            <li>Dual API architecture (Flask + FastAPI) provides flexibility for different use cases</li>
+                            <li>Queue-based processing is essential for handling variable workloads</li>
+                            <li>Comprehensive monitoring and alerting prevent issues before they impact users</li>
+                            <li>Quality validation before publishing ensures compliance and reduces errors</li>
+                            <li>WhisperX provides excellent transcription accuracy with proper timestamp alignment</li>
+                            <li>Automated health checks are critical for production systems</li>
+                            <li>Transparency about limitations builds trust and enables realistic planning</li>
+                            <li>Continuous improvement mindset ensures systems evolve with operational experience</li>
+                        </ul>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="container">
+                <h2>Need Similar Automation?</h2>
+                <p>Let's discuss how we can automate your transcription or media processing workflows</p>
+                <div class="cta-buttons">
+                    <a href="../contact.html?project=transcription" class="btn btn-primary btn-large">Discuss Your Transcription Project</a>
+                    <a href="../services.html#ai-development" class="btn btn-secondary btn-large">View AI Development Services</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Xanadu Media</h3>
+                    <p>AI-powered API development and infrastructure automation</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Services</h4>
+                    <ul>
+                        <li><a href="../services.html#api-integration">API Integration</a></li>
+                        <li><a href="../services.html#infrastructure">Infrastructure</a></li>
+                        <li><a href="../services.html#ai-development">AI Development</a></li>
+                        <li><a href="../services.html#maintenance">Maintenance</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="archivist.html">Case Studies</a></li>
+                        <li><a href="../about.html">About</a></li>
+                        <li><a href="../contact.html">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Xanadu Media. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Archivist",
+      "applicationCategory": "GovernmentApplication",
+      "operatingSystem": "Docker",
+      "description": "Automated government meeting transcription and captioning system serving 9 municipalities",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "1"
+      },
+      "featureList": [
+        "Automated video transcription",
+        "SCC caption generation",
+        "VOD platform integration",
+        "Multi-city support",
+        "Comprehensive monitoring"
+      ]
+    }
+    </script>
+    <script src="../js/main.js"></script>
+    <script src="../js/case-study.js"></script>
+</body>
+</html>
+

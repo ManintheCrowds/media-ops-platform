@@ -1,0 +1,33 @@
+%% Processing Pipeline
+graph TD
+    subgraph "Input Stage"
+        A[Video File Detection]
+        B[File Validation]
+        C[Queue Assignment]
+    end
+    
+    subgraph "Processing Stage"
+        D[WhisperX Transcription]
+        E[Timestamp Alignment]
+        F[SCC Generation]
+        G[Quality Validation]
+    end
+    
+    subgraph "Output Stage"
+        H[File Storage]
+        I[Database Update]
+        J[VOD Publishing]
+        K[Notification]
+    end
+    
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    H --> I
+    I --> J
+    J --> K
+

@@ -4,9 +4,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional, Dict, Any
 from sqlalchemy import Column, Integer, String, DateTime, Text, JSON, Index
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from ..base import Base
 
 
 class EventType(str, Enum):
@@ -49,7 +47,7 @@ class SecurityEvent(Base):
     user_agent = Column(String(500), nullable=True)
     description = Column(Text, nullable=False)
     raw_data = Column(JSON, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    event_metadata = Column(JSON, nullable=True)
     detected_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     resolved = Column(String(10), default="false", nullable=False)
     resolved_at = Column(DateTime, nullable=True)
@@ -59,6 +57,7 @@ class SecurityEvent(Base):
         Index('idx_security_events_source_ip_detected', 'source_ip', 'detected_at'),
         Index('idx_security_events_type_severity', 'event_type', 'severity'),
     )
+
 
 
 

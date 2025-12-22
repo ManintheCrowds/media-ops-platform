@@ -1,0 +1,73 @@
+%% Service Layer Design
+graph LR
+    subgraph "API Layer"
+        API1[Flask REST API - Port 8080]
+        API2[FastAPI Async API - Port 8000]
+        API3[Monitoring Dashboard - Port 5051]
+        API5[Grafana - Port 9092]
+        API6[Prometheus - Port 9090]
+        API4[Authentication & Rate Limiting]
+    end
+    
+    subgraph "Service Layer"
+        SVC1[TranscriptionService]
+        SVC2[VODService]
+        SVC3[FileService]
+        SVC4[QueueService]
+        SVC5[AsyncTranscriptionService]
+        SVC6[CaptionStoreService]
+        SVC7[HELOService]
+        SVC8[CablecastScheduleService]
+        SVC9[VIOLITERecordingService]
+    end
+    
+    subgraph "Data Layer"
+        DB1[PostgreSQL Database]
+        DB2[Redis Cache & Message Broker]
+        DB3[File Storage - Flex Mounts]
+    end
+    
+    subgraph "External Integrations"
+        EXT1[Cablecast API]
+        EXT2[Flex Servers - 9 Cities]
+        EXT3[VOD Platforms]
+        EXT4[Cablecast Schedule API]
+        EXT5[VIOLITE Recording Systems]
+        EXT6[HELO Devices]
+        EXT7[CaptionStore Service]
+    end
+    
+    subgraph "Background Processing"
+        BG1[Celery Workers]
+        BG2[Celery Beat Scheduler]
+        BG3[VOD Sync Monitor]
+    end
+    
+    API1 --> SVC1
+    API1 --> SVC2
+    API1 --> SVC3
+    API1 --> SVC4
+    API2 --> SVC5
+    
+    SVC1 --> DB1
+    SVC2 --> DB1
+    SVC3 --> DB3
+    SVC4 --> DB2
+    SVC5 --> DB1
+    SVC6 --> DB1
+    SVC7 --> DB1
+    SVC8 --> DB1
+    SVC9 --> DB1
+    
+    SVC2 --> EXT1
+    SVC3 --> EXT2
+    SVC2 --> EXT3
+    SVC8 --> EXT4
+    SVC9 --> EXT5
+    SVC7 --> EXT6
+    SVC6 --> EXT7
+    
+    BG1 --> SVC1
+    BG2 --> SVC4
+    BG3 --> SVC2
+

@@ -1,0 +1,57 @@
+%% Deployment/Runtime Topology
+flowchart LR
+    subgraph Frontend
+        FlaskAPI[Flask API (8080)]
+        FastAPI[FastAPI (8000)]
+    end
+
+    subgraph Workers
+        CeleryWorkers[Celery Workers]
+        CeleryBeat[Celery Beat]
+        VODMonitor[VOD Sync Monitor]
+    end
+
+    subgraph Data
+        Postgres[(PostgreSQL)]
+        Redis[(Redis)]
+        FlexMounts[Flex Storage Mounts]
+    end
+
+    subgraph Monitoring
+        Prometheus[Prometheus]
+        Grafana[Grafana]
+        Exporters[Node/App Exporters]
+    end
+
+    subgraph External
+        Cablecast[Cablecast API/VOD]
+        HeloDevices[HELO Devices]
+        Violite[VIOLITE Recorders]
+    end
+
+    FlaskAPI --> Postgres
+    FlaskAPI --> Redis
+    FlaskAPI --> FlexMounts
+    FastAPI --> Postgres
+    FastAPI --> Redis
+
+    CeleryWorkers --> Postgres
+    CeleryWorkers --> Redis
+    CeleryWorkers --> FlexMounts
+    CeleryBeat --> Redis
+    VODMonitor --> Cablecast
+
+    FlaskAPI <-->|REST| FastAPI
+    FlaskAPI --> CeleryWorkers
+    FastAPI --> CeleryWorkers
+
+    Exporters --> Prometheus
+    Prometheus --> Grafana
+    Prometheus --> FlaskAPI
+    Prometheus --> FastAPI
+    Prometheus --> CeleryWorkers
+
+    Cablecast <-->|Ingest/Publish| FlaskAPI
+    HeloDevices --> FlaskAPI
+    Violite --> FlaskAPI
+

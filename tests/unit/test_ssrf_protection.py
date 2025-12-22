@@ -490,3 +490,4 @@ class TestSSRFIntegration:
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST, f"SSRF attempt with {url} should be blocked"
 
+

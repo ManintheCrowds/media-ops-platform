@@ -1,0 +1,37 @@
+%% Testing/Observability Flow
+%% Shows metrics pipeline: exporters -> Prometheus -> Alertmanager -> Grafana/users
+flowchart TD
+    subgraph Infra
+        NodeExporter[Node Exporter]
+        AppExporter[App Metrics / Custom Exporters]
+        HeloExporter[HELO/Device Exporters]
+    end
+
+    subgraph PromStack[Prometheus Stack]
+        Prom[Prometheus]
+        Alertmanager[Alertmanager]
+    end
+
+    subgraph Dashboards
+        Grafana[Grafana Dashboards]
+        DailyDigest[Daily Digest / Reports]
+    end
+
+    subgraph People
+        OnCall[On-call / Ops]
+        Stakeholders[Stakeholders]
+    end
+
+    NodeExporter --> Prom
+    AppExporter --> Prom
+    HeloExporter --> Prom
+
+    Prom --> Alertmanager
+    Prom --> Grafana
+
+    Alertmanager --> OnCall
+    Alertmanager --> Stakeholders
+    Grafana --> OnCall
+    Grafana --> Stakeholders
+    Grafana --> DailyDigest
+

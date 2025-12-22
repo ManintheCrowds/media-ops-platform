@@ -1,0 +1,58 @@
+/* Print Stylesheet for Case Study */
+
+@media print {
+    * {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    body {
+        font-size: 12pt;
+        line-height: 1.5;
+    }
+
+    .header,
+    .footer,
+    .cta-section,
+    .table-of-contents,
+    .quick-stats-bar,
+    .skip-link {
+        display: none !important;
+    }
+
+    .case-study-section {
+        page-break-inside: avoid;
+        margin-bottom: 1.5em;
+    }
+
+    h1, h2, h3 {
+        page-break-after: avoid;
+    }
+
+    .diagram-image {
+        max-width: 100%;
+        page-break-inside: avoid;
+    }
+
+    a {
+        text-decoration: underline;
+    }
+
+    a[href^="http"]:after {
+        content: " (" attr(href) ")";
+        font-size: 0.9em;
+    }
+
+    .results-grid {
+        display: block;
+    }
+
+    .result-item {
+        margin-bottom: 1em;
+        border: 1px solid #ccc;
+        padding: 0.5em;
+    }
+}
+

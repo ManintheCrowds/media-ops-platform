@@ -86,7 +86,7 @@ def get_access_control(db: Session = Depends(get_db)) -> AccessControlEngine:
     return AccessControlEngine(db)
 
 
-def get_ip_reputation(db: Session = Depends(get_db)) -> IPReputationService:
+def get_ip_reputation_service(db: Session = Depends(get_db)) -> IPReputationService:
     return IPReputationService(db)
 
 
@@ -308,9 +308,8 @@ async def list_threats(skip: int = 0, limit: int = 100, db: Session = Depends(ge
 
 
 @app.get("/api/security/threats/ip/{ip_address}")
-async def get_ip_reputation(ip_address: str, db: Session = Depends(get_db)):
+async def get_ip_reputation(ip_address: str, ip_reputation: IPReputationService = Depends(get_ip_reputation_service)):
     """Get IP reputation."""
-    ip_reputation = get_ip_reputation(db)
     threat_intel = await ip_reputation.check_ip_reputation(ip_address)
     return threat_intel
 
@@ -437,6 +436,7 @@ async def get_compliance_report(
         raise HTTPException(status_code=400, detail="Invalid report type")
     
     return report
+
 
 
 
