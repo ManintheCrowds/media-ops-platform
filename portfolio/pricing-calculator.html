@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Estimate your project cost with our interactive pricing calculator for API development, infrastructure automation, and AI-assisted development services.">
+    <title>Pricing Calculator - Xanadu Media</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <a href="index.html" class="logo">Xanadu Media</a>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="services.html">Services</a></li>
+                    <li><a href="case-studies/self-hosted-platform.html">Case Studies</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+                <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1 class="hero-title">Project Pricing Calculator</h1>
+                <p class="hero-subtitle">Get an estimate for your project based on scope and complexity</p>
+            </div>
+        </section>
+
+        <section class="calculator-section">
+            <div class="container">
+                <div class="calculator-container">
+                    <form id="pricing-calculator" class="calculator-form">
+                        <div class="calculator-step">
+                            <h2>1. Select Service Type</h2>
+                            <div class="form-group">
+                                <label for="service-type">Service Type *</label>
+                                <select id="service-type" name="service-type" required>
+                                    <option value="">Choose a service...</option>
+                                    <option value="api-integration">API Integration & Microservices</option>
+                                    <option value="infrastructure">Infrastructure & DevOps</option>
+                                    <option value="ai-development">AI-Assisted Rapid Development</option>
+                                    <option value="maintenance">Ongoing Maintenance & Support</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="calculator-step" id="complexity-step" style="display: none;">
+                            <h2>2. Project Complexity</h2>
+                            <div class="form-group">
+                                <label for="complexity">Complexity Level *</label>
+                                <select id="complexity" name="complexity" required>
+                                    <option value="">Select complexity...</option>
+                                    <option value="simple">Simple - Basic features, standard patterns</option>
+                                    <option value="medium">Medium - Multiple integrations, custom logic</option>
+                                    <option value="complex">Complex - Enterprise features, advanced architecture</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="calculator-step" id="scope-step" style="display: none;">
+                            <h2>3. Project Scope</h2>
+                            <div class="form-group">
+                                <label for="scope">Estimated Scope *</label>
+                                <select id="scope" name="scope" required>
+                                    <option value="">Select scope...</option>
+                                    <option value="small">Small - 1-2 weeks, basic features</option>
+                                    <option value="medium">Medium - 3-6 weeks, multiple features</option>
+                                    <option value="large">Large - 2-3 months, comprehensive solution</option>
+                                    <option value="enterprise">Enterprise - 3+ months, full platform</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="calculator-step" id="additional-step" style="display: none;">
+                            <h2>4. Additional Requirements</h2>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="requirements" value="testing"> Comprehensive Testing
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="requirements" value="documentation"> Full Documentation
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="requirements" value="deployment"> Deployment Setup
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="requirements" value="training"> Training & Handoff
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="calculator-results" id="results" style="display: none;">
+                            <h2>Estimated Pricing</h2>
+                            <div class="results-card">
+                                <div class="result-item">
+                                    <span class="result-label">Estimated Hours:</span>
+                                    <span class="result-value" id="estimated-hours">-</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">Hourly Rate:</span>
+                                    <span class="result-value" id="hourly-rate">-</span>
+                                </div>
+                                <div class="result-item highlight">
+                                    <span class="result-label">Estimated Total:</span>
+                                    <span class="result-value" id="estimated-total">-</span>
+                                </div>
+                                <div class="result-item">
+                                    <span class="result-label">Timeline:</span>
+                                    <span class="result-value" id="timeline">-</span>
+                                </div>
+                            </div>
+                            <div class="results-note">
+                                <p><strong>Note:</strong> This is an estimate. Final pricing will be determined after a detailed project discussion.</p>
+                                <a href="contact.html" class="btn btn-primary">Get Detailed Quote</a>
+                            </div>
+                        </div>
+
+                        <div class="calculator-actions">
+                            <button type="button" id="calculate-btn" class="btn btn-primary" style="display: none;">Calculate Estimate</button>
+                            <button type="reset" class="btn btn-secondary">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Xanadu Media</h3>
+                    <p>AI-powered API development and infrastructure automation</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Services</h4>
+                    <ul>
+                        <li><a href="services.html#api-integration">API Integration</a></li>
+                        <li><a href="services.html#infrastructure">Infrastructure</a></li>
+                        <li><a href="services.html#ai-development">AI Development</a></li>
+                        <li><a href="services.html#maintenance">Maintenance</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="case-studies/self-hosted-platform.html">Case Studies</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Xanadu Media. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/pricing-calculator.js"></script>
+</body>
+</html>
+

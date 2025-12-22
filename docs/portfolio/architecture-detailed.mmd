@@ -1,0 +1,62 @@
+%% Archivist - Detailed System Architecture
+%% Source: README.md detailed architecture mermaid diagram
+graph TB
+    subgraph "Content Sources"
+        A1[Flex-1: Birchwood]
+        A2[Flex-2: Dellwood/Grant/Willernie]
+        A3[Flex-3: Lake Elmo]
+        A4[Flex-4: Mahtomedi]
+        A5[Flex-5: Spare Storage 1]
+        A6[Flex-6: Spare Storage 2]
+        A7[Flex-7: Oakdale]
+        A8[Flex-8: White Bear Lake]
+        A9[Flex-9: White Bear Township]
+    end
+    
+    subgraph "Archivist Core System"
+        B1[File Management Service]
+        B2[Transcription Engine]
+        B3[Caption Generation]
+        B4[Content Publishing]
+        B5[Queue Management]
+    end
+    
+    subgraph "Processing Pipeline"
+        C1[Video File Detection]
+        C2[WhisperX AI Processing]
+        C3[SCC Format Output]
+        C4[Quality Validation]
+        C5[Storage & Organization]
+    end
+    
+    subgraph "Output & Integration"
+        D1[Closed Caption Files]
+        D2[Searchable Transcripts]
+        D3[Cablecast VOD Platform]
+        D4[Public Access Portal]
+        D5[Archive Storage]
+    end
+    
+    A1 --> B1
+    A2 --> B1
+    A3 --> B1
+    A4 --> B1
+    A5 --> B1
+    A6 --> B1
+    A7 --> B1
+    A8 --> B1
+    A9 --> B1
+    
+    B1 --> C1
+    C1 --> C2
+    C2 --> C3
+    C3 --> C4
+    C4 --> C5
+    
+    C5 --> D1
+    C5 --> D2
+    D1 --> D3
+    D2 --> D4
+    D3 --> D5
+    D4 --> D5
+

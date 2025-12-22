@@ -5,9 +5,7 @@ from enum import Enum
 from typing import Optional
 from sqlalchemy import Column, Integer, String, DateTime, Text, JSON, ForeignKey, Index
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from ..base import Base
 
 
 class IncidentStatus(str, Enum):
@@ -52,7 +50,7 @@ class SecurityIncident(Base):
     source_ips = Column(JSON, nullable=True)  # List of IPs
     affected_resources = Column(JSON, nullable=True)  # List of affected resources
     related_event_ids = Column(JSON, nullable=True)  # List of related security event IDs
-    metadata = Column(JSON, nullable=True)
+    incident_metadata = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
     resolved_at = Column(DateTime, nullable=True)
@@ -63,6 +61,7 @@ class SecurityIncident(Base):
         Index('idx_incidents_status_severity', 'status', 'severity'),
         Index('idx_incidents_created_at', 'created_at'),
     )
+
 
 
 

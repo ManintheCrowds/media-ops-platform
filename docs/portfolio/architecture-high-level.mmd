@@ -1,0 +1,34 @@
+%% Archivist - High-Level System Flow
+%% Source: README.md high-level architecture mermaid diagram
+graph TB
+    subgraph "Input Sources"
+        A[Government Meeting Videos]
+        B[Flex Server Storage]
+        C[City Council Recordings]
+    end
+    
+    subgraph "Archivist Processing"
+        D[Video Upload & Queue]
+        E[WhisperX Transcription]
+        F[SCC Caption Generation]
+        G[Content Publishing]
+    end
+    
+    subgraph "Output & Access"
+        H[Closed Caption Files]
+        I[Searchable Transcripts]
+        J[VOD Platform Integration]
+        K[Public Accessibility]
+    end
+    
+    A --> D
+    B --> D
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    G --> I
+    G --> J
+    J --> K
+

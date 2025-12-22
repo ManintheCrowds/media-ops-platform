@@ -1,13 +1,10 @@
 """Database connection and session management."""
 
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from typing import Generator
 from .config import config
-
-# Create base class for models
-Base = declarative_base()
+from .base import Base
 
 # Create engine
 engine = create_engine(
@@ -32,10 +29,19 @@ def get_db() -> Generator[Session, None, None]:
 
 def init_db():
     """Initialize database tables."""
-    # Import all models to ensure they're registered
-    from .models import security_events, incidents, threats
+    # Import all model classes to ensure they're registered with Base.metadata
+    from .models.security_events import SecurityEvent
+    from .models.incidents import SecurityIncident
+    from .models.threats import (
+        ThreatIntelligence,
+        FirewallRule,
+        VulnerabilityScan,
+        PatchStatus,
+        AuditLog
+    )
     
     Base.metadata.create_all(bind=engine)
+
 
 
 

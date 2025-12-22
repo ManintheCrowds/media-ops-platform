@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Case study: Self-hosted platform integration with unified SSO, centralized monitoring, and automated health checks using FastAPI, Docker, and modern DevOps practices.">
+    <title>Case Study: Self-Hosted Platform Integration - Xanadu Media</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <a href="../index.html" class="logo">Xanadu Media</a>
+                <ul class="nav-menu">
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="../services.html">Services</a></li>
+                    <li><a href="self-hosted-platform.html" class="active">Case Studies</a></li>
+                    <li><a href="../about.html">About</a></li>
+                    <li><a href="../contact.html">Contact</a></li>
+                </ul>
+                <button class="mobile-menu-toggle" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1 class="hero-title">Self-Hosted Platform Integration</h1>
+                <p class="hero-subtitle">Unified API gateway with SSO, centralized monitoring, and automated health checks</p>
+            </div>
+        </section>
+
+        <section class="case-study-content">
+            <div class="container">
+                <article class="case-study-article">
+                    <div class="case-study-header">
+                        <div class="case-study-meta">
+                            <span class="meta-item">Client: Private</span>
+                            <span class="meta-item">Industry: Self-Hosted Infrastructure</span>
+                            <span class="meta-item">Year: 2024</span>
+                        </div>
+                    </div>
+
+                    <div class="case-study-section">
+                        <h2>Executive Summary</h2>
+                        <p>Developed a unified self-hosted platform integration system that consolidates multiple services (Seafile, Jellyfin, Gitea, Prometheus, Grafana, Vaultwarden) into a single API gateway with unified authentication, service discovery, and centralized health monitoring.</p>
+                        <p>The solution eliminates the need for separate logins across services, provides a unified dashboard, and automates health checks and monitoring across all integrated services.</p>
+                    </div>
+
+                    <div class="case-study-section">
+                        <h2>The Problem</h2>
+                        <p>Managing multiple self-hosted services required:</p>
+                        <ul class="problem-list">
+                            <li>Separate authentication for each service</li>
+                            <li>Manual health monitoring across multiple endpoints</li>
+                            <li>No centralized view of service status</li>
+                            <li>Complex service discovery and configuration</li>
+                            <li>Inconsistent API access patterns</li>
+                        </ul>
+                        <p>This created operational overhead, security concerns with multiple authentication systems, and difficulty in maintaining visibility across the infrastructure.</p>
+                    </div>
+
+                    <div class="case-study-section">
+                        <h2>The Solution</h2>
+                        <p>Built a FastAPI-based unified platform that provides:</p>
+                        <ul class="solution-list">
+                            <li><strong>Unified Authentication:</strong> Single sign-on (SSO) across all services using OAuth2/JWT</li>
+                            <li><strong>API Gateway:</strong> Single entry point for all service APIs with consistent routing</li>
+                            <li><strong>Service Discovery:</strong> Automatic detection and registration of services</li>
+                            <li><strong>Health Monitoring:</strong> Centralized health checks for all services with automated status updates</li>
+                            <li><strong>Unified Dashboard:</strong> Web interface showing all services with real-time status</li>
+                            <li><strong>Docker Integration:</strong> Easy deployment via Docker Compose</li>
+                        </ul>
+                    </div>
+
+                    <div class="case-study-section">
+                        <h2>Architecture</h2>
+                        <div class="architecture-diagram">
+                            <div class="arch-layer">
+                                <h3>Client Layer</h3>
+                                <p>Web Browser, API Clients</p>
+                            </div>
+                            <div class="arch-arrow">↓</div>
+                            <div class="arch-layer">
+                                <h3>Platform Layer</h3>
+                                <p>Nginx Reverse Proxy → FastAPI Application → PostgreSQL Database</p>
+                            </div>
+                            <div class="arch-arrow">↓</div>
+                            <div class="arch-layer">
+                                <h3>Service Layer</h3>
+                                <p>Seafile, Jellyfin, BookStack, Gitea, Prometheus, Grafana, Vaultwarden</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="case-study-section">
+                        <h2>Technical Implementation</h2>
+                        <h3>Core Components</h3>
+                        <ul class="tech-list">
+                            <li><strong>FastAPI Application:</strong> Main API gateway with authentication, service registry, and health monitoring endpoints</li>
+                            <li><strong>Service Clients:</strong> Modular Python clients for each integrated service (Seafile, Jellyfin, Gitea, etc.)</li>
+                            <li><strong>Authentication Module:</strong> JWT token generation, OAuth2 password flow, user management with bcrypt password hashing</li>
+                            <li><strong>Service Registry:</strong> PostgreSQL database storing service configurations, health status, and metadata</li>
+                            <li><strong>Health Monitoring:</strong> Automated health checks with status tracking and alerting</li>
+                            <li><strong>Frontend Dashboard:</strong> Web UI for accessing all services with real-time status indicators</li>
+                        </ul>
+
+                        <h3>Key Features</h3>
+                        <ul class="feature-list">
+                            <li>Async HTTP clients using httpx for concurrent requests</li>
+                            <li>Service client pattern with async context managers</li>
+                            <li>Health check endpoints with automatic status updates</li>
+                            <li>Service discovery through database registry</li>
+                            <li>Unified error handling and response formatting</li>
+                            <li>Comprehensive API documentation (OpenAPI/Swagger)</li>
+                        </ul>
+                    </div>
+
+                    <div class="case-study-section">
+                        <h2>Technologies Used</h2>
+                        <div class="tech-tags">
+                            <span class="tech-tag">FastAPI</span>
+                            <span class="tech-tag">Python 3.10+</span>
+                            <span class="tech-tag">PostgreSQL</span>
+                            <span class="tech-tag">SQLAlchemy</span>
+                            <span class="tech-tag">JWT</span>
+                            <span class="tech-tag">OAuth2</span>
+                            <span class="tech-tag">Docker</span>
+                            <span class="tech-tag">Docker Compose</span>
+                            <span class="tech-tag">Nginx</span>
+                            <span class="tech-tag">Prometheus</span>
+                            <span class="tech-tag">Grafana</span>
+                            <span class="tech-tag">httpx</span>
+                            <span class="tech-tag">Pydantic</span>
+                        </div>
+                    </div>
+
+                    <div class="case-study-section">
+                        <h2>Results & Impact</h2>
+                        <div class="results-grid">
+                            <div class="result-item">
+                                <h3>Unified SSO</h3>
+                                <p>Single login for all services, eliminating password management overhead</p>
+                            </div>
+                            <div class="result-item">
+                                <h3>Centralized Monitoring</h3>
+                                <p>Real-time visibility into all service health from one dashboard</p>
+                            </div>
+                            <div class="result-item">
+                                <h3>Automated Health Checks</h3>
+                                <p>Proactive monitoring with automatic status updates</p>
+                            </div>
+                            <div class="result-item">
+                                <h3>Simplified Management</h3>
+                                <p>Easy service registration and configuration through unified API</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="case-study-section">
+                        <h2>Key Metrics</h2>
+                        <ul class="metrics-list">
+                            <li>✅ Unified authentication across 7+ integrated services</li>
+                            <li>✅ Centralized health monitoring for all services</li>
+                            <li>✅ Automated service discovery and registration</li>
+                            <li>✅ Production-ready with comprehensive documentation</li>
+                            <li>✅ Docker-based deployment for easy setup</li>
+                        </ul>
+                    </div>
+
+                    <div class="case-study-section">
+                        <h2>Lessons Learned</h2>
+                        <ul class="lessons-list">
+                            <li>Service client pattern provides excellent abstraction and testability</li>
+                            <li>Async context managers simplify HTTP session management</li>
+                            <li>Centralized health monitoring is critical for multi-service architectures</li>
+                            <li>Unified authentication significantly improves user experience</li>
+                            <li>Comprehensive documentation is essential for maintainability</li>
+                        </ul>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="container">
+                <h2>Need Similar Infrastructure?</h2>
+                <p>Let's discuss how we can build a unified platform for your services</p>
+                <a href="../contact.html" class="btn btn-primary btn-large">Get in Touch</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Xanadu Media</h3>
+                    <p>AI-powered API development and infrastructure automation</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Services</h4>
+                    <ul>
+                        <li><a href="../services.html#api-integration">API Integration</a></li>
+                        <li><a href="../services.html#infrastructure">Infrastructure</a></li>
+                        <li><a href="../services.html#ai-development">AI Development</a></li>
+                        <li><a href="../services.html#maintenance">Maintenance</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="self-hosted-platform.html">Case Studies</a></li>
+                        <li><a href="../about.html">About</a></li>
+                        <li><a href="../contact.html">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Xanadu Media. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+</body>
+</html>
+

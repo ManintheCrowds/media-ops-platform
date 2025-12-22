@@ -85,4 +85,3 @@ All error responses should include:
 ## Security Benefits
 
 - Prevents DoS attacks via large request bodies
-- Configurable timeouts prevent resource exhaustion from slow services

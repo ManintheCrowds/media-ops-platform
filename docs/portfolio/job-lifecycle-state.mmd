@@ -1,0 +1,13 @@
+%% Job Lifecycle State Machine for Transcription
+stateDiagram-v2
+    [*] --> queued
+    queued --> in_progress: worker claims
+    in_progress --> validating: transcription done
+    validating --> published: quality ok
+    published --> archived: archive complete
+    validating --> failed: validation error
+    in_progress --> failed: processing error
+    failed --> queued: retry if retries remaining
+    failed --> [*]: exhausted retries
+    archived --> [*]
+

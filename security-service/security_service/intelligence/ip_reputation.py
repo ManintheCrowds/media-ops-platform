@@ -1,8 +1,8 @@
 """IP reputation service."""
 
 import httpx
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+from datetime import datetime, timedelta, timezone
+from typing import Optional, Dict, Any, List
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from ..models.threats import ThreatIntelligence
@@ -47,7 +47,7 @@ class IPReputationService:
             threat_intel.isp = reputation_data.get("isp")
             threat_intel.last_seen = datetime.now(timezone.utc)
             threat_intel.updated_at = datetime.now(timezone.utc)
-            threat_intel.metadata = reputation_data.get("metadata", {})
+            threat_intel.threat_metadata = reputation_data.get("metadata", {})
         else:
             # Create new
             threat_intel = ThreatIntelligence(
@@ -63,7 +63,7 @@ class IPReputationService:
                 first_seen=datetime.now(timezone.utc),
                 last_seen=datetime.now(timezone.utc),
                 updated_at=datetime.now(timezone.utc),
-                metadata=reputation_data.get("metadata", {})
+                threat_metadata=reputation_data.get("metadata", {})
             )
             self.db.add(threat_intel)
         
@@ -226,6 +226,7 @@ class IPReputationService:
             "source": ",".join(sources),
             "metadata": {"sources": sources, "result_count": len(results)}
         }
+
 
 
 

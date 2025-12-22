@@ -3,9 +3,7 @@
 from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy import Column, Integer, String, DateTime, Float, Text, JSON, Index
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from ..base import Base
 
 
 class ThreatIntelligence(Base):
@@ -25,7 +23,7 @@ class ThreatIntelligence(Base):
     last_seen = Column(DateTime, nullable=True)
     first_seen = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
-    metadata = Column(JSON, nullable=True)
+    threat_metadata = Column(JSON, nullable=True)
     
     __table_args__ = (
         Index('idx_threat_intel_ip_reputation', 'ip_address', 'reputation_score'),
@@ -47,7 +45,7 @@ class FirewallRule(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     expires_at = Column(DateTime, nullable=True, index=True)
     is_active = Column(String(10), default="true", nullable=False, index=True)
-    metadata = Column(JSON, nullable=True)
+    rule_metadata = Column(JSON, nullable=True)
     
     __table_args__ = (
         Index('idx_firewall_rules_active_expires', 'is_active', 'expires_at'),
@@ -74,7 +72,7 @@ class VulnerabilityScan(Base):
     resolved = Column(String(10), default="false", nullable=False, index=True)
     resolved_at = Column(DateTime, nullable=True)
     remediation_notes = Column(Text, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    vuln_metadata = Column(JSON, nullable=True)
     
     __table_args__ = (
         Index('idx_vuln_scans_severity_resolved', 'severity', 'resolved'),
@@ -97,7 +95,7 @@ class PatchStatus(Base):
     last_applied = Column(DateTime, nullable=True)
     applied_by = Column(String(255), nullable=True)
     status = Column(String(50), nullable=False)  # up_to_date, update_available, update_applied, failed
-    metadata = Column(JSON, nullable=True)
+    patch_metadata = Column(JSON, nullable=True)
     
     __table_args__ = (
         Index('idx_patch_status_type_security', 'patch_type', 'is_security_patch'),
@@ -128,6 +126,7 @@ class AuditLog(Base):
         Index('idx_audit_logs_type_timestamp', 'event_type', 'timestamp'),
         Index('idx_audit_logs_timestamp', 'timestamp'),
     )
+
 
 
 

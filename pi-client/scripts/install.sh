@@ -95,3 +95,4 @@ echo "3. Enable auto-start: sudo systemctl enable pi-client"
 
 
 
+

@@ -130,3 +130,4 @@ def is_encrypted(value: str) -> bool:
         # Not valid base64, definitely not encrypted
         return False
 
+

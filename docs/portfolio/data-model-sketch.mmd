@@ -1,0 +1,45 @@
+%% Data Model Sketch (lightweight)
+classDiagram
+    class Video {
+        +id
+        +city
+        +source_path
+        +recorded_at
+    }
+
+    class Job {
+        +id
+        +video_id
+        +status
+        +retries
+        +started_at
+        +completed_at
+    }
+
+    class CaptionFile {
+        +id
+        +job_id
+        +format
+        +path
+        +duration
+    }
+
+    class CitySource {
+        +id
+        +name
+        +storage_mount
+    }
+
+    class VODPublish {
+        +id
+        +job_id
+        +published_at
+        +platform_id
+    }
+
+    Video --|> CitySource : from
+    Video "1" --> "*" Job : processes
+    Job "1" --> "1" CaptionFile : outputs
+    Job "1" --> "0..1" VODPublish : publishes
+    CitySource "1" --> "*" Video : hosts
+
