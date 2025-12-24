@@ -131,3 +131,6 @@ def is_encrypted(value: str) -> bool:
         return False
 
 
+
+
+
