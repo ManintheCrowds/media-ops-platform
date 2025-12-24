@@ -76,6 +76,15 @@ DEFAULT_SERVICES = [
         "health_check_url": "http://bookstack:80/",
         "requires_auth": True,
         "is_active": True
+    },
+    {
+        "name": "job-automation",
+        "service_type": "productivity",
+        "base_url": "http://job-automation-service:8000",
+        "api_url": "http://job-automation-service:8000/api/v1",
+        "health_check_url": "http://job-automation-service:8000/health",
+        "requires_auth": False,
+        "is_active": True
     }
 ]
 

@@ -1,0 +1,133 @@
+﻿[2025-12-23 12:26:56] ==========================================
+[2025-12-23 12:26:56] Network Device Investigation Report
+[2025-12-23 12:26:56] Date: 2025-12-23 12:26:56
+[2025-12-23 12:26:56] Computer: RIPPER
+[2025-12-23 12:26:56] User: artin
+[2025-12-23 12:26:56] ==========================================
+[2025-12-23 12:26:56] 
+WARNING: Not running as Administrator. Some checks may be limited.
+[2025-12-23 12:26:56] For full functionality, run PowerShell as Administrator.
+[2025-12-23 12:26:56] === Network Device Discovery ===
+[2025-12-23 12:26:56] Scanning network range: 192.168.0.0/24
+[2025-12-23 12:26:56] 
+--- ARP Table (Active Devices) ---
+[2025-12-23 12:26:56] Interface: 192.168.0.13 --- 0xf
+[2025-12-23 12:26:56]   192.168.0.1           58-13-d3-ef-f7-18     dynamic   
+[2025-12-23 12:26:56]   192.168.0.16          84-1b-77-e2-52-b6     dynamic   
+[2025-12-23 12:26:56]   192.168.0.43          7c-b5-66-3b-43-e0     dynamic   
+[2025-12-23 12:26:56]   192.168.0.58          b8-1e-a4-3e-93-9b     dynamic   
+[2025-12-23 12:26:56]   192.168.0.255         ff-ff-ff-ff-ff-ff     static    
+[2025-12-23 12:26:56] 
+--- Active TCP Connections ---
+[2025-12-23 12:26:57] 192.168.0.13:65159 -> 162.254.193.75:443 [steam]
+[2025-12-23 12:26:57] 192.168.0.13:64311 -> 104.18.39.21:443 [chrome]
+[2025-12-23 12:26:57] 192.168.0.13:63819 -> 142.251.185.188:5228 [chrome]
+[2025-12-23 12:26:57] 192.168.0.13:63407 -> 34.117.201.170:443 [msedge]
+[2025-12-23 12:26:57] 192.168.0.13:61676 -> 104.18.19.125:443 [Cursor]
+[2025-12-23 12:26:57] 192.168.0.13:59871 -> 50.17.23.209:443 [Cursor]
+[2025-12-23 12:26:57] 192.168.0.13:58711 -> 52.86.244.200:443 [Cursor]
+[2025-12-23 12:26:57] 192.168.0.13:58708 -> 192.168.0.1:443 [chrome]
+[2025-12-23 12:26:57] 192.168.0.13:58692 -> 130.211.16.53:443 [chrome]
+[2025-12-23 12:26:57] 192.168.0.13:58680 -> 151.101.193.55:443 [GalaxyCommunication]
+[2025-12-23 12:26:57] 192.168.0.13:58625 -> 100.50.253.249:443 [Cursor]
+[2025-12-23 12:26:57] 192.168.0.13:58624 -> 100.50.253.249:443 [Cursor]
+[2025-12-23 12:26:57] 192.168.0.13:58608 -> 172.64.148.235:443 [chrome]
+[2025-12-23 12:26:57] 192.168.0.13:58449 -> 140.82.113.25:443 [chrome]
+[2025-12-23 12:26:57] 192.168.0.13:58430 -> 142.250.190.69:443 [chrome]
+[2025-12-23 12:26:57] 192.168.0.13:58417 -> 23.217.104.196:443 [chrome]
+[2025-12-23 12:26:57] 192.168.0.13:58412 -> 23.217.104.208:443 [msedge]
+[2025-12-23 12:26:57] 192.168.0.13:58196 -> 23.217.104.200:443 [LockApp]
+[2025-12-23 12:26:57] 192.168.0.13:58195 -> 23.217.104.200:443 [LockApp]
+[2025-12-23 12:26:57] 192.168.0.13:58194 -> 23.59.169.64:443 [LockApp]
+[2025-12-23 12:26:57] 192.168.0.13:58193 -> 23.59.169.198:443 [LockApp]
+[2025-12-23 12:26:57] 192.168.0.13:58192 -> 23.59.169.198:443 [LockApp]
+[2025-12-23 12:26:57] 192.168.0.13:57158 -> 104.18.39.21:443 [chrome]
+[2025-12-23 12:26:57] 192.168.0.13:57067 -> 104.18.39.21:443 [chrome]
+[2025-12-23 12:26:57] 192.168.0.13:57062 -> 104.18.39.21:443 [chrome]
+[2025-12-23 12:26:57] 192.168.0.13:57058 -> 104.18.32.47:443 [chrome]
+[2025-12-23 12:26:57] 192.168.0.13:57031 -> 34.117.201.170:443 [chrome]
+[2025-12-23 12:26:57] 192.168.0.13:55169 -> 52.22.122.168:443 [Cursor]
+[2025-12-23 12:26:57] 192.168.0.13:55160 -> 104.18.39.21:443 [chrome]
+[2025-12-23 12:26:57] 192.168.0.13:53958 -> 162.159.133.234:443 [Discord]
+[2025-12-23 12:26:57] 192.168.0.13:51587 -> 91.222.185.234:443 [GalaxyClient]
+[2025-12-23 12:26:58] 192.168.0.13:50471 -> 130.211.30.54:443 [msedge]
+[2025-12-23 12:26:58] 192.168.0.13:49762 -> 92.38.177.14:443 [AnyDesk]
+[2025-12-23 12:26:58] 192.168.0.13:49708 -> 135.234.174.40:443 [msedge]
+[2025-12-23 12:26:58] 192.168.0.13:49434 -> 20.59.87.225:443 [svchost]
+[2025-12-23 12:26:58] 
+--- Network Adapters ---
+[2025-12-23 12:27:01] vEthernet (WSL (Hyper-V firewall)): 00-15-5D-2D-A9-99 - fe80::9600:7afc:31fb:946%44 172.28.80.1
+[2025-12-23 12:27:01] Wi-Fi: A0-29-42-84-F7-01 - fe80::411e:dd09:5ebf:95f0%15 192.168.0.13
+[2025-12-23 12:27:01] 
+=== Router Connectivity Test ===
+[2025-12-23 12:27:01] Testing connectivity to router: 192.168.0.1
+[2025-12-23 12:27:02] Router is reachable
+[2025-12-23 12:27:02] 
+Testing router web interface...
+[2025-12-23 12:27:02] Router web interface test: The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.
+[2025-12-23 12:27:02] 
+=== Suspicious Device Detection ===
+[2025-12-23 12:27:02] Checking for devices with suspicious names...
+[2025-12-23 12:27:02] Note: To see full device list, check router admin panel at http://192.168.0.1
+[2025-12-23 12:27:02] Look for devices named: Roko_Basilisk 2
+[2025-12-23 12:27:02] 
+--- Network Activity Summary ---
+[2025-12-23 12:27:03] Active connections: 72
+[2025-12-23 12:27:03] 
+=== System Security Status ===
+[2025-12-23 12:27:05] 
+--- Windows Firewall Status ---
+[2025-12-23 12:27:05] Domain: ENABLED
+[2025-12-23 12:27:05] Private: ENABLED
+[2025-12-23 12:27:05] Public: ENABLED
+[2025-12-23 12:27:05] 
+--- Antivirus Status ---
+[2025-12-23 12:27:06] Windows Defender: 397568
+[2025-12-23 12:27:06] 
+--- Network-Active Processes ---
+[2025-12-23 12:27:06] ArmouryCrate.UserSessionHelper (PID: 2652) - 
+[2025-12-23 12:27:06] steam (PID: 38664) - C:\Program Files\Steam\steam.exe
+[2025-12-23 12:27:06] chrome (PID: 9036) - C:\Program Files\Google\Chrome\Application\chrome.exe
+[2025-12-23 12:27:06] NVDisplay.Container (PID: 4216) - 
+[2025-12-23 12:27:06] msedge (PID: 26608) - C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+[2025-12-23 12:27:06] Cursor (PID: 54164) - C:\Users\artin\AppData\Local\Programs\cursor\Cursor.exe
+[2025-12-23 12:27:06] ArmourySocketServer (PID: 12572) - 
+[2025-12-23 12:27:06] AcPowerNotification (PID: 12652) - 
+[2025-12-23 12:27:06] powershell (PID: 45792) - C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe
+[2025-12-23 12:27:06] Cursor (PID: 52624) - C:\Users\artin\AppData\Local\Programs\cursor\Cursor.exe
+[2025-12-23 12:27:06] GalaxyCommunication (PID: 18348) - C:\ProgramData\GOG.com\Galaxy\redists\GalaxyCommunication.exe
+[2025-12-23 12:27:06] LockApp (PID: 47452) - C:\WINDOWS\SystemApps\Microsoft.LockApp_cw5n1h2txyewy\LockApp.exe
+[2025-12-23 12:27:06] steamwebhelper (PID: 25820) - C:\Program Files\Steam\bin\cef\cef.win7x64\steamwebhelper.exe
+[2025-12-23 12:27:06] GalaxyClient (PID: 2892) - C:\Program Files (x86)\GOG Galaxy\GalaxyClient.exe
+[2025-12-23 12:27:06] Discord (PID: 55044) - C:\Users\artin\AppData\Local\Discord\app-1.0.9219\Discord.exe
+[2025-12-23 12:27:06] ArmouryCrate.Service (PID: 5804) - 
+[2025-12-23 12:27:06] AnyDesk (PID: 5724) - 
+[2025-12-23 12:27:06] ipfsvc (PID: 5308) - 
+[2025-12-23 12:27:07] WUDFHost (PID: 2412) - 
+[2025-12-23 12:27:07] WUDFHost (PID: 2252) - 
+[2025-12-23 12:27:07] AuraWallpaperService (PID: 5980) - 
+[2025-12-23 12:27:07] ROGLiveService (PID: 6032) - 
+[2025-12-23 12:27:07] svchost (PID: 4440) - 
+[2025-12-23 12:27:07] asus_framework (PID: 17760) - 
+[2025-12-23 12:27:07] 
+=== Security Recommendations ===
+[2025-12-23 12:27:07] 1. IMMEDIATELY change router admin password
+[2025-12-23 12:27:07] 2. Change Wi-Fi password (WPA2/WPA3)
+[2025-12-23 12:27:07] 3. Access router admin panel at http://192.168.0.1
+[2025-12-23 12:27:07] 4. Check 'Connected Devices' or 'DHCP Client List'
+[2025-12-23 12:27:07] 5. Look for device named 'Roko_Basilisk 2'
+[2025-12-23 12:27:07] 6. Note the MAC address and IP of suspicious device
+[2025-12-23 12:27:07] 7. Block the device using MAC address filtering
+[2025-12-23 12:27:07] 8. Disable remote management on router
+[2025-12-23 12:27:07] 9. Disable WPS (Wi-Fi Protected Setup)
+[2025-12-23 12:27:07] 10. Update router firmware
+[2025-12-23 12:27:07] 11. Run full antivirus scan on all devices
+[2025-12-23 12:27:07] 12. Change passwords for all online accounts
+[2025-12-23 12:27:07] 13. Enable network monitoring
+[2025-12-23 12:27:07] 14. Review router logs for unauthorized access
+[2025-12-23 12:27:07] 15. Consider contacting CenturyLink support
+[2025-12-23 12:27:07] 
+==========================================
+[2025-12-23 12:27:07] Investigation Complete
+[2025-12-23 12:27:07] Report saved to: network-investigation-20251223-122656.txt
+[2025-12-23 12:27:07] ==========================================

@@ -1,0 +1,122 @@
+name: Agent Framework Tests
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'job-automation-service/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'job-automation-service/**'
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  agent-tests:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: jobautomation
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: jobautomation
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        working-directory: job-automation-service
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run database migrations
+        working-directory: job-automation-service
+        env:
+          DATABASE_URL: postgresql://jobautomation:password@localhost:5432/jobautomation
+        run: |
+          alembic upgrade head
+      
+      - name: Initialize skill profile
+        working-directory: job-automation-service
+        env:
+          DATABASE_URL: postgresql://jobautomation:password@localhost:5432/jobautomation
+        run: |
+          python scripts/init_skill_profile.py
+      
+      - name: Start service
+        working-directory: job-automation-service
+        env:
+          DATABASE_URL: postgresql://jobautomation:password@localhost:5432/jobautomation
+        run: |
+          uvicorn app.main:app --host 0.0.0.0 --port 8004 &
+          sleep 5
+      
+      - name: Run agent tests
+        working-directory: job-automation-service
+        env:
+          DATABASE_URL: postgresql://jobautomation:password@localhost:5432/jobautomation
+        run: |
+          python -m tests.agents.run_agents --suite quick
+      
+      - name: Upload reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: agent-reports
+          path: job-automation-service/tests/agents/reports/
+          retention-days: 30
+      
+      - name: Check for failures
+        working-directory: job-automation-service
+        run: |
+          # Check if any tasks failed
+          python -c "
+          import json
+          from pathlib import Path
+          reports = list(Path('tests/agents/reports').glob('*.json'))
+          if reports:
+              with open(reports[-1]) as f:
+                  data = json.load(f)
+                  failed = sum(1 for t in data.get('test_results', []) + data.get('analysis_results', []) if t.get('status') == 'failed')
+                  if failed > 0:
+                      print(f'Found {failed} failed tasks')
+                      exit(1)
+          "
+      
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const reportsDir = 'job-automation-service/tests/agents/reports';
+            const reports = fs.readdirSync(reportsDir).filter(f => f.endsWith('.md'));
+            if (reports.length > 0) {
+              const reportPath = path.join(reportsDir, reports[reports.length - 1]);
+              const report = fs.readFileSync(reportPath, 'utf8');
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## Agent Test Results\n\n\`\`\`\n${report.substring(0, 2000)}\n\`\`\`\n\n[Full Report](${reportPath})`
+              });
+            }
+

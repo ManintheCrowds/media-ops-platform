@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  job-automation-db:
+    image: postgres:15-alpine
+    container_name: job-automation-db
+    environment:
+      - POSTGRES_USER=jobautomation
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=jobautomation
+    volumes:
+      - jobautomation_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobautomation"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - job-automation-network
+
+  job-automation-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: job-automation-service
+    environment:
+      - DATABASE_URL=postgresql://jobautomation:password@job-automation-db:5432/jobautomation
+      - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
+    volumes:
+      - .:/app
+    ports:
+      - "8004:8000"
+    depends_on:
+      job-automation-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - job-automation-network
+
+volumes:
+  jobautomation_db_data:
+
+networks:
+  job-automation-network:
+    driver: bridge
+

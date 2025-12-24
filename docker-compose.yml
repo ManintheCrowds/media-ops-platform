@@ -390,6 +390,7 @@ services:
       - vaultwarden
       - bookstack
       - education-service
+      - job-automation-service
     networks:
       - platform-network
 
@@ -416,6 +417,51 @@ services:
     volumes:
       - security_logs:/var/log/security-service
       - security_quarantine:/var/quarantine
+
+  # Job Automation Service
+  job-automation-service:
+    build:
+      context: ./job-automation-service
+      dockerfile: Dockerfile
+    container_name: platform-job-automation
+    environment:
+      - DATABASE_URL=postgresql://jobautomation:password@job-automation-db:5432/jobautomation
+      - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
+      - PLATFORM_URL=http://platform:8000
+    volumes:
+      - ./job-automation-service:/app
+    ports:
+      - "8004:8000"
+    depends_on:
+      - job-automation-db
+      - platform
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - platform-network
+
+  job-automation-db:
+    image: postgres:15-alpine
+    container_name: platform-job-automation-db
+    environment:
+      - POSTGRES_USER=jobautomation
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=jobautomation
+    volumes:
+      - jobautomation_db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # Expose on port 5433 to avoid conflict with local PostgreSQL
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobautomation"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - platform-network
 
   # Redis for rate limiting and caching
   redis:
@@ -466,6 +512,7 @@ volumes:
   redis_data:
   security_logs:
   security_quarantine:
+  jobautomation_db_data:
 
 networks:
   platform-network:

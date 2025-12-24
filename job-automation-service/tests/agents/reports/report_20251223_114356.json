@@ -1,0 +1,179 @@
+{
+  "metadata": {
+    "generated_at": "2025-12-23T11:43:56.583524",
+    "timestamp": "20251223_114356",
+    "total_tasks": 2,
+    "completed_tasks": 2,
+    "failed_tasks": 0
+  },
+  "test_results": [
+    {
+      "task_id": "test-matcher-quick",
+      "agent_type": "matcher_test",
+      "description": "Quick matcher test",
+      "status": "completed",
+      "started_at": "2025-12-23T17:43:53.174864+00:00",
+      "completed_at": "2025-12-23T17:43:53.198085+00:00",
+      "duration_seconds": 0.023221,
+      "result": {
+        "tests_run": 4,
+        "pass_count": 1,
+        "fail_count": 3,
+        "avg_score": 0.09225,
+        "test_cases": [
+          {
+            "description": "Python FastAPI job - high match",
+            "score": 0.174,
+            "expected_min": 0.7,
+            "passed": false,
+            "matched_skills": 7,
+            "skill_details": [
+              {
+                "skill": "Python",
+                "proficiency": 5,
+                "category": "technical"
+              },
+              {
+                "skill": "Python",
+                "proficiency": 5,
+                "category": "technical"
+              },
+              {
+                "skill": "Python",
+                "proficiency": 5,
+                "category": "technical"
+              },
+              {
+                "skill": "FastAPI",
+                "proficiency": 5,
+                "category": "technical"
+              },
+              {
+                "skill": "PostgreSQL",
+                "proficiency": 5,
+                "category": "technical"
+              }
+            ]
+          },
+          {
+            "description": "Java Spring job - low match",
+            "score": 0.0,
+            "expected_min": 0.0,
+            "passed": true,
+            "matched_skills": 0,
+            "skill_details": []
+          },
+          {
+            "description": "Full-stack Python job - medium match",
+            "score": 0.058,
+            "expected_min": 0.4,
+            "passed": false,
+            "matched_skills": 4,
+            "skill_details": [
+              {
+                "skill": "Python",
+                "proficiency": 5,
+                "category": "technical"
+              },
+              {
+                "skill": "Python",
+                "proficiency": 5,
+                "category": "technical"
+              },
+              {
+                "skill": "Python",
+                "proficiency": 5,
+                "category": "technical"
+              },
+              {
+                "skill": "Docker",
+                "proficiency": 5,
+                "category": "technical"
+              }
+            ]
+          },
+          {
+            "description": "DevOps Python job - medium-high match",
+            "score": 0.137,
+            "expected_min": 0.5,
+            "passed": false,
+            "matched_skills": 5,
+            "skill_details": [
+              {
+                "skill": "Python",
+                "proficiency": 5,
+                "category": "technical"
+              },
+              {
+                "skill": "Python",
+                "proficiency": 5,
+                "category": "technical"
+              },
+              {
+                "skill": "Python",
+                "proficiency": 5,
+                "category": "technical"
+              },
+              {
+                "skill": "Docker",
+                "proficiency": 5,
+                "category": "technical"
+              },
+              {
+                "skill": "Automation",
+                "proficiency": 5,
+                "category": "technical"
+              }
+            ]
+          }
+        ],
+        "pass_rate": 0.25
+      },
+      "error": null
+    },
+    {
+      "task_id": "test-api-quick",
+      "agent_type": "api_test",
+      "description": "Quick API test",
+      "status": "completed",
+      "started_at": "2025-12-23T17:43:53.123271+00:00",
+      "completed_at": "2025-12-23T17:43:56.428946+00:00",
+      "duration_seconds": 3.305675,
+      "result": {
+        "endpoints_tested": [
+          "GET /health",
+          "GET /api/v1/jobs/recommended?min_score=0.7&limit=10",
+          "GET /api/v1/matching/stats",
+          "GET /api/v1/jobs",
+          "POST /api/v1/jobs/search"
+        ],
+        "success_count": 5,
+        "failure_count": 0,
+        "response_times": {
+          "/health": 0.07900000002700835,
+          "/api/v1/jobs/recommended?min_score=0.7&limit=10": 0.15600000001722947,
+          "/api/v1/matching/stats": 0.014999999955762178,
+          "/api/v1/jobs": 0.0,
+          "/api/v1/jobs/search": 3.0
+        },
+        "status_codes": {
+          "/health": 200,
+          "/api/v1/jobs/recommended?min_score=0.7&limit=10": 200,
+          "/api/v1/matching/stats": 200,
+          "/api/v1/jobs": 200,
+          "/api/v1/jobs/search": 200
+        },
+        "errors": [],
+        "total_endpoints": 5,
+        "success_rate": 1.0,
+        "avg_response_time": 0.65
+      },
+      "error": null
+    }
+  ],
+  "analysis_results": [],
+  "summary": {
+    "test_success_rate": 1.0,
+    "analysis_success_rate": 0
+  }
+}

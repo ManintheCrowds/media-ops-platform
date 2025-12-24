@@ -1,0 +1,114 @@
+{
+  "analysis": {
+    "total_entries": 4,
+    "by_hypothesis": {
+      "H0": 1,
+      "H-ENDPOINT": 2,
+      "H3": 1
+    },
+    "by_location": {
+      "jobs.py:search_jobs": 4
+    },
+    "searches": [
+      {
+        "timestamp": 1766531241285,
+        "location": "jobs.py:search_jobs",
+        "data": {
+          "query": "Python developer",
+          "location": "Minneapolis, MN",
+          "sources": [
+            "adzuna"
+          ],
+          "limit": 10,
+          "min_match_score": 0.0
+        },
+        "message": "Starting job search pipeline"
+      }
+    ],
+    "errors": [],
+    "jobs_found": [
+      {
+        "timestamp": 1766531242638,
+        "count": 10,
+        "sources": [
+          "adzuna"
+        ],
+        "location": "jobs.py:search_jobs"
+      },
+      {
+        "timestamp": 1766531242648,
+        "count": 10,
+        "sources": [
+          "adzuna"
+        ],
+        "location": "jobs.py:search_jobs"
+      }
+    ],
+    "sources_tested": [
+      "adzuna"
+    ],
+    "successful_searches": 2,
+    "failed_searches": 0,
+    "total_jobs_found": 20,
+    "recent_activity": [
+      {
+        "hours_ago": 0.86,
+        "hypothesis": "H0",
+        "message": "Starting job search pipeline",
+        "data": {
+          "query": "Python developer",
+          "location": "Minneapolis, MN",
+          "sources": [
+            "adzuna"
+          ],
+          "limit": 10,
+          "min_match_score": 0.0
+        }
+      },
+      {
+        "hours_ago": 0.86,
+        "hypothesis": "H-ENDPOINT",
+        "message": "About to call source_manager.search_jobs",
+        "data": {
+          "query": "Python developer",
+          "location": "Minneapolis, MN",
+          "sources": [
+            "adzuna"
+          ],
+          "limit": 10
+        }
+      },
+      {
+        "hours_ago": 0.86,
+        "hypothesis": "H-ENDPOINT",
+        "message": "source_manager.search_jobs completed",
+        "data": {
+          "jobs_found": 10,
+          "sources_searched": [
+            "adzuna"
+          ]
+        }
+      },
+      {
+        "hours_ago": 0.86,
+        "hypothesis": "H3",
+        "message": "Starting job matching and scoring",
+        "data": {
+          "total_jobs_found": 10,
+          "sources_searched": [
+            "adzuna"
+          ]
+        }
+      }
+    ]
+  },
+  "summary": {
+    "total_entries": 4,
+    "total_jobs_found": 20,
+    "successful_searches": 2,
+    "failed_searches": 0,
+    "sources_tested": [
+      "adzuna"
+    ]
+  }
+}
