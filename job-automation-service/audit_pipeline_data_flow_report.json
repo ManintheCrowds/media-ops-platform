@@ -1,0 +1,186 @@
+{
+  "generated_at": "2025-12-25T13:39:52.119841",
+  "validations": [
+    {
+      "check": "data_format_consistency",
+      "status": "pass",
+      "details": {
+        "expected_source_fields": [
+          "title",
+          "company",
+          "location",
+          "source",
+          "url",
+          "description"
+        ],
+        "expected_matcher_output": [
+          "skill_match_score",
+          "experience_match_score",
+          "overall_match_score",
+          "matched_skills"
+        ],
+        "model_fields": [
+          "id",
+          "title",
+          "company",
+          "location",
+          "source",
+          "source_id",
+          "url",
+          "description",
+          "requirements",
+          "salary_range",
+          "job_type",
+          "remote",
+          "skill_match_score",
+          "experience_match_score",
+          "overall_match_score",
+          "raw_data",
+          "scraped_at",
+          "updated_at",
+          "is_active"
+        ],
+        "missing_required_fields": [],
+        "response_schema_fields": {
+          "JobListingResponse": [
+            "title",
+            "company",
+            "location",
+            "source",
+            "source_id",
+            "url",
+            "description",
+            "requirements",
+            "salary_range",
+            "job_type",
+            "remote",
+            "id",
+            "skill_match_score",
+            "experience_match_score",
+            "overall_match_score",
+            "scraped_at",
+            "updated_at",
+            "is_active"
+          ],
+          "JobSearchResponse": [
+            "jobs",
+            "count",
+            "sources_searched"
+          ]
+        },
+        "format_consistent": true
+      }
+    },
+    {
+      "check": "required_fields",
+      "status": "pass",
+      "details": {
+        "stage1_source_manager": {
+          "required_fields": [
+            "title",
+            "company",
+            "source",
+            "url"
+          ],
+          "status": "defined"
+        },
+        "stage2_normalized": {
+          "required_fields": [
+            "title",
+            "company",
+            "source",
+            "url",
+            "location"
+          ],
+          "status": "defined"
+        },
+        "stage3_matched": {
+          "required_fields": [
+            "title",
+            "company",
+            "source",
+            "url",
+            "location",
+            "skill_match_score",
+            "experience_match_score",
+            "overall_match_score"
+          ],
+          "status": "defined"
+        },
+        "stage4_database": {
+          "required_fields": [
+            "title",
+            "company",
+            "location",
+            "source",
+            "url"
+          ],
+          "model_has_all": true,
+          "status": "pass"
+        },
+        "stage5_response": {
+          "required_fields": [
+            "title",
+            "company",
+            "location",
+            "source",
+            "url"
+          ],
+          "response_has_all": true,
+          "status": "pass"
+        }
+      }
+    },
+    {
+      "check": "no_data_loss",
+      "status": "pass",
+      "details": {
+        "critical_fields": [
+          "company",
+          "source",
+          "description",
+          "location",
+          "title",
+          "url"
+        ],
+        "model_has_all_critical": true,
+        "response_has_all_critical": true,
+        "fields_lost_in_response": [
+          "raw_data"
+        ],
+        "fields_added_in_response": []
+      }
+    },
+    {
+      "check": "field_transformations",
+      "status": "pass",
+      "details": {
+        "normalization_method_exists": true,
+        "source_attribution": {
+          "status": "pass",
+          "details": "Source field should be set by each API client using source_name"
+        },
+        "score_range": {
+          "status": "pass",
+          "details": "Match scores should be in range 0.0-1.0"
+        }
+      }
+    },
+    {
+      "check": "source_attribution",
+      "status": "fail",
+      "details": {
+        "model_has_source_fields": true,
+        "api_clients_have_source_name": false,
+        "normalization_uses_source": true
+      }
+    }
+  ],
+  "summary": {
+    "total_checks": 5,
+    "passed": 4,
+    "failed": 1,
+    "warnings": 0,
+    "pass_rate": 0.8
+  }
+}

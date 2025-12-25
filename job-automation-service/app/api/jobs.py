@@ -255,25 +255,59 @@ async def search_jobs(
         
         try:
             for job_data in all_jobs:
-                # Check if job already exists
-                existing = db.query(JobListing).filter(
-                    JobListing.source == job_data.get("source", ""),
-                    JobListing.source_id == job_data.get("source_id")
-                ).first()
+                # Validate required fields
+                source = job_data.get("source", "").strip()
+                source_id = job_data.get("source_id", "").strip() if job_data.get("source_id") else None
+                title = job_data.get("title", "").strip()
+                company = job_data.get("company", "").strip()
+                url = job_data.get("url", "").strip()
+                
+                # Skip jobs with missing required fields
+                if not source or not title or not company or not url:
+                    logger.warning(f"Skipping job with missing required fields: source={source}, title={title}, company={company}, url={url}")
+                    continue
+                
+                # Check if job already exists - use proper query with and_ for multiple conditions
+                query = db.query(JobListing).filter(JobListing.source == source)
+                if source_id:
+                    query = query.filter(JobListing.source_id == source_id)
+                else:
+                    # If no source_id, also match by title, company, and url to avoid duplicates
+                    query = query.filter(
+                        and_(
+                            JobListing.title == title,
+                            JobListing.company == company,
+                            JobListing.url == url
+                        )
+                    )
+                existing = query.first()
                 
                 if existing:
                     # Update existing job
                     job_listing = existing
+                    # Update fields that might have changed
+                    if job_data.get("description"):
+                        job_listing.description = job_data.get("description")
+                    if job_data.get("requirements"):
+                        job_listing.requirements = job_data.get("requirements")
+                    if job_data.get("salary_range"):
+                        job_listing.salary_range = job_data.get("salary_range")
+                    if job_data.get("job_type"):
+                        job_listing.job_type = job_data.get("job_type")
+                    if "remote" in job_data:
+                        job_listing.remote = job_data.get("remote", False)
+                    if job_data.get("raw_data"):
+                        job_listing.raw_data = job_data.get("raw_data")
                     updated_jobs_count += 1
                 else:
                     # Create new job listing
                     job_listing = JobListing(
-                        title=job_data.get("title", ""),
-                        company=job_data.get("company", ""),
+                        title=title,
+                        company=company,
                         location=job_data.get("location"),
-                        source=job_data.get("source", ""),
-                        source_id=job_data.get("source_id"),
-                        url=job_data.get("url", ""),
+                        source=source,
+                        source_id=source_id,
+                        url=url,
                         description=job_data.get("description"),
                         requirements=job_data.get("requirements"),
                         salary_range=job_data.get("salary_range"),
@@ -286,14 +320,20 @@ async def search_jobs(
                 
                 # Calculate match scores
                 description = job_listing.description or ""
-                scores = matcher.calculate_match_score(description)
-                
-                job_listing.skill_match_score = scores["skill_match_score"]
-                job_listing.experience_match_score = scores["experience_match_score"]
-                job_listing.overall_match_score = scores["overall_match_score"]
+                try:
+                    scores = matcher.calculate_match_score(description)
+                    job_listing.skill_match_score = scores.get("skill_match_score", 0.0)
+                    job_listing.experience_match_score = scores.get("experience_match_score", 0.0)
+                    job_listing.overall_match_score = scores.get("overall_match_score", 0.0)
+                except Exception as score_error:
+                    logger.error(f"Error calculating match score for job {title}: {score_error}", exc_info=True)
+                    # Set default scores if matching fails
+                    job_listing.skill_match_score = 0.0
+                    job_listing.experience_match_score = 0.0
+                    job_listing.overall_match_score = 0.0
                 
                 # Only include if meets minimum score
-                if scores["overall_match_score"] >= request.min_match_score:
+                if job_listing.overall_match_score >= request.min_match_score:
                     matched_jobs.append(job_listing)
         except Exception as e:
             logger.error(f"Error processing jobs: {e}", exc_info=True)
@@ -321,7 +361,50 @@ async def search_jobs(
                     f.write(json.dumps(log_entry) + "\n")
             except Exception:
                 pass
-            # Continue with jobs processed so far
+            # Rollback on error
+            db.rollback()
+            # Return empty result since processing failed
+            return JobSearchResponse(
+                jobs=[],
+                count=0,
+                sources_searched=sources_searched
+            )
+        
+        # Flush to catch validation errors before commit
+        try:
+            db.flush()
+        except Exception as e:
+            logger.error(f"Error flushing to database: {e}", exc_info=True)
+            print(f"[ENDPOINT ERROR] Database flush failed: {e}")
+            import traceback
+            error_trace = traceback.format_exc()
+            logger.error(f"Traceback: {error_trace}")
+            db.rollback()
+            # Log to debug file
+            try:
+                log_entry = {
+                    "sessionId": "pipeline-debug",
+                    "runId": f"pipeline-{int(time.time())}",
+                    "hypothesisId": "H-ERROR-FLUSH",
+                    "location": "jobs.py:search_jobs",
+                    "message": "Exception flushing to database",
+                    "data": {
+                        "error_type": type(e).__name__,
+                        "error_message": str(e),
+                        "traceback": error_trace,
+                    },
+                    "timestamp": int(time.time() * 1000)
+                }
+                with open(debug_log_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except Exception:
+                pass
+            # Return empty result since flush failed
+            return JobSearchResponse(
+                jobs=[],
+                count=0,
+                sources_searched=sources_searched
+            )
         
         try:
             db.commit()

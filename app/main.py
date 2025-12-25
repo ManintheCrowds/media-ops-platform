@@ -8,7 +8,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from app.config import settings
-from app.api import services, health, gateway
+from app.api import services, health, gateway, scheduler
 from app.auth import oauth2, jwt_handler
 import os
 import logging
@@ -92,6 +92,7 @@ app.include_router(oauth2.router, prefix="/api/auth", tags=["authentication"])
 app.include_router(services.router, prefix="/api/services", tags=["services"])
 app.include_router(health.router, prefix="/api/health", tags=["health"])
 app.include_router(gateway.router, prefix="/api/gateway", tags=["gateway"])
+app.include_router(scheduler.router, prefix="/api/v1/scheduler", tags=["scheduler"])
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -137,7 +138,8 @@ async def api_info():
             "auth": "/api/auth",
             "services": "/api/services",
             "health": "/api/health",
-            "gateway": "/api/gateway"
+            "gateway": "/api/gateway",
+            "scheduler": "/api/v1/scheduler"
         }
     }
 

@@ -1,0 +1,130 @@
+{
+  "generated_at": "2025-12-25T13:39:35.683201",
+  "stages": [
+    {
+      "stage": "API Endpoint",
+      "location": "app/api/jobs.py:search_jobs",
+      "checks": {
+        "request_validation": {
+          "status": "pass",
+          "details": "Function exists and is properly defined"
+        },
+        "source_filtering": {
+          "status": "pass",
+          "details": "SUPPORTED_SOURCES defined with 7 sources: ['indeed', 'linkedin', 'glassdoor', 'ziprecruiter', 'adzuna', 'the_muse', 'jsearch']"
+        },
+        "error_handling": {
+          "status": "pass",
+          "details": "Function has database dependency for error handling"
+        },
+        "response_format": {
+          "status": "pass",
+          "details": "Function uses JobSearchResponse response model"
+        }
+      },
+      "overall_status": "pass"
+    },
+    {
+      "stage": "JobSourceManager",
+      "location": "app/services/job_source_manager.py",
+      "checks": {
+        "fallback_chain": {
+          "status": "pass",
+          "details": "JobSourceManager initialized successfully"
+        },
+        "source_types": {
+          "status": "pass",
+          "details": "API clients: False, HTTP scrapers: True, Browser: True"
+        },
+        "job_normalization": {
+          "status": "pass",
+          "details": "search_jobs method exists"
+        },
+        "error_handling": {
+          "status": "pass",
+          "details": "Error handling implemented in search methods"
+        }
+      },
+      "overall_status": "pass"
+    },
+    {
+      "stage": "SkillMatcher",
+      "location": "app/services/skill_matcher.py",
+      "checks": {
+        "skill_profile_loading": {
+          "status": "warning",
+          "details": "SkillMatcher initialization: (psycopg2.OperationalError) connection to server at \"localhost\" (::1), port 5433 failed: Connection refused (0x0000274D/10061)\n\tIs the server running on that host and accepting TCP/IP connections?\nconnection to server at \"localhost\" (127.0.0.1), port 5433 failed: Connection refused (0x0000274D/10061)\n\tIs the server running on that host and accepting TCP/IP connections?\n\n(Background on this error at: https://sqlalche.me/e/20/e3q8) (may need database)"
+        },
+        "match_score_calculation": {
+          "status": "pass",
+          "details": "calculate_match_score method exists"
+        },
+        "score_ranges": {
+          "status": "pass",
+          "details": "Method returns Dict with score fields (should be 0.0-1.0)"
+        },
+        "matched_skills_extraction": {
+          "status": "pass",
+          "details": "Method returns matched_skills list"
+        }
+      },
+      "overall_status": "pass"
+    },
+    {
+      "stage": "Database",
+      "location": "app/api/jobs.py + app/models/job_listing.py",
+      "checks": {
+        "duplicate_detection": {
+          "status": "pass",
+          "details": "Model has source fields: source=True, source_id=True"
+        },
+        "create_vs_update": {
+          "status": "pass",
+          "details": "Logic implemented in search_jobs function"
+        },
+        "transaction_handling": {
+          "status": "pass",
+          "details": "Uses db.commit() and db.rollback() for transaction management"
+        },
+        "field_persistence": {
+          "status": "pass",
+          "details": "Required fields present: source, source_id, title, company, url. Missing: none"
+        },
+        "match_score_persistence": {
+          "status": "pass",
+          "details": "Match score fields present: True"
+        }
+      },
+      "overall_status": "pass"
+    },
+    {
+      "stage": "Response",
+      "location": "app/api/jobs.py",
+      "checks": {
+        "response_schema": {
+          "status": "pass",
+          "details": "Uses JobSearchResponse and JobListingResponse schemas"
+        },
+        "job_count_accuracy": {
+          "status": "pass",
+          "details": "Response includes count field matching jobs list length"
+        },
+        "sources_searched": {
+          "status": "pass",
+          "details": "Response includes sources_searched list"
+        },
+        "min_match_score_filtering": {
+          "status": "pass",
+          "details": "Request includes min_match_score parameter for filtering"
+        }
+      },
+      "overall_status": "pass"
+    }
+  ],
+  "summary": {
+    "total_stages": 5,
+    "passed": 5,
+    "failed": 0,
+    "pass_rate": 1.0
+  }
+}
