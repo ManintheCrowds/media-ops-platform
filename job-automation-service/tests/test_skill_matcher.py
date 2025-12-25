@@ -2,32 +2,9 @@
 
 import pytest
 from app.services.skill_matcher import SkillMatcher
-from app.database import SessionLocal
 from app.models.skill_profile import SkillProfile
 
-
-@pytest.fixture
-def db_session():
-    """Create a test database session."""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-@pytest.fixture
-def sample_skills(db_session):
-    """Create sample skills for testing."""
-    skills = [
-        SkillProfile(skill_name="Python", proficiency_level=5, experience_years=3.0, category="technical"),
-        SkillProfile(skill_name="FastAPI", proficiency_level=5, experience_years=1.5, category="technical"),
-        SkillProfile(skill_name="Docker", proficiency_level=5, experience_years=2.5, category="technical"),
-    ]
-    for skill in skills:
-        db_session.add(skill)
-    db_session.commit()
-    return skills
+# db_session and sample_skills fixtures are provided by conftest.py
 
 
 def test_skill_matcher_initialization(db_session, sample_skills):

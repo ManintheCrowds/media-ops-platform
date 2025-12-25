@@ -256,7 +256,11 @@ class BaseJobScraper:
         Returns:
             BeautifulSoup object
         """
-        return BeautifulSoup(html, "lxml")
+        # Try lxml first, fallback to html.parser (built-in)
+        try:
+            return BeautifulSoup(html, "lxml")
+        except Exception:
+            return BeautifulSoup(html, "html.parser")
     
     async def search_jobs(
         self,

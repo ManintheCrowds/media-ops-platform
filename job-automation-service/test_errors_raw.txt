@@ -1,0 +1,45 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-7.4.3, pluggy-1.6.0 -- C:\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: D:\software
+configfile: pytest.ini
+plugins: anyio-3.7.1, Faker-20.1.0, asyncio-0.21.1, cov-4.1.0, mock-3.12.0, respx-0.20.2
+asyncio: mode=Mode.AUTO
+collecting ... collected 40 items
+
+tests\test_cover_letter.py::test_cover_letter_generation_success FAILED  [  2%]
+tests\test_cover_letter.py::test_cover_letter_generation_ollama_unavailable PASSED [  5%]
+tests\test_cover_letter.py::test_build_prompt PASSED                     [  7%]
+tests\test_job_scraper.py::test_rate_limiting FAILED                     [ 10%]
+tests\test_job_scraper.py::test_fetch_page_success FAILED                [ 12%]
+tests\test_job_scraper.py::test_fetch_page_retry FAILED                  [ 15%]
+tests\test_job_scraper.py::test_parse_html FAILED                        [ 17%]
+tests\test_job_search_pipeline.py::TestScraperWebAccess::test_indeed_scraper_fetch_page FAILED [ 20%]
+tests\test_job_search_pipeline.py::TestScraperWebAccess::test_indeed_scraper_search PASSED [ 22%]
+tests\test_job_search_pipeline.py::TestScraperWebAccess::test_linkedin_scraper_fetch_page PASSED [ 25%]
+tests\test_job_search_pipeline.py::TestScraperWebAccess::test_linkedin_scraper_search FAILED [ 27%]
+tests\test_job_search_pipeline.py::TestScraperWebAccess::test_glassdoor_scraper_fetch_page PASSED [ 30%]
+tests\test_job_search_pipeline.py::TestScraperWebAccess::test_glassdoor_scraper_search PASSED [ 32%]
+tests\test_job_search_pipeline.py::TestScraperWebAccess::test_ziprecruiter_scraper_fetch_page PASSED [ 35%]
+tests\test_job_search_pipeline.py::TestScraperWebAccess::test_ziprecruiter_scraper_search PASSED [ 37%]
+tests\test_job_search_pipeline.py::TestDataExtraction::test_job_data_completeness SKIPPED [ 40%]
+tests\test_job_search_pipeline.py::TestDataExtraction::test_job_urls_accessible SKIPPED [ 42%]
+tests\test_job_search_pipeline.py::TestDataExtraction::test_source_id_uniqueness SKIPPED [ 45%]
+tests\test_job_search_pipeline.py::TestEndToEndPipeline::test_full_search_pipeline PASSED [ 47%]
+tests\test_job_search_pipeline.py::TestEndToEndPipeline::test_database_storage ERROR [ 50%]
+tests\test_job_search_pipeline.py::TestEndToEndPipeline::test_matching_scoring PASSED [ 52%]
+tests\test_job_search_pipeline.py::TestRealWorldScenarios::test_search_python_developer PASSED [ 55%]
+tests\test_job_search_pipeline.py::TestRealWorldScenarios::test_multiple_sources PASSED [ 57%]
+tests\test_skill_matcher.py::test_skill_matcher_initialization ERROR     [ 60%]
+tests\test_skill_matcher.py::test_calculate_match_score_high_match ERROR [ 62%]
+tests\test_skill_matcher.py::test_calculate_match_score_low_match ERROR  [ 65%]
+tests\test_skill_matcher.py::test_get_skill_profile_summary ERROR        [ 67%]
+tests\test_skill_matcher.py::test_match_ratio_denominator_fix ERROR      [ 70%]
+tests\test_skill_matcher.py::test_score_range_good_match ERROR           [ 72%]
+tests\test_skill_matcher.py::test_score_range_excellent_match ERROR      [ 75%]
+tests\test_skill_matcher.py::test_score_range_poor_match ERROR           [ 77%]
+tests\test_skill_matcher.py::test_edge_case_no_matches ERROR             [ 80%]
+tests\test_skill_matcher.py::test_edge_case_all_matches ERROR            [ 82%]
+tests\test_skill_matcher.py::test_edge_case_job_no_skills ERROR          [ 85%]
+tests\test_skill_matcher.py::test_proficiency_weighting FAILED           [ 87%]
+tests\test_skill_matcher.py::test_match_count_boost FAILED               [ 90%]

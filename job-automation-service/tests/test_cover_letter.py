@@ -28,8 +28,8 @@ async def test_cover_letter_generation_success(generator):
         "summary": {"total_skills": 20}
     }
     
-    with patch('app.services.cover_letter.CoverLetterGenerator._check_ollama_available', return_value=True):
-        with patch('app.services.cover_letter.CoverLetterGenerator.client.post') as mock_post:
+    with patch.object(generator, '_check_ollama_available', return_value=True):
+        with patch.object(generator.client, 'post') as mock_post:
             mock_response = AsyncMock()
             mock_response.json.return_value = {
                 "response": "Dear Hiring Manager,\n\nI am writing to apply..."
