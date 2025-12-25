@@ -1,12 +1,46 @@
 """Main FastAPI application for Job Application Automation Service."""
 
+import json
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import Base
 from app.api import jobs, applications, matching, scheduler
 
+LOG_PATH = Path(r"d:\CodeRepositories\.cursor\debug.log")
+
+def log_entry(session_id, run_id, hypothesis_id, location, message, data):
+    """Write debug log entry."""
+    entry = {
+        "sessionId": session_id,
+        "runId": run_id,
+        "hypothesisId": hypothesis_id,
+        "location": location,
+        "message": message,
+        "data": data,
+        "timestamp": int(__import__('time').time() * 1000)
+    }
+    try:
+        with open(LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+    except Exception:
+        pass
+
+# #region agent log
+log_entry("server-startup", "run1", "H-STARTUP", "app/main.py", "FastAPI app module loading", {
+    "python": __import__('sys').executable
+})
+# #endregion agent log
+
 # Create FastAPI app
+# #region agent log
+log_entry("server-startup", "run1", "H-STARTUP", "app/main.py", "Creating FastAPI app", {
+    "app_name": settings.app_name,
+    "version": settings.app_version
+})
+# #endregion agent log
+
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
@@ -14,6 +48,12 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+# #region agent log
+log_entry("server-startup", "run1", "H-STARTUP", "app/main.py", "FastAPI app created", {
+    "success": True
+})
+# #endregion agent log
 
 # CORS middleware
 app.add_middleware(

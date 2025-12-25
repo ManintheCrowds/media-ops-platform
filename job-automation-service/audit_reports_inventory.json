@@ -1,0 +1,557 @@
+{
+  "generated_at": "2025-12-25T13:39:35.325100",
+  "base_directory": "D:\\software\\job-automation-service",
+  "reports": [
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_114356.json",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_114356.json",
+      "filename": "report_20251223_114356.json",
+      "report_type": "other",
+      "timestamp": "20251223_114356",
+      "size_bytes": 5295,
+      "size_kb": 5.17,
+      "modified_time": "2025-12-24T13:20:59.538792",
+      "created_time": "2025-12-24T13:20:59.538792",
+      "metrics": {
+        "parse_success": true,
+        "has_metadata": true,
+        "has_test_results": true,
+        "total_tasks": 2,
+        "completed_tasks": 2,
+        "failed_tasks": 0,
+        "generated_at": "2025-12-23T11:43:56.583524",
+        "test_result_count": 2,
+        "agent_types": [
+          "api_test",
+          "matcher_test"
+        ],
+        "test_success_count": 2,
+        "test_fail_count": 0
+      }
+    },
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_114356.md",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_114356.md",
+      "filename": "report_20251223_114356.md",
+      "report_type": "other",
+      "timestamp": "20251223_114356",
+      "size_bytes": 4225,
+      "size_kb": 4.13,
+      "modified_time": "2025-12-24T13:20:59.538792",
+      "created_time": "2025-12-24T13:20:59.538792"
+    },
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_114418.json",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_114418.json",
+      "filename": "report_20251223_114418.json",
+      "report_type": "other",
+      "timestamp": "20251223_114418",
+      "size_bytes": 18037,
+      "size_kb": 17.61,
+      "modified_time": "2025-12-24T13:20:59.538792",
+      "created_time": "2025-12-24T13:20:59.538792",
+      "metrics": {
+        "parse_success": true,
+        "has_metadata": true,
+        "has_test_results": true,
+        "total_tasks": 8,
+        "completed_tasks": 8,
+        "failed_tasks": 0,
+        "generated_at": "2025-12-23T11:44:18.885882",
+        "test_result_count": 8,
+        "agent_types": [
+          "api_test",
+          "matcher_test"
+        ],
+        "test_success_count": 8,
+        "test_fail_count": 0
+      }
+    },
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_114418.md",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_114418.md",
+      "filename": "report_20251223_114418.md",
+      "report_type": "other",
+      "timestamp": "20251223_114418",
+      "size_bytes": 13857,
+      "size_kb": 13.53,
+      "modified_time": "2025-12-24T13:20:59.538792",
+      "created_time": "2025-12-24T13:20:59.538792"
+    },
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_114431.md",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_114431.md",
+      "filename": "report_20251223_114431.md",
+      "report_type": "other",
+      "timestamp": "20251223_114431",
+      "size_bytes": 13683,
+      "size_kb": 13.36,
+      "modified_time": "2025-12-24T13:20:59.539914",
+      "created_time": "2025-12-24T13:20:59.539914"
+    },
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_114458.json",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_114458.json",
+      "filename": "report_20251223_114458.json",
+      "report_type": "other",
+      "timestamp": "20251223_114458",
+      "size_bytes": 22144,
+      "size_kb": 21.62,
+      "modified_time": "2025-12-24T13:20:59.539914",
+      "created_time": "2025-12-24T13:20:59.539914",
+      "metrics": {
+        "parse_success": true,
+        "has_metadata": true,
+        "has_test_results": true,
+        "total_tasks": 11,
+        "completed_tasks": 11,
+        "failed_tasks": 0,
+        "generated_at": "2025-12-23T11:44:58.640465",
+        "test_result_count": 8,
+        "agent_types": [
+          "api_test",
+          "matcher_test"
+        ],
+        "test_success_count": 8,
+        "test_fail_count": 0
+      }
+    },
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_114458.md",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_114458.md",
+      "filename": "report_20251223_114458.md",
+      "report_type": "other",
+      "timestamp": "20251223_114458",
+      "size_bytes": 14808,
+      "size_kb": 14.46,
+      "modified_time": "2025-12-24T13:20:59.539914",
+      "created_time": "2025-12-24T13:20:59.539914"
+    },
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_123243.json",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_123243.json",
+      "filename": "report_20251223_123243.json",
+      "report_type": "other",
+      "timestamp": "20251223_123243",
+      "size_bytes": 26122,
+      "size_kb": 25.51,
+      "modified_time": "2025-12-24T13:20:59.541337",
+      "created_time": "2025-12-24T13:20:59.539914",
+      "metrics": {
+        "parse_success": true,
+        "has_metadata": true,
+        "has_test_results": true,
+        "total_tasks": 11,
+        "completed_tasks": 11,
+        "failed_tasks": 0,
+        "generated_at": "2025-12-23T12:32:43.401017",
+        "test_result_count": 8,
+        "agent_types": [
+          "api_test",
+          "matcher_test"
+        ],
+        "test_success_count": 8,
+        "test_fail_count": 0
+      }
+    },
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_123243.md",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_123243.md",
+      "filename": "report_20251223_123243.md",
+      "report_type": "other",
+      "timestamp": "20251223_123243",
+      "size_bytes": 18037,
+      "size_kb": 17.61,
+      "modified_time": "2025-12-24T13:20:59.541337",
+      "created_time": "2025-12-24T13:20:59.541337"
+    },
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_123519.json",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_123519.json",
+      "filename": "report_20251223_123519.json",
+      "report_type": "other",
+      "timestamp": "20251223_123519",
+      "size_bytes": 40102,
+      "size_kb": 39.16,
+      "modified_time": "2025-12-24T13:20:59.541337",
+      "created_time": "2025-12-24T13:20:59.541337",
+      "metrics": {
+        "parse_success": true,
+        "has_metadata": true,
+        "has_test_results": true,
+        "total_tasks": 18,
+        "completed_tasks": 18,
+        "failed_tasks": 0,
+        "generated_at": "2025-12-23T12:35:19.471059",
+        "test_result_count": 13,
+        "agent_types": [
+          "api_test",
+          "scheduler_test",
+          "scraper_test",
+          "cover_letter_test",
+          "matcher_test"
+        ],
+        "test_success_count": 13,
+        "test_fail_count": 0
+      }
+    },
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_123519.md",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_123519.md",
+      "filename": "report_20251223_123519.md",
+      "report_type": "other",
+      "timestamp": "20251223_123519",
+      "size_bytes": 26859,
+      "size_kb": 26.23,
+      "modified_time": "2025-12-24T13:20:59.541337",
+      "created_time": "2025-12-24T13:20:59.541337"
+    },
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_123553.json",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_123553.json",
+      "filename": "report_20251223_123553.json",
+      "report_type": "other",
+      "timestamp": "20251223_123553",
+      "size_bytes": 40061,
+      "size_kb": 39.12,
+      "modified_time": "2025-12-24T13:20:59.541337",
+      "created_time": "2025-12-24T13:20:59.541337",
+      "metrics": {
+        "parse_success": true,
+        "has_metadata": true,
+        "has_test_results": true,
+        "total_tasks": 18,
+        "completed_tasks": 18,
+        "failed_tasks": 0,
+        "generated_at": "2025-12-23T12:35:53.815633",
+        "test_result_count": 13,
+        "agent_types": [
+          "api_test",
+          "scheduler_test",
+          "scraper_test",
+          "cover_letter_test",
+          "matcher_test"
+        ],
+        "test_success_count": 13,
+        "test_fail_count": 0
+      }
+    },
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_123553.md",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_123553.md",
+      "filename": "report_20251223_123553.md",
+      "report_type": "other",
+      "timestamp": "20251223_123553",
+      "size_bytes": 26818,
+      "size_kb": 26.19,
+      "modified_time": "2025-12-24T13:20:59.542801",
+      "created_time": "2025-12-24T13:20:59.542801"
+    },
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_123858.json",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_123858.json",
+      "filename": "report_20251223_123858.json",
+      "report_type": "other",
+      "timestamp": "20251223_123858",
+      "size_bytes": 40078,
+      "size_kb": 39.14,
+      "modified_time": "2025-12-24T13:20:59.542801",
+      "created_time": "2025-12-24T13:20:59.542801",
+      "metrics": {
+        "parse_success": true,
+        "has_metadata": true,
+        "has_test_results": true,
+        "total_tasks": 18,
+        "completed_tasks": 18,
+        "failed_tasks": 0,
+        "generated_at": "2025-12-23T12:38:58.089130",
+        "test_result_count": 13,
+        "agent_types": [
+          "api_test",
+          "scheduler_test",
+          "scraper_test",
+          "cover_letter_test",
+          "matcher_test"
+        ],
+        "test_success_count": 13,
+        "test_fail_count": 0
+      }
+    },
+    {
+      "file_path": "tests\\agents\\reports\\report_20251223_123858.md",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\reports\\report_20251223_123858.md",
+      "filename": "report_20251223_123858.md",
+      "report_type": "other",
+      "timestamp": "20251223_123858",
+      "size_bytes": 26863,
+      "size_kb": 26.23,
+      "modified_time": "2025-12-24T13:20:59.542801",
+      "created_time": "2025-12-24T13:20:59.542801"
+    },
+    {
+      "file_path": "tests\\agents\\status\\status.json",
+      "absolute_path": "D:\\software\\job-automation-service\\tests\\agents\\status\\status.json",
+      "filename": "status.json",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 4563,
+      "size_kb": 4.46,
+      "modified_time": "2025-12-24T13:20:59.544285",
+      "created_time": "2025-12-24T13:20:59.544285",
+      "metrics": {
+        "parse_success": true,
+        "has_metadata": false,
+        "has_test_results": false
+      }
+    },
+    {
+      "file_path": "docs\\AGENT_EXAMPLES.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\AGENT_EXAMPLES.md",
+      "filename": "AGENT_EXAMPLES.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 6175,
+      "size_kb": 6.03,
+      "modified_time": "2025-12-24T13:20:59.524136",
+      "created_time": "2025-12-24T13:20:59.524136"
+    },
+    {
+      "file_path": "docs\\AGENT_FINDINGS_ACTION_ITEMS.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\AGENT_FINDINGS_ACTION_ITEMS.md",
+      "filename": "AGENT_FINDINGS_ACTION_ITEMS.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 4272,
+      "size_kb": 4.17,
+      "modified_time": "2025-12-24T13:20:59.524136",
+      "created_time": "2025-12-24T13:20:59.524136"
+    },
+    {
+      "file_path": "docs\\AGENT_FINDINGS_SUMMARY.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\AGENT_FINDINGS_SUMMARY.md",
+      "filename": "AGENT_FINDINGS_SUMMARY.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 4836,
+      "size_kb": 4.72,
+      "modified_time": "2025-12-24T13:20:59.525157",
+      "created_time": "2025-12-24T13:20:59.524136"
+    },
+    {
+      "file_path": "docs\\AGENT_FRAMEWORK.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\AGENT_FRAMEWORK.md",
+      "filename": "AGENT_FRAMEWORK.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 9899,
+      "size_kb": 9.67,
+      "modified_time": "2025-12-24T13:20:59.525157",
+      "created_time": "2025-12-24T13:20:59.525157"
+    },
+    {
+      "file_path": "docs\\AGGREGATOR_APIS.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\AGGREGATOR_APIS.md",
+      "filename": "AGGREGATOR_APIS.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 4504,
+      "size_kb": 4.4,
+      "modified_time": "2025-12-24T13:20:59.525157",
+      "created_time": "2025-12-24T13:20:59.525157"
+    },
+    {
+      "file_path": "docs\\ANTI_BOT_EVASION.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\ANTI_BOT_EVASION.md",
+      "filename": "ANTI_BOT_EVASION.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 5423,
+      "size_kb": 5.3,
+      "modified_time": "2025-12-24T13:20:59.525157",
+      "created_time": "2025-12-24T13:20:59.525157"
+    },
+    {
+      "file_path": "docs\\API.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\API.md",
+      "filename": "API.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 7937,
+      "size_kb": 7.75,
+      "modified_time": "2025-12-24T13:20:59.526167",
+      "created_time": "2025-12-24T13:20:59.526167"
+    },
+    {
+      "file_path": "docs\\BROWSER_SCRAPING.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\BROWSER_SCRAPING.md",
+      "filename": "BROWSER_SCRAPING.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 3048,
+      "size_kb": 2.98,
+      "modified_time": "2025-12-24T13:20:59.526167",
+      "created_time": "2025-12-24T13:20:59.526167"
+    },
+    {
+      "file_path": "docs\\IMPLEMENTATION_SUMMARY.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\IMPLEMENTATION_SUMMARY.md",
+      "filename": "IMPLEMENTATION_SUMMARY.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 9644,
+      "size_kb": 9.42,
+      "modified_time": "2025-12-24T13:20:59.526167",
+      "created_time": "2025-12-24T13:20:59.526167"
+    },
+    {
+      "file_path": "docs\\JOB_SEARCH_PIPELINE_TEST_RESULTS.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\JOB_SEARCH_PIPELINE_TEST_RESULTS.md",
+      "filename": "JOB_SEARCH_PIPELINE_TEST_RESULTS.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 5354,
+      "size_kb": 5.23,
+      "modified_time": "2025-12-24T13:20:59.526167",
+      "created_time": "2025-12-24T13:20:59.526167"
+    },
+    {
+      "file_path": "docs\\JSEARCH_API_STATUS.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\JSEARCH_API_STATUS.md",
+      "filename": "JSEARCH_API_STATUS.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 2339,
+      "size_kb": 2.28,
+      "modified_time": "2025-12-24T13:20:59.527167",
+      "created_time": "2025-12-24T13:20:59.527167"
+    },
+    {
+      "file_path": "docs\\OFFICIAL_APIS_RESEARCH.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\OFFICIAL_APIS_RESEARCH.md",
+      "filename": "OFFICIAL_APIS_RESEARCH.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 3881,
+      "size_kb": 3.79,
+      "modified_time": "2025-12-24T13:20:59.527167",
+      "created_time": "2025-12-24T13:20:59.527167"
+    },
+    {
+      "file_path": "docs\\REMEDIATION_GUIDE.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\REMEDIATION_GUIDE.md",
+      "filename": "REMEDIATION_GUIDE.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 5048,
+      "size_kb": 4.93,
+      "modified_time": "2025-12-24T13:20:59.527673",
+      "created_time": "2025-12-24T13:20:59.527673"
+    },
+    {
+      "file_path": "docs\\SCRAPER_TEST_ANALYSIS.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\SCRAPER_TEST_ANALYSIS.md",
+      "filename": "SCRAPER_TEST_ANALYSIS.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 5801,
+      "size_kb": 5.67,
+      "modified_time": "2025-12-24T13:20:59.527673",
+      "created_time": "2025-12-24T13:20:59.527673"
+    },
+    {
+      "file_path": "docs\\SECURITY_REVIEW.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\SECURITY_REVIEW.md",
+      "filename": "SECURITY_REVIEW.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 4404,
+      "size_kb": 4.3,
+      "modified_time": "2025-12-24T13:20:59.527673",
+      "created_time": "2025-12-24T13:20:59.527673"
+    },
+    {
+      "file_path": "PROJECT_STATUS_REPORT.md",
+      "absolute_path": "D:\\software\\job-automation-service\\PROJECT_STATUS_REPORT.md",
+      "filename": "PROJECT_STATUS_REPORT.md",
+      "report_type": "status_report",
+      "timestamp": null,
+      "size_bytes": 12310,
+      "size_kb": 12.02,
+      "modified_time": "2025-12-24T13:20:59.508544",
+      "created_time": "2025-12-24T13:20:59.508544"
+    },
+    {
+      "file_path": "CURRENT_STATUS_AUDIT.md",
+      "absolute_path": "D:\\software\\job-automation-service\\CURRENT_STATUS_AUDIT.md",
+      "filename": "CURRENT_STATUS_AUDIT.md",
+      "report_type": "status_report",
+      "timestamp": null,
+      "size_bytes": 6246,
+      "size_kb": 6.1,
+      "modified_time": "2025-12-25T13:32:18.803771",
+      "created_time": "2025-12-25T13:32:13.683924"
+    },
+    {
+      "file_path": "DEBUG_COMPLETE.md",
+      "absolute_path": "D:\\software\\job-automation-service\\DEBUG_COMPLETE.md",
+      "filename": "DEBUG_COMPLETE.md",
+      "report_type": "status_report",
+      "timestamp": null,
+      "size_bytes": 3842,
+      "size_kb": 3.75,
+      "modified_time": "2025-12-25T13:24:46.535225",
+      "created_time": "2025-12-25T13:24:32.424450"
+    },
+    {
+      "file_path": "IMPLEMENTATION_COMPLETE.md",
+      "absolute_path": "D:\\software\\job-automation-service\\IMPLEMENTATION_COMPLETE.md",
+      "filename": "IMPLEMENTATION_COMPLETE.md",
+      "report_type": "status_report",
+      "timestamp": null,
+      "size_bytes": 8908,
+      "size_kb": 8.7,
+      "modified_time": "2025-12-25T13:22:34.497087",
+      "created_time": "2025-12-25T13:06:30.791563"
+    },
+    {
+      "file_path": "TESTING_RESULTS.md",
+      "absolute_path": "D:\\software\\job-automation-service\\TESTING_RESULTS.md",
+      "filename": "TESTING_RESULTS.md",
+      "report_type": "status_report",
+      "timestamp": null,
+      "size_bytes": 3705,
+      "size_kb": 3.62,
+      "modified_time": "2025-12-24T13:20:59.510565",
+      "created_time": "2025-12-24T13:20:59.510565"
+    },
+    {
+      "file_path": "jobs_inventory.json",
+      "absolute_path": "D:\\software\\job-automation-service\\jobs_inventory.json",
+      "filename": "jobs_inventory.json",
+      "report_type": "data_inventory",
+      "timestamp": null,
+      "size_bytes": 8664,
+      "size_kb": 8.46,
+      "modified_time": "2025-12-24T13:20:59.527673",
+      "created_time": "2025-12-24T13:20:59.527673",
+      "metrics": {
+        "parse_success": true,
+        "has_metadata": false,
+        "has_test_results": false
+      }
+    }
+  ],
+  "summary": {
+    "total_reports": 37,
+    "by_type": {
+      "other": 31,
+      "status_report": 5,
+      "data_inventory": 1
+    },
+    "by_extension": {
+      ".json": 9,
+      ".md": 28
+    },
+    "total_size_kb": 456.82
+  }
+}

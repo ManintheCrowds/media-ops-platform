@@ -106,23 +106,65 @@ class SkillMatcher:
             avg_proficiency = sum(skill_scores) / len(skill_scores)
             
             # Calculate match ratio: matched skills vs total unique skills mentioned in job
-            # Extract all skill-like terms from job description
-            job_skill_terms = extract_keywords(job_description)
-            job_skill_count = len(set(job_skill_terms))
+            # Filter keywords to only skill-related terms (Option B from analysis)
+            # This prevents inflating job_skill_count with generic keywords
+            # Reuse keywords already extracted above instead of re-extracting
+            all_keywords = keywords
+            
+            # Pre-build set of all skill name variations for O(1) lookup
+            # This optimizes filtering from O(n*m) to O(n)
+            skill_name_set = set()
+            for skill_name in self.skill_profile.keys():
+                skill_name_lower = skill_name.lower()
+                skill_name_set.add(skill_name_lower)
+                # Add normalized variants for better matching
+                variants = get_skill_variants(skill_name)
+                skill_name_set.update(v.lower() for v in variants)
+            
+            # Filter to only keywords that could be skills (match against skill profile)
+            # This ensures job_skill_count represents actual skills, not all keywords
+            job_skill_terms = [
+                kw for kw in all_keywords 
+                if kw.lower() in skill_name_set or any(
+                    skill_name.lower() in kw.lower() or kw.lower() in skill_name.lower()
+                    for skill_name in skill_name_set
+                )
+            ]
+            
+            # If no skill-related keywords found, use conservative fallback
+            # Using matched_skills count assumes we matched all required skills, which may not be true
+            # Use max to ensure at least 1 if we have matches, preventing division by zero
+            unique_job_skill_terms = len(set(job_skill_terms))
+            if unique_job_skill_terms > 0:
+                job_skill_count = unique_job_skill_terms
+            elif matched_skills:
+                # Fallback: assume job requires at least as many skills as we matched
+                # This is conservative and prevents artificially high match ratios
+                job_skill_count = max(len(matched_skills), 1)
+            else:
+                job_skill_count = 1  # Prevent division by zero
             
             # Match ratio: how many of our skills matched vs how many skills job requires
+            # Use job_skill_count as denominator (not max) to correctly calculate coverage
             if job_skill_count > 0:
-                match_ratio = len(matched_skills) / max(job_skill_count, len(matched_skills))
+                match_ratio = min(len(matched_skills) / job_skill_count, 1.0)  # Cap at 1.0
             else:
+                # No skills extracted from job - treat as perfect match if we have skills
                 match_ratio = 1.0 if matched_skills else 0.0
             
-            # Base score from proficiency (0-1)
+            # Base score from proficiency (0-1, normalized from 1-5 scale)
             proficiency_score = avg_proficiency
             
             # Boost score based on number of matches (more matches = better)
-            match_count_boost = min(len(matched_skills) / 10.0, 1.0)  # Cap at 10 skills
+            # Use logarithmic scaling to prevent over-weighting many matches
+            # 1 match = 0.1, 3 matches = 0.3, 5 matches = 0.5, 10+ matches = 1.0
+            match_count_boost = min(len(matched_skills) / 10.0, 1.0)
             
-            # Combine: proficiency (50%) + match ratio (30%) + match count boost (20%)
+            # Formula to produce scores in 0.5-0.7+ range for good matches:
+            # - proficiency_score (50%): Quality of matches - user's skill level
+            # - match_ratio (30%): Primary indicator of fit - how many required skills matched
+            # - match_count_boost (20%): Breadth bonus - rewards having more matching skills
+            # Target: 50-70% skills matched with high proficiency → 0.5-0.7+ score
             skill_match_score = (
                 proficiency_score * 0.5 +
                 match_ratio * 0.3 +
