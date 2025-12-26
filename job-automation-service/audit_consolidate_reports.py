@@ -92,28 +92,86 @@ def extract_performance_metrics(test_result: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def extract_errors(test_result: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Extract errors from a test result entry."""
+    """Extract errors from a test result entry with categorization."""
     errors = []
     
     if test_result.get("error"):
+        error_data = test_result.get("error")
+        error_type = "task_error"
+        error_category = _categorize_error(error_data)
+        
         errors.append({
             "task_id": test_result.get("task_id"),
             "agent_type": test_result.get("agent_type"),
-            "error": test_result.get("error"),
-            "type": "task_error"
+            "error": error_data,
+            "type": error_type,
+            "category": error_category
         })
     
     result = test_result.get("result", {})
     if "errors" in result:
         for error in result["errors"]:
+            # Extract error type if available
+            error_type = error.get("error_type", "result_error") if isinstance(error, dict) else "result_error"
+            error_category = _categorize_error(error)
+            
             errors.append({
                 "task_id": test_result.get("task_id"),
                 "agent_type": test_result.get("agent_type"),
                 "error": error,
-                "type": "result_error"
+                "type": "result_error",
+                "error_type": error_type,
+                "category": error_category
             })
     
     return errors
+
+
+def _categorize_error(error: Any) -> str:
+    """Categorize an error based on its content.
+    
+    Args:
+        error: Error data (dict, string, or other)
+        
+    Returns:
+        Error category string
+    """
+    if isinstance(error, dict):
+        error_str = str(error).lower()
+        error_type = error.get("error_type", "").lower()
+        
+        # Check error_type field first
+        if error_type:
+            if error_type in ["connection", "timeout"]:
+                return "connection_error"
+            elif error_type in ["validation", "not_found", "method_not_allowed"]:
+                return "validation_error"
+            elif error_type == "http_error":
+                return "service_error"
+            elif error_type == "unexpected":
+                return "unexpected_error"
+        
+        # Fallback to content analysis
+        error_text = error_str
+        for key, value in error.items():
+            if isinstance(value, str):
+                error_text += " " + value.lower()
+    else:
+        error_text = str(error).lower()
+    
+    # Categorize based on keywords
+    if any(keyword in error_text for keyword in ["connection", "connect", "unavailable", "not running"]):
+        return "connection_error"
+    elif any(keyword in error_text for keyword in ["404", "not found", "endpoint not found"]):
+        return "endpoint_error"
+    elif any(keyword in error_text for keyword in ["422", "validation", "invalid"]):
+        return "validation_error"
+    elif any(keyword in error_text for keyword in ["timeout", "timed out"]):
+        return "timeout_error"
+    elif any(keyword in error_text for keyword in ["ollama", "service is not available"]):
+        return "service_unavailable"  # Expected in test environments
+    else:
+        return "unknown_error"
 
 
 def consolidate_agent_reports() -> Dict[str, Any]:
@@ -231,14 +289,34 @@ def analyze_critical_issues(consolidated: Dict[str, Any]) -> List[Dict[str, Any]
     
     # Analyze errors
     if consolidated["errors"]:
-        error_types = Counter(e.get("type", "unknown") for e in consolidated["errors"])
-        issues.append({
-            "category": "Errors",
-            "severity": "high",
-            "count": len(consolidated["errors"]),
-            "description": f"Errors detected: {dict(error_types)}",
-            "details": consolidated["errors"][:10]  # First 10 errors
-        })
+        # Filter out expected/acceptable errors
+        expected_categories = ["service_unavailable"]  # Ollama unavailable is expected in test env
+        unexpected_errors = [
+            e for e in consolidated["errors"]
+            if e.get("category") not in expected_categories
+        ]
+        
+        # Categorize errors
+        error_types = Counter(e.get("type", "unknown") for e in unexpected_errors)
+        error_categories = Counter(e.get("category", "unknown") for e in unexpected_errors)
+        
+        if unexpected_errors:
+            issues.append({
+                "category": "Errors",
+                "severity": "high",
+                "count": len(unexpected_errors),
+                "description": f"Errors detected: {dict(error_types)} | Categories: {dict(error_categories)}",
+                "details": unexpected_errors[:10]  # First 10 unexpected errors
+            })
+        elif consolidated["errors"]:
+            # Only expected errors - log as info
+            issues.append({
+                "category": "Errors",
+                "severity": "low",
+                "count": len(consolidated["errors"]),
+                "description": f"Expected errors only (service unavailability): {len(consolidated['errors'])}",
+                "details": []
+            })
     
     return issues
 

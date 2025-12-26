@@ -4,33 +4,40 @@ from pydantic_settings import BaseSettings
 from typing import Optional, List
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 
 def _find_env_file() -> str:
     """Find .env file in current directory or parent directory.
     
     Returns:
-        Path to .env file or ".env" if not found
+        Absolute path to .env file or ".env" if not found
     """
-    # Check current directory (job-automation-service)
+    # Primary location: D:\software\job-automation-service\.env
+    # This is the canonical location for the .env file
+    primary_env = Path(r"D:\software\job-automation-service\.env")
+    if primary_env.exists():
+        return str(primary_env.absolute())
+    
+    # Fallback: Check current directory (job-automation-service)
     current_dir = Path(__file__).parent.parent
     env_file = current_dir / ".env"
     if env_file.exists():
-        return str(env_file)
+        return str(env_file.absolute())
     
-    # Check parent directory (software)
+    # Fallback: Check parent directory (software)
     parent_dir = current_dir.parent
     env_file = parent_dir / ".env"
     if env_file.exists():
-        return str(env_file)
+        return str(env_file.absolute())
     
-    # Also check C:\Users\artin\software\.env directly (for Windows)
+    # Fallback: Check C:\Users\artin\software\.env directly (for Windows)
     if os.name == 'nt':  # Windows
         software_env = Path("C:/Users/artin/software/.env")
         if software_env.exists():
-            return str(software_env)
+            return str(software_env.absolute())
     
-    # Default to .env in current directory
+    # Default to .env in current directory (relative path)
     return ".env"
 
 
@@ -82,6 +89,14 @@ class Settings(BaseSettings):
     cookie_persistence: bool = True
     max_retries: int = 3
     
+    # Proxy Configuration (Future Enhancement)
+    proxy_enabled: bool = False
+    proxy_list: List[str] = []
+    proxy_rotation_strategy: str = "round_robin"  # Options: "round_robin", "random", "least_used"
+    
+    # Debug Logging
+    debug_log_path: Optional[str] = None  # Path to debug log file (optional, defaults to None for no logging)
+    
     # Default Search Parameters
     default_location: str = "Minneapolis, MN"
     default_radius: int = 25  # miles
@@ -97,6 +112,21 @@ class Settings(BaseSettings):
         env_file_encoding = 'utf-8'
         case_sensitive = False
         extra = "ignore"
+
+
+# Explicitly load .env file BEFORE creating Settings instance
+# This ensures environment variables are available to pydantic_settings
+_env_file_path = _find_env_file()
+if Path(_env_file_path).exists():
+    load_dotenv(_env_file_path, override=True)
+    print(f"[CONFIG] Loaded .env file from: {_env_file_path}")
+else:
+    print(f"[CONFIG] WARNING: .env file not found at: {_env_file_path}")
+    # Try loading from default location as fallback
+    default_env = Path(__file__).parent.parent / ".env"
+    if default_env.exists():
+        load_dotenv(default_env, override=True)
+        print(f"[CONFIG] Loaded .env file from fallback: {default_env}")
 
 
 settings = Settings()

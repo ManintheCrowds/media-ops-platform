@@ -1,0 +1,176 @@
+Home Cyber Risk Awareness Server - Runbook
+
+WHAT IT DOES
+============
+
+This server monitors your personal identifiers (emails, usernames) for exposure in data breaches using the Have I Been Pwned API. It:
+
+- Checks configured identifiers against HIBP breach database
+- Detects new breaches and changes to existing breaches
+- Sends alerts via email, Telegram, webhook, or logs
+- Stores breach history in local database (SQLite or Postgres)
+- Provides observability via Grafana and Loki
+
+WHAT IT DOES NOT DO
+===================
+
+- Does NOT automatically remediate breaches
+- Does NOT store passwords or sensitive credential data
+- Does NOT monitor your devices or network traffic
+- Does NOT perform active security scanning
+- Does NOT block or filter network traffic (unless Pi-hole enabled)
+- Does NOT require internet-facing ports (all services internal by default)
+
+HOW TO RESPOND TO BREACHES
+===========================
+
+When you receive a breach alert:
+
+1. IMMEDIATE ACTIONS:
+   - Change password for the affected service immediately
+   - Enable two-factor authentication (2FA) if available
+   - Review recent account activity for suspicious behavior
+
+2. ASSESSMENT:
+   - Check what data was exposed (data classes in alert)
+   - Determine if the breach affects other accounts using same password
+   - Review breach date to understand exposure timeline
+
+3. REMEDIATION:
+   - Change passwords on all affected accounts
+   - Use unique passwords for each service (password manager recommended)
+   - Enable 2FA on all accounts that support it
+   - Monitor accounts for suspicious activity
+   - Consider credit monitoring if financial data exposed
+
+4. PREVENTION:
+   - Use a password manager
+   - Enable 2FA everywhere possible
+   - Use unique passwords for each service
+   - Regularly review breach status
+
+OPERATIONAL PROCEDURES
+======================
+
+Daily Operations:
+- Check Grafana dashboard for breach check status
+- Review logs in Loki for any errors
+- Verify alerts are being sent (check email/Telegram)
+
+Weekly Operations:
+- Review breach check results
+- Verify all identifiers are being checked
+- Check for any new breaches
+
+Monthly Operations:
+- Review breach history and trends
+- Update identifiers list if needed
+- Review and update alert configuration
+- Check database size and cleanup if needed
+
+TROUBLESHOOTING
+===============
+
+Breach checks failing:
+- Check HIBP API key is valid (if using email/username checking)
+- Verify network connectivity
+- Check rate limiting (HIBP requires 200ms between requests)
+- Review logs: docker-compose logs breach-monitor
+
+Alerts not sending:
+- Verify alert configuration in .env
+- Test email SMTP settings
+- Verify Telegram bot token and chat ID
+- Check webhook URL is accessible
+- Review logs for alert errors
+
+Database issues:
+- Check data/ directory permissions
+- Verify database URL in .env
+- For SQLite: ensure path is correct and writable
+- For Postgres: verify connection and credentials
+
+Grafana not showing data:
+- Verify Loki is running: docker-compose ps loki
+- Check Loki logs: docker-compose logs loki
+- Verify breach-monitor is sending logs to Loki
+- Check Grafana data source configuration
+
+MAINTENANCE
+===========
+
+Database cleanup:
+- Breach records are kept indefinitely by default
+- To clean old records, use SQL directly on database
+- Example: DELETE FROM breaches WHERE first_seen < date('now', '-1 year')
+
+Log rotation:
+- Loki handles log retention automatically
+- Adjust retention in docker-compose.yml if needed
+- Application logs in data/ directory can be rotated manually
+
+Updates:
+- Pull latest code changes
+- Review .env.example for new configuration options
+- Update docker-compose.yml if service versions changed
+- Restart services: docker-compose up -d
+
+Backup:
+- Backup data/ directory (contains SQLite database)
+- Backup config/identifiers.yml (contains your identifiers)
+- Backup .env file (contains configuration, keep secure)
+- For Postgres: use pg_dump
+
+EMERGENCY PROCEDURES
+====================
+
+If breach detected:
+1. Immediately change password for affected service
+2. Enable 2FA if not already enabled
+3. Review account activity
+4. Check if password reused elsewhere and change those too
+5. Monitor account for suspicious activity
+
+If service is down:
+1. Check container status: docker-compose ps
+2. Review logs: docker-compose logs breach-monitor
+3. Restart service: docker-compose restart breach-monitor
+4. If persistent, check system resources and disk space
+
+If database corrupted:
+1. Stop service: docker-compose stop breach-monitor
+2. Backup current database
+3. Restore from backup or recreate database
+4. Restart service
+
+DATA RETENTION
+==============
+
+Breach records: Kept indefinitely (manual cleanup required)
+Check history: Kept indefinitely (manual cleanup required)
+Logs: Retained per Loki configuration (default: 30 days)
+
+To clean old data:
+- Use SQL to delete old records
+- Adjust Loki retention in docker-compose.yml
+- Manually clean application logs in data/ directory
+
+SECURITY CONSIDERATIONS
+=======================
+
+- .env file contains sensitive configuration (API keys, passwords)
+- config/identifiers.yml contains your personal identifiers
+- Never commit these files to git
+- Restrict file permissions: chmod 600 .env config/identifiers.yml
+- Regularly rotate API keys and passwords
+- Review breach data sensitivity before sharing
+
+SUPPORT
+=======
+
+For issues:
+1. Check logs: docker-compose logs breach-monitor
+2. Review Grafana dashboard for service status
+3. Check this runbook for common issues
+4. Review README.md for configuration details
+

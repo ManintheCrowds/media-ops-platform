@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-25T13:39:35.683201",
+  "generated_at": "2025-12-25T18:00:44.312317",
   "stages": [
     {
       "stage": "API Endpoint",
@@ -34,7 +34,7 @@
         },
         "source_types": {
           "status": "pass",
-          "details": "API clients: False, HTTP scrapers: True, Browser: True"
+          "details": "API clients: True, HTTP scrapers: True, Browser: True"
         },
         "job_normalization": {
           "status": "pass",
@@ -52,8 +52,8 @@
       "location": "app/services/skill_matcher.py",
       "checks": {
         "skill_profile_loading": {
-          "status": "warning",
-          "details": "SkillMatcher initialization: (psycopg2.OperationalError) connection to server at \"localhost\" (::1), port 5433 failed: Connection refused (0x0000274D/10061)\n\tIs the server running on that host and accepting TCP/IP connections?\nconnection to server at \"localhost\" (127.0.0.1), port 5433 failed: Connection refused (0x0000274D/10061)\n\tIs the server running on that host and accepting TCP/IP connections?\n\n(Background on this error at: https://sqlalche.me/e/20/e3q8) (may need database)"
+          "status": "pass",
+          "details": "SkillMatcher initialized and profile loaded"
         },
         "match_score_calculation": {
           "status": "pass",

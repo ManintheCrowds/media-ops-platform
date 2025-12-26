@@ -2,6 +2,7 @@
 
 import logging
 from typing import List, Dict, Optional
+import httpx
 from app.config import settings
 from app.services.job_api import (
     IndeedScraper,
@@ -135,12 +136,14 @@ class JobSourceManager:
         """
         browser_scraper = self._get_browser_scraper(source)
         if not browser_scraper:
+            logger.warning(f"Browser scraper not available for {source}")
             return []
         
         try:
             # Get the HTTP scraper to use its search logic
             http_scraper = self.http_scrapers.get(source)
             if not http_scraper:
+                logger.warning(f"HTTP scraper not found for {source}")
                 return []
             
             # Temporarily replace the HTTP scraper's _fetch_page with browser version
@@ -148,22 +151,42 @@ class JobSourceManager:
             original_fetch = http_scraper._fetch_page
             
             async def browser_fetch(url, **kwargs):
-                html = await browser_scraper._fetch_page(url, **kwargs)
-                if html:
-                    # Create a mock response object
-                    class MockResponse:
-                        def __init__(self, text):
-                            self.text = text
-                            self.status_code = 200
-                            self.cookies = {}
-                            self.headers = {}
-                    return MockResponse(html)
-                return None
+                """Wrapper to convert browser HTML to HTTP response format."""
+                try:
+                    html = await browser_scraper._fetch_page(url, **kwargs)
+                    if html:
+                        # Create a mock response object that matches httpx.Response interface
+                        class MockResponse:
+                            def __init__(self, text):
+                                self.text = text
+                                self.status_code = 200
+                                self.cookies = type('Cookies', (), {'jar': []})()  # Mock cookies object
+                                self.headers = {}
+                            
+                            def raise_for_status(self):
+                                """Mock method for compatibility."""
+                                pass
+                        
+                        return MockResponse(html)
+                    return None
+                except Exception as e:
+                    logger.error(f"Browser fetch error for {url}: {e}")
+                    return None
             
             http_scraper._fetch_page = browser_fetch
             
             try:
+                logger.info(f"Searching {source} via browser scraper")
                 jobs = await http_scraper.search_jobs(query, location, limit)
+                if jobs:
+                    logger.info(f"Browser scraper found {len(jobs)} jobs from {source}")
+                else:
+                    logger.warning(f"Browser scraper returned no jobs from {source}")
+            except Exception as search_error:
+                logger.error(f"Error during browser search for {source}: {search_error}")
+                import traceback
+                logger.debug(traceback.format_exc())
+                return []
             finally:
                 # Restore original fetch method
                 http_scraper._fetch_page = original_fetch
@@ -171,6 +194,8 @@ class JobSourceManager:
             return jobs
         except Exception as e:
             logger.error(f"Browser search failed for {source}: {e}")
+            import traceback
+            logger.debug(traceback.format_exc())
             return []
     
     async def search_via_http(
@@ -181,6 +206,8 @@ class JobSourceManager:
         limit: int
     ) -> List[Dict]:
         """Search jobs via HTTP scraper.
+        
+        If HTTP scraper gets 403 Forbidden, falls back to browser scraper.
         
         Args:
             source: Source name
@@ -196,7 +223,33 @@ class JobSourceManager:
             return []
         
         try:
-            return await scraper.search_jobs(query, location, limit)
+            jobs = await scraper.search_jobs(query, location, limit)
+            
+            # If no jobs and we got 403 errors, try browser scraper as fallback
+            if not jobs and self.use_browser_scraping and BROWSER_AVAILABLE:
+                # Check if the last error was 403 by trying a simple fetch
+                # If it fails with 403, try browser scraper
+                logger.info(f"HTTP scraper returned no jobs for {source}, trying browser scraper fallback")
+                browser_jobs = await self.search_via_browser(source, query, location, limit)
+                if browser_jobs:
+                    logger.info(f"Browser scraper fallback succeeded for {source}, found {len(browser_jobs)} jobs")
+                    return browser_jobs
+            
+            return jobs
+        except httpx.HTTPStatusError as e:
+            # If we get 403, try browser scraper as fallback
+            if e.response.status_code == 403 and self.use_browser_scraping and BROWSER_AVAILABLE:
+                logger.warning(f"HTTP scraper got 403 for {source}, trying browser scraper fallback")
+                try:
+                    browser_jobs = await self.search_via_browser(source, query, location, limit)
+                    if browser_jobs:
+                        logger.info(f"Browser scraper fallback succeeded for {source}, found {len(browser_jobs)} jobs")
+                        return browser_jobs
+                except Exception as browser_error:
+                    logger.error(f"Browser scraper fallback also failed for {source}: {browser_error}")
+            
+            logger.error(f"HTTP search failed for {source}: {e}")
+            return []
         except Exception as e:
             logger.error(f"HTTP search failed for {source}: {e}")
             return []
@@ -243,6 +296,10 @@ class JobSourceManager:
             
             if jobs:
                 logger.info(f"Found {len(jobs)} jobs from {source}")
+                # Ensure all jobs have source field set
+                for job in jobs:
+                    if not job.get("source"):
+                        job["source"] = source
                 all_jobs.extend(jobs)
             else:
                 logger.warning(f"No jobs found from {source}")

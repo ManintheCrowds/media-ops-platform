@@ -68,6 +68,7 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 - Mix of uppercase, lowercase, numbers, symbols
 - Not in common password lists
 - Unique per user
+- **Breach Checking**: Passwords are automatically checked against Have I Been Pwned database during registration
 
 **Implementation:**
 ```python
@@ -79,6 +80,9 @@ hashed = get_password_hash("user_password")
 # Verification
 is_valid = verify_password("user_password", hashed)
 ```
+
+**Breach Detection:**
+The system automatically checks passwords against the Have I Been Pwned Pwned Passwords database (11+ billion compromised passwords) during registration. Breached passwords are rejected with a user-friendly error message. See [HIBP Integration Guide](./HIBP_INTEGRATION.md) for details.
 
 ## Authorization Security
 

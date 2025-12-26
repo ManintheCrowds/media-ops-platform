@@ -8,6 +8,11 @@ from .threats import (
     PatchStatus,
     AuditLog
 )
+from .breaches import (
+    UserBreach,
+    DomainBreach,
+    BreachHistory
+)
 
 __all__ = [
     "SecurityEvent",
@@ -22,6 +27,9 @@ __all__ = [
     "VulnerabilityScan",
     "PatchStatus",
     "AuditLog",
+    "UserBreach",
+    "DomainBreach",
+    "BreachHistory",
 ]
 
 

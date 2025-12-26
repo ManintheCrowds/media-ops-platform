@@ -228,6 +228,7 @@ def validate_source_attribution() -> Dict[str, Any]:
     try:
         from app.models.job_listing import JobListing
         from app.services.api_clients.base_api_client import BaseAPIClient
+        from app.services.job_scraper import BaseJobScraper
         
         # Check model has source fields
         model_fields = [col.name for col in JobListing.__table__.columns]
@@ -237,19 +238,40 @@ def validate_source_attribution() -> Dict[str, Any]:
         result["details"]["model_has_source_fields"] = has_source and has_source_id
         
         # Check API clients set source
-        has_source_name = hasattr(BaseAPIClient, "source_name")
-        result["details"]["api_clients_have_source_name"] = has_source_name
+        # Note: source_name is an instance attribute set in __init__, so we check the __init__ signature
+        import inspect
+        api_client_init = inspect.signature(BaseAPIClient.__init__)
+        api_client_has_source_param = "source_name" in api_client_init.parameters
+        result["details"]["api_clients_have_source_name"] = api_client_has_source_param
+        
+        # Check scrapers have source_name
+        scraper_init = inspect.signature(BaseJobScraper.__init__)
+        scrapers_have_source_param = "source_name" in scraper_init.parameters
+        result["details"]["scrapers_have_source_name"] = scrapers_have_source_param
         
         # Check that source is used in normalization
         if hasattr(BaseAPIClient, "_normalize_job_data"):
-            import inspect
             source_code = inspect.getsource(BaseAPIClient._normalize_job_data)
             uses_source = "source" in source_code.lower()
             result["details"]["normalization_uses_source"] = uses_source
         else:
             result["details"]["normalization_uses_source"] = False
         
-        overall_pass = has_source and has_source_id and has_source_name
+        # Check that scrapers set source in their return dicts
+        from app.services.job_api import IndeedScraper, LinkedInScraper, GlassdoorScraper, ZipRecruiterScraper
+        scrapers_set_source = True
+        for scraper_class in [IndeedScraper, LinkedInScraper, GlassdoorScraper, ZipRecruiterScraper]:
+            if hasattr(scraper_class, "_parse_job_card"):
+                scraper_code = inspect.getsource(scraper_class._parse_job_card)
+                if '"source"' not in scraper_code and "'source'" not in scraper_code:
+                    scrapers_set_source = False
+                    break
+        result["details"]["scrapers_set_source"] = scrapers_set_source
+        
+        overall_pass = (has_source and has_source_id and 
+                       api_client_has_source_param and 
+                       scrapers_have_source_param and
+                       scrapers_set_source)
         result["status"] = "pass" if overall_pass else "fail"
         
     except Exception as e:

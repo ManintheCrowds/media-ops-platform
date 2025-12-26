@@ -22,6 +22,7 @@ The framework consists of several key components:
 
 ### Threat Intelligence
 - **IP Reputation**: Integration with AbuseIPDB and VirusTotal
+- **Breach Detection**: Integration with Have I Been Pwned (HIBP) for email and password breach checking
 - **Malware Scanning**: File scanning with ClamAV and VirusTotal
 - **Vulnerability Scanning**: Dependency and container scanning
 - **Patch Management**: Security patch detection and tracking
@@ -52,6 +53,13 @@ The framework consists of several key components:
 - `GET /api/security/threats` - List threat intelligence entries
 - `GET /api/security/threats/ip/{ip}` - IP reputation lookup
 
+### Breach Detection
+- `GET /api/security/breaches/user/{user_id}` - Get user breach history
+- `GET /api/security/breaches/email/{email}` - Check specific email for breaches
+- `GET /api/security/breaches/domain/{domain}` - Get domain breach status
+- `POST /api/security/breaches/check-password` - Validate password (admin)
+- `GET /api/security/breaches/stats` - Breach statistics
+
 ### Firewall Rules
 - `GET /api/security/firewall/rules` - List firewall rules
 - `POST /api/security/firewall/rules` - Create firewall rule
@@ -78,6 +86,10 @@ SECURITY_REDIS_URL=redis://redis:6379
 # Threat Intelligence
 ABUSEIPDB_API_KEY=your-key
 VIRUSTOTAL_API_KEY=your-key
+# Breach Detection (Free - no API key required)
+HIBP_ENABLE_PASSWORD_CHECK=true  # Uses free HIBP Pwned Passwords API
+HIBP_ENABLE_EMAIL_CHECK=true  # Uses free public breach sources
+BREACH_MONITORED_DOMAINS=example.com,company.com
 
 # Alerting
 ALERT_EMAIL_ENABLED=true

@@ -28,6 +28,19 @@ class SecurityServiceConfig(BaseSettings):
     virustotal_api_key: Optional[str] = None
     threat_intel_update_interval: int = 3600  # seconds
     
+    # Breach Detection Configuration (Free - using HIBP Pwned Passwords API and public sources)
+    hibp_cache_ttl: int = 3600  # seconds (1 hour default)
+    hibp_rate_limit_delay: float = 0.2  # seconds (200ms between requests)
+    hibp_enable_password_check: bool = True  # Uses free HIBP Pwned Passwords API
+    hibp_enable_email_check: bool = True  # Uses free public breach sources
+    breach_monitored_domains: List[str] = []  # Domains to monitor for breaches
+    hibp_domain_check_interval: int = 86400  # seconds (24 hours)
+    
+    # Public Breach Sources Configuration
+    public_breach_sources: List[str] = []  # URLs/repos for breach data (GitHub, JSON, CSV)
+    breach_data_update_interval: int = 86400  # seconds (24 hours) - How often to update breach database
+    breach_data_cache_dir: str = "/var/cache/breach-data"  # Local cache directory for breach data
+    
     # Alerting Configuration
     alert_email_enabled: bool = False
     alert_email_smtp_host: Optional[str] = None

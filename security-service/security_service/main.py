@@ -28,6 +28,7 @@ from .integration.prometheus import PrometheusMetrics
 from .models.security_events import SecurityEvent
 from .models.incidents import SecurityIncident
 from .models.threats import ThreatIntelligence, FirewallRule, VulnerabilityScan, PatchStatus, AuditLog
+from .models.breaches import UserBreach, DomainBreach
 
 import pydantic
 from typing import List, Optional
@@ -100,6 +101,21 @@ def get_incident_manager(db: Session = Depends(get_db)) -> IncidentManager:
 
 def get_audit_logger(db: Session = Depends(get_db)) -> AuditLogger:
     return AuditLogger(db)
+
+
+def get_email_breach_service(db: Session = Depends(get_db)):
+    from .intelligence.email_breach import EmailBreachService
+    return EmailBreachService(db)
+
+
+def get_domain_breach_service(db: Session = Depends(get_db)):
+    from .intelligence.domain_breach import DomainBreachService
+    return DomainBreachService(db)
+
+
+def get_password_breach_service():
+    from .intelligence.password_breach import PasswordBreachService
+    return PasswordBreachService()
 
 
 # Middleware for IDS and rate limiting
@@ -436,6 +452,241 @@ async def get_compliance_report(
         raise HTTPException(status_code=400, detail="Invalid report type")
     
     return report
+
+
+# Breach Detection API
+@app.get("/api/security/breaches/user/{user_id}")
+async def get_user_breaches(
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get breach history for a user."""
+    email_breach_service = get_email_breach_service(db)
+    breaches = email_breach_service.get_user_breaches(user_id)
+    return {
+        "user_id": user_id,
+        "breaches": breaches,
+        "count": len(breaches)
+    }
+
+
+@app.get("/api/security/breaches/email/{email}")
+async def check_email_breaches(
+    email: str,
+    force_refresh: bool = False,
+    db: Session = Depends(get_db)
+):
+    """Check specific email for breaches."""
+    email_breach_service = get_email_breach_service(db)
+    breaches = await email_breach_service.check_email(
+        email,
+        force_refresh=force_refresh,
+        truncate_response=False
+    )
+    return {
+        "email": email,
+        "breaches": breaches,
+        "count": len(breaches)
+    }
+
+
+@app.get("/api/security/breaches/domain/{domain}")
+async def get_domain_breaches(
+    domain: str,
+    db: Session = Depends(get_db)
+):
+    """Get breach status for a domain."""
+    domain_breach_service = get_domain_breach_service(db)
+    breaches = domain_breach_service.get_domain_breaches(domain)
+    return {
+        "domain": domain,
+        "breaches": breaches,
+        "count": len(breaches)
+    }
+
+
+@app.post("/api/security/breaches/check-password")
+async def check_password_breach(
+    password: str,
+    db: Session = Depends(get_db)
+):
+    """Check if password has been pwned (admin only)."""
+    password_breach_service = get_password_breach_service()
+    is_breached, breach_count = await password_breach_service.check_password(password)
+    return {
+        "is_breached": is_breached,
+        "breach_count": breach_count,
+        "message": f"Password found in {breach_count:,} breach(es)" if is_breached else "Password not found in breach database"
+    }
+
+
+@app.get("/api/security/breaches/stats")
+async def get_breach_statistics(
+    db: Session = Depends(get_db)
+):
+    """Get breach statistics including public source database stats."""
+    from .intelligence.public_breach_sources import PublicBreachSources
+    
+    total_user_breaches = db.query(UserBreach).count()
+    unique_emails_breached = db.query(UserBreach.email).distinct().count()
+    total_domain_breaches = db.query(DomainBreach).count()
+    unique_domains_breached = db.query(DomainBreach.domain).distinct().count()
+    unnotified_user_breaches = db.query(UserBreach).filter(UserBreach.notified == False).count()
+    unnotified_domain_breaches = db.query(DomainBreach).filter(DomainBreach.notified == False).count()
+    
+    # Get public source database statistics
+    public_sources = PublicBreachSources(db)
+    db_stats = public_sources.get_statistics()
+    
+    return {
+        "user_breaches": {
+            "total": total_user_breaches,
+            "unique_emails": unique_emails_breached,
+            "unnotified": unnotified_user_breaches
+        },
+        "domain_breaches": {
+            "total": total_domain_breaches,
+            "unique_domains": unique_domains_breached,
+            "unnotified": unnotified_domain_breaches
+        },
+        "database_stats": db_stats,
+        "sources_configured": len(config.public_breach_sources or []),
+        "last_update": db_stats.get("last_updated")
+    }
+
+
+@app.post("/api/security/breaches/monitor/scan")
+async def trigger_breach_scan(
+    db: Session = Depends(get_db)
+):
+    """Trigger breach scan for all users (admin only)."""
+    from .monitoring.breach_monitor import BreachMonitor
+    # Note: This requires User model - may need to be adapted based on your User model location
+    # For now, return a message indicating it needs configuration
+    return {
+        "message": "Breach scan endpoint requires User model configuration",
+        "note": "Configure user_model_class in breach_monitor.py"
+    }
+
+
+@app.post("/api/security/breaches/update-database")
+async def update_breach_database(
+    force: bool = False,
+    db: Session = Depends(get_db)
+):
+    """
+    Update breach database from configured public sources.
+    
+    Query params:
+    - force: Force update even if recently updated (default: False)
+    
+    Returns update statistics and status.
+    """
+    from .intelligence.public_breach_sources import PublicBreachSources
+    
+    try:
+        public_sources = PublicBreachSources(db)
+        result = await public_sources.update_breach_database(force=force)
+        
+        return {
+            "status": "success" if result.get("updated") else "skipped",
+            "details": result
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database update failed: {str(e)}"
+        )
+
+
+@app.post("/api/security/breaches/domain/monitor")
+async def trigger_domain_monitor(
+    db: Session = Depends(get_db)
+):
+    """Trigger domain breach monitoring (admin only)."""
+    domain_breach_service = get_domain_breach_service(db)
+    results = await domain_breach_service.monitor_all_domains()
+    return results
+
+
+# Breach Intake and Reporting API
+@app.post("/api/security/breaches/intake")
+async def breach_intake(
+    request: dict,
+    db: Session = Depends(get_db)
+):
+    """
+    Securely intake data and run comprehensive breach analysis.
+    
+    Request body:
+    {
+        "emails": ["email1@example.com", "email2@example.com"],
+        "passwords": ["password1", "password2"],  # Optional - will be hashed immediately
+        "domains": ["example.com"],
+        "user_ids": {"email1@example.com": 1},  # Optional mapping
+        "metadata": {}  # Optional additional context
+    }
+    
+    Returns comprehensive report with breach findings and actionable recommendations.
+    """
+    from .services.breach_intake import BreachIntakeService, BreachIntakeRequest
+    
+    try:
+        intake_request = BreachIntakeRequest(**request)
+        intake_service = BreachIntakeService(db)
+        
+        results = await intake_service.process_intake(
+            intake_request,
+            source="api"
+        )
+        
+        return results
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Intake processing failed: {str(e)}"
+        )
+
+
+@app.post("/api/security/breaches/comprehensive-report")
+async def generate_comprehensive_report(
+    request: dict,
+    db: Session = Depends(get_db)
+):
+    """
+    Generate comprehensive breach analysis report with actionable insights.
+    
+    Same input format as /intake but returns enhanced report with:
+    - Risk assessment
+    - Prioritized actions
+    - Trend analysis
+    - Compliance impact
+    """
+    from .services.breach_intake import BreachIntakeService, BreachIntakeRequest
+    from .services.breach_reporting import ComprehensiveBreachReporter
+    
+    try:
+        intake_request = BreachIntakeRequest(**request)
+        intake_service = BreachIntakeService(db)
+        
+        # Process intake
+        intake_results = await intake_service.process_intake(
+            intake_request,
+            source="comprehensive_report"
+        )
+        
+        # Generate comprehensive report
+        reporter = ComprehensiveBreachReporter(db)
+        comprehensive_report = reporter.generate_report(intake_results)
+        
+        return comprehensive_report
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Report generation failed: {str(e)}"
+        )
 
 
 

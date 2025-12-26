@@ -21,6 +21,11 @@ class EventType(str, Enum):
     VULNERABILITY_EXPLOIT = "vulnerability_exploit"
     POLICY_VIOLATION = "policy_violation"
     ANOMALY_DETECTED = "anomaly_detected"
+    BREACHED_PASSWORD_ATTEMPT = "breached_password_attempt"
+    EMAIL_BREACH_DETECTED = "email_breach_detected"
+    DOMAIN_BREACH_DETECTED = "domain_breach_detected"
+    PASTE_CREDENTIAL_EXPOSURE = "paste_credential_exposure"
+    STEALER_LOG_DETECTED = "stealer_log_detected"
     OTHER = "other"
 
 

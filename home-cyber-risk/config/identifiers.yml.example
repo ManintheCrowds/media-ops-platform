@@ -1,0 +1,32 @@
+# Identifiers Configuration
+# Copy this file to identifiers.yml and fill in your personal identifiers
+# This file should be in .gitignore - never commit your actual identifiers
+
+emails:
+  - "your-email@example.com"
+  - "another-email@example.com"
+
+usernames:
+  - "your-username"
+  - "another-username"
+
+domains:
+  - "example.com"
+  - "yourdomain.com"
+
+# Optional metadata per identifier
+metadata:
+  "your-email@example.com":
+    notes: "Primary email address"
+    priority: "high"
+  "your-username":
+    notes: "Main social media username"
+    priority: "medium"
+
+# Optional source preferences (which sources to use for each identifier type)
+# If not specified, all enabled sources will be used
+source_preferences:
+  emails: [hibp, public_db, paste]
+  usernames: [public_db, paste]
+  domains: [hibp]  # Domain checking requires HIBP API key
+

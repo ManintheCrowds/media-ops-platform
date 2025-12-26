@@ -233,6 +233,102 @@ Timestamp: {datetime.now(timezone.utc).isoformat()}
         ]
         for key in keys_to_remove:
             del self.sent_alerts[key]
+    
+    async def alert_on_email_breach(self, email: str, breach_name: str, breach_count: int, user_id: Optional[int] = None):
+        """Send alert for email breach detection."""
+        severity = AlertSeverity.HIGH if breach_count > 1 else AlertSeverity.MEDIUM
+        
+        title = f"Email Breach Detected: {email}"
+        description = (
+            f"Email address {email} has been found in the data breach '{breach_name}'. "
+            f"This email appears in {breach_count} breach(es). "
+            "User should be notified to change passwords and review account security."
+        )
+        
+        metadata = {
+            "email": email,
+            "breach_name": breach_name,
+            "breach_count": breach_count,
+            "user_id": user_id,
+            "alert_type": "email_breach"
+        }
+        
+        await self.send_alert(
+            severity=severity,
+            title=title,
+            description=description,
+            metadata=metadata
+        )
+    
+    async def alert_on_domain_breach(self, domain: str, breach_name: str, affected_emails: int):
+        """Send alert for domain breach detection."""
+        severity = AlertSeverity.CRITICAL if affected_emails > 10 else AlertSeverity.HIGH
+        
+        title = f"Domain Breach Detected: {domain}"
+        description = (
+            f"Domain {domain} has been affected by the data breach '{breach_name}'. "
+            f"{affected_emails} email address(es) from this domain are compromised. "
+            "Security team should notify affected users and review domain security."
+        )
+        
+        metadata = {
+            "domain": domain,
+            "breach_name": breach_name,
+            "affected_emails": affected_emails,
+            "alert_type": "domain_breach"
+        }
+        
+        await self.send_alert(
+            severity=severity,
+            title=title,
+            description=description,
+            metadata=metadata
+        )
+    
+    async def alert_on_password_breach_attempt(self, email: str, breach_count: int):
+        """Send alert for breached password registration attempt."""
+        title = f"Breached Password Registration Attempt: {email}"
+        description = (
+            f"User attempted to register with a password found in {breach_count:,} data breach(es). "
+            "Registration was blocked. This may indicate a security risk."
+        )
+        
+        metadata = {
+            "email": email,
+            "breach_count": breach_count,
+            "alert_type": "password_breach_attempt"
+        }
+        
+        await self.send_alert(
+            severity=AlertSeverity.MEDIUM,
+            title=title,
+            description=description,
+            metadata=metadata
+        )
+    
+    async def alert_on_multiple_breaches(self, email: str, breach_count: int):
+        """Send alert when user has multiple breaches."""
+        severity = AlertSeverity.CRITICAL if breach_count > 5 else AlertSeverity.HIGH
+        
+        title = f"Multiple Breaches Detected: {email}"
+        description = (
+            f"Email address {email} has been found in {breach_count} data breach(es). "
+            "This indicates a high security risk. User should be immediately notified and "
+            "required to change passwords and enable additional security measures."
+        )
+        
+        metadata = {
+            "email": email,
+            "breach_count": breach_count,
+            "alert_type": "multiple_breaches"
+        }
+        
+        await self.send_alert(
+            severity=severity,
+            title=title,
+            description=description,
+            metadata=metadata
+        )
 
 
 

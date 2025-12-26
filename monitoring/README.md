@@ -48,15 +48,73 @@ Alert routing and notifications.
 - Webhooks
 - Escalation policies
 
-## Alert Rules
+## Service Coverage
+
+The monitoring stack monitors all platform services:
+
+### Core Platform Services
+- **Platform API** (Port 8000) - Health, request rates, response times
+- **PostgreSQL** (Port 5432) - Connection pool, query performance, replication lag
+
+### Security & Monitoring Services
+- **Security Service** (Port 8001) - Threat detection, firewall events, IDS alerts
+- **Home Cyber Risk** (Port 8002) - Breach check frequency, alert delivery, risk scores
+- **Monitoring Stack** - Self-monitoring (Prometheus, Grafana, Alertmanager)
+
+### Application Services
+- **Job Automation Service** (Port 8004) - Job search frequency, match scores, application tracking
+- **Education Service** (Port 8003) - Content requests, Pi sync status, progress tracking
+- **Pi Client** - Device connectivity, sync status, offline mode
+
+### Infrastructure Services
+- **Seafile** (Port 8001) - File operations, storage usage, sync status
+- **Jellyfin** (Port 8096) - Media streaming, library size, user activity
+- **Gitea** (Port 3000) - Repository operations, webhook delivery, user activity
+
+### Service-Specific Dashboards
+
+Each service has dedicated dashboards:
+- Platform API Dashboard - Request metrics, error rates, response times
+- Security Service Dashboard - Threat events, firewall rules, IDS alerts
+- Home Cyber Risk Dashboard - Breach statistics, risk scores, alert delivery
+- Job Automation Dashboard - Search frequency, match scores, applications
+- Education Service Dashboard - Content access, Pi sync, progress tracking
+- Database Dashboard - Query performance, connection pool, replication
+- Infrastructure Dashboard - System resources, container health, network
+
+### Alert Rules Per Service
 
 Located in `prometheus/alert_rules.yml`:
 
+**Platform API:**
 - Service availability alerts
+- High error rate alerts
+- Slow response time alerts
+
+**Security Service:**
+- Threat detection alerts
+- Firewall rule changes
+- IDS signature matches
+
+**Home Cyber Risk:**
+- Breach detection alerts
+- High-risk breach alerts
+- Alert delivery failures
+
+**Job Automation:**
+- Search failures
+- High match score jobs
+- Application tracking issues
+
+**Education Service:**
+- Pi sync failures
+- Content access errors
+- Progress tracking issues
+
+**Infrastructure:**
 - Resource usage alerts (CPU, memory, disk)
-- Security alerts
-- Pi device alerts
 - Database performance alerts
+- Pi device alerts
 - Cursor connection alerts
 
 ## Setup
@@ -84,14 +142,67 @@ ansible-playbook ansible/playbooks/monitoring-setup.yml
    docker compose up -d alertmanager
    ```
 
+## Integration
+
+### How Services Expose Metrics
+
+All services expose Prometheus metrics at `/metrics` endpoint:
+
+**FastAPI Services:**
+- Use `prometheus-fastapi-instrumentator` middleware
+- Automatically exposes request metrics
+- Custom metrics via Prometheus client
+
+**Example Service Metrics:**
+```python
+from prometheus_client import Counter, Histogram
+
+requests_total = Counter('http_requests_total', 'Total HTTP requests')
+request_duration = Histogram('http_request_duration_seconds', 'HTTP request duration')
+```
+
+### Prometheus Scrape Configuration
+
+Services are configured in `prometheus/prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: 'platform-api'
+    static_configs:
+      - targets: ['platform-api:8000']
+  
+  - job_name: 'security-service'
+    static_configs:
+      - targets: ['security-service:8001']
+  
+  - job_name: 'education-service'
+    static_configs:
+      - targets: ['education-service:8003']
+  
+  - job_name: 'job-automation-service'
+    static_configs:
+      - targets: ['job-automation-service:8004']
+```
+
+### Grafana Data Source Setup
+
+Data sources are automatically configured from:
+- `monitoring/grafana/provisioning/datasources/prometheus.yml`
+
+All services use the same Prometheus data source:
+- Name: Prometheus
+- URL: http://prometheus:9090
+- Access: Server (default)
+
 ## Configuration
 
 ### Prometheus
 
 Edit `prometheus/prometheus.yml` to:
-- Add scrape targets
-- Configure retention
+- Add scrape targets for new services
+- Configure retention policies
 - Set alert rules
+- Configure service discovery (if using)
 
 ### Grafana
 
@@ -182,6 +293,14 @@ Comprehensive monitoring for Cursor IDE connections including:
 - Service Health Dashboard - Monitor core services (Platform API, PostgreSQL, Prometheus, Grafana)
 - Import: `monitoring/grafana/dashboards/service-health.json`
 
+## Related Services
+
+- [Platform API](../README.md) - Main integration layer
+- [Security Service](../security-service/README.md) - Security monitoring
+- [Home Cyber Risk](../home-cyber-risk/README.md) - Breach monitoring
+- [Education Service](../education-service/README.md) - Educational platform
+- [Job Automation Service](../job-automation-service/README.md) - Job search automation
+
 ## Best Practices
 
 1. **Set appropriate thresholds** for alerts
@@ -189,6 +308,8 @@ Comprehensive monitoring for Cursor IDE connections including:
 3. **Review dashboards** regularly
 4. **Test alerting** periodically
 5. **Document custom metrics**
+6. **Monitor service dependencies** (database, Redis, etc.)
+7. **Track service-specific SLAs** (response times, availability)
 
 ## Troubleshooting
 

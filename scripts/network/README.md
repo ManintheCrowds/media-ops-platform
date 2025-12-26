@@ -2,6 +2,19 @@
 
 Scripts for setting up VLAN-based network architecture.
 
+## Purpose and Scope
+
+These scripts configure the network infrastructure for the self-hosted platform:
+- **VLAN Setup**: Configure VLAN interfaces for Docker macvlan networks
+- **pfSense Integration**: Set up API access for security service firewall automation
+- **Network Segmentation**: Support VLAN-based service isolation
+
+## Integration with Services
+
+- **Security Service**: Uses pfSense API for firewall automation
+- **Docker Services**: All services use VLAN-based macvlan networks
+- **Platform Services**: Services isolated by VLAN for security
+
 ## Scripts
 
 ### vlan-setup.sh

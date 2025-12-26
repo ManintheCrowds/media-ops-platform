@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-25T13:39:52.119841",
+  "generated_at": "2025-12-25T18:00:56.223239",
   "validations": [
     {
       "check": "data_format_consistency",
@@ -136,12 +136,12 @@
       "status": "pass",
       "details": {
         "critical_fields": [
-          "company",
-          "source",
-          "description",
+          "url",
           "location",
           "title",
-          "url"
+          "source",
+          "company",
+          "description"
         ],
         "model_has_all_critical": true,
         "response_has_all_critical": true,
@@ -168,19 +168,21 @@
     },
     {
       "check": "source_attribution",
-      "status": "fail",
+      "status": "pass",
       "details": {
         "model_has_source_fields": true,
-        "api_clients_have_source_name": false,
-        "normalization_uses_source": true
+        "api_clients_have_source_name": true,
+        "scrapers_have_source_name": true,
+        "normalization_uses_source": true,
+        "scrapers_set_source": true
       }
     }
   ],
   "summary": {
     "total_checks": 5,
-    "passed": 4,
-    "failed": 1,
+    "passed": 5,
+    "failed": 0,
     "warnings": 0,
-    "pass_rate": 0.8
+    "pass_rate": 1.0
   }
 }

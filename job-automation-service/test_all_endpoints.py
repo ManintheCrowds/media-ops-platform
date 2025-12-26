@@ -39,6 +39,78 @@ def check_service_available() -> bool:
     except (httpx.ConnectError, httpx.TimeoutException):
         return False
 
+def validate_response_schema(path: str, response_data: Dict) -> Tuple[bool, str]:
+    """Validate response data matches expected schema for specific endpoints."""
+    try:
+        # Validate /api/v1/jobs/search response
+        if path == "/api/v1/jobs/search":
+            if not isinstance(response_data, dict):
+                return False, "Response is not a dictionary"
+            required_fields = ["jobs", "count", "sources_searched"]
+            for field in required_fields:
+                if field not in response_data:
+                    return False, f"Missing required field: {field}"
+            if not isinstance(response_data["jobs"], list):
+                return False, "Field 'jobs' must be a list"
+            if not isinstance(response_data["count"], int):
+                return False, "Field 'count' must be an integer"
+            if not isinstance(response_data["sources_searched"], list):
+                return False, "Field 'sources_searched' must be a list"
+            # Validate job items if present
+            for job in response_data["jobs"]:
+                if not isinstance(job, dict):
+                    return False, "Job items must be dictionaries"
+                job_required = ["id", "title", "company", "source", "url", "skill_match_score", 
+                               "experience_match_score", "overall_match_score", "scraped_at", "is_active"]
+                for field in job_required:
+                    if field not in job:
+                        return False, f"Job missing required field: {field}"
+        
+        # Validate /api/v1/jobs/recommended response
+        elif path.startswith("/api/v1/jobs/recommended"):
+            if not isinstance(response_data, list):
+                return False, "Response must be a list"
+            for job in response_data:
+                if not isinstance(job, dict):
+                    return False, "Job items must be dictionaries"
+                job_required = ["id", "title", "company", "source", "url", "skill_match_score",
+                               "experience_match_score", "overall_match_score", "scraped_at", "is_active"]
+                for field in job_required:
+                    if field not in job:
+                        return False, f"Job missing required field: {field}"
+        
+        # Validate /api/v1/matching/score response
+        elif path == "/api/v1/matching/score":
+            if not isinstance(response_data, dict):
+                return False, "Response is not a dictionary"
+            required_fields = ["skill_match_score", "experience_match_score", "overall_match_score", "matched_skills"]
+            for field in required_fields:
+                if field not in response_data:
+                    return False, f"Missing required field: {field}"
+            if not isinstance(response_data["matched_skills"], list):
+                return False, "Field 'matched_skills' must be a list"
+        
+        # Validate /api/v1/matching/batch-score response
+        elif path == "/api/v1/matching/batch-score":
+            if not isinstance(response_data, dict):
+                return False, "Response is not a dictionary"
+            if "scores" not in response_data:
+                return False, "Missing required field: scores"
+            if not isinstance(response_data["scores"], list):
+                return False, "Field 'scores' must be a list"
+            for score in response_data["scores"]:
+                if not isinstance(score, dict):
+                    return False, "Score items must be dictionaries"
+                score_required = ["skill_match_score", "experience_match_score", "overall_match_score", "matched_skills"]
+                for field in score_required:
+                    if field not in score:
+                        return False, f"Score missing required field: {field}"
+        
+        return True, "Schema validation passed"
+    except Exception as e:
+        return False, f"Schema validation error: {str(e)}"
+
+
 def test_endpoint(
     method: str, 
     path: str, 
@@ -91,6 +163,20 @@ def test_endpoint(
         success = response.status_code == expected_status
         response_text = response.text[:200] if response.text else ""
         
+        # Validate response schema for successful responses
+        schema_valid = True
+        schema_msg = ""
+        if success and response.status_code == 200:
+            try:
+                response_json = response.json()
+                schema_valid, schema_msg = validate_response_schema(path, response_json)
+                if not schema_valid:
+                    success = False
+                    response_text = f"Schema validation failed: {schema_msg}"
+            except Exception as e:
+                # If response is not JSON, that's OK for some endpoints
+                pass
+        
         # #region agent log
         write_debug_log(
             session_id, run_id, "H3",
@@ -100,6 +186,7 @@ def test_endpoint(
                 "status_code": response.status_code,
                 "expected_status": expected_status,
                 "success": success,
+                "schema_valid": schema_valid,
                 "elapsed_time_ms": round(elapsed_time * 1000, 2),
                 "response_headers": dict(response.headers),
                 "response_text_preview": response_text,

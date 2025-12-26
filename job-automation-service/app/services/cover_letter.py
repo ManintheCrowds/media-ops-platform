@@ -37,47 +37,56 @@ class CoverLetterGenerator:
         """
         try:
             # Check if Ollama is available
-            if not await self._check_ollama_available():
-                logger.error("Ollama service is not available")
-                return None
+            ollama_available = await self._check_ollama_available()
             
-            # Build prompt
-            prompt = self._build_prompt(job_listing, skill_profile, tone, length)
+            if ollama_available:
+                # Build prompt
+                prompt = self._build_prompt(job_listing, skill_profile, tone, length)
+                
+                # Generate via Ollama API
+                try:
+                    response = await self.client.post(
+                        f"{self.ollama_url}/api/generate",
+                        json={
+                            "model": self.model,
+                            "prompt": prompt,
+                            "stream": False,
+                            "options": {
+                                "temperature": 0.7,
+                                "top_p": 0.9,
+                            }
+                        }
+                    )
+                    
+                    response.raise_for_status()
+                    result = response.json()
+                    
+                    cover_letter = result.get("response", "").strip()
+                    
+                    if cover_letter and len(cover_letter) > 100:
+                        return cover_letter
+                    else:
+                        logger.warning("Ollama returned empty or too short response, using fallback")
+                except httpx.RequestError as e:
+                    logger.warning(f"Error connecting to Ollama: {e}, using fallback")
+                except httpx.HTTPStatusError as e:
+                    logger.warning(f"Ollama API error: {e.response.status_code}, using fallback")
+                except Exception as e:
+                    logger.warning(f"Unexpected error with Ollama: {e}, using fallback")
+            else:
+                logger.info("Ollama service is not available, using fallback template")
             
-            # Generate via Ollama API
-            response = await self.client.post(
-                f"{self.ollama_url}/api/generate",
-                json={
-                    "model": self.model,
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {
-                        "temperature": 0.7,
-                        "top_p": 0.9,
-                    }
-                }
-            )
+            # Fallback: Generate template-based cover letter
+            return self._generate_fallback_letter(job_listing, skill_profile, tone, length)
             
-            response.raise_for_status()
-            result = response.json()
-            
-            cover_letter = result.get("response", "").strip()
-            
-            if not cover_letter:
-                logger.warning("Ollama returned empty response")
-                return None
-            
-            return cover_letter
-            
-        except httpx.RequestError as e:
-            logger.error(f"Error connecting to Ollama: {e}")
-            return None
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Ollama API error: {e.response.status_code}")
-            return None
         except Exception as e:
             logger.error(f"Unexpected error generating cover letter: {e}")
-            return None
+            # Last resort: return basic fallback
+            try:
+                return self._generate_fallback_letter(job_listing, skill_profile, tone, length)
+            except Exception as fallback_error:
+                logger.error(f"Fallback generation also failed: {fallback_error}")
+                return None
     
     def _build_prompt(
         self,
@@ -204,6 +213,88 @@ Write the complete cover letter now:"""
             return response.status_code == 200
         except Exception:
             return False
+    
+    def _generate_fallback_letter(
+        self,
+        job_listing: Dict,
+        skill_profile: Dict,
+        tone: str,
+        length: str
+    ) -> str:
+        """Generate a fallback cover letter using template when Ollama is unavailable.
+        
+        Args:
+            job_listing: Job listing data
+            skill_profile: Skill profile data
+            tone: Desired tone
+            length: Desired length
+        
+        Returns:
+            Generated cover letter text
+        """
+        job_title = job_listing.get("title", "the position")
+        company = job_listing.get("company", "the company")
+        description = job_listing.get("description", "")
+        
+        # Extract skills
+        matched_skills = skill_profile.get("matched_skills", [])
+        if isinstance(matched_skills, list) and matched_skills:
+            if isinstance(matched_skills[0], dict):
+                skills_list = [s.get("skill", str(s)) for s in matched_skills[:5]]
+            else:
+                skills_list = [str(s) for s in matched_skills[:5]]
+        else:
+            skills_list = ["Python", "FastAPI", "Docker", "PostgreSQL", "Automation"]
+        
+        skills_text = ", ".join(skills_list)
+        
+        # Determine length
+        if length == "short":
+            body_paragraphs = 2
+        elif length == "long":
+            body_paragraphs = 4
+        else:  # medium
+            body_paragraphs = 3
+        
+        # Build letter
+        letter_parts = [
+            "Dear Hiring Manager,",
+            "",
+            f"I am writing to express my strong interest in the {job_title} position at {company}."
+        ]
+        
+        # Add body paragraphs
+        if body_paragraphs >= 2:
+            letter_parts.extend([
+                "",
+                f"With expertise in {skills_text}, I am confident that my technical background aligns well with your requirements. " +
+                "I have extensive experience developing scalable applications and working with modern development practices."
+            ])
+        
+        if body_paragraphs >= 3:
+            letter_parts.extend([
+                "",
+                "I am particularly drawn to this opportunity because it allows me to leverage my skills in a challenging environment. " +
+                "I am eager to contribute to your team and help drive innovation in your projects."
+            ])
+        
+        if body_paragraphs >= 4:
+            letter_parts.extend([
+                "",
+                "Throughout my career, I have demonstrated a strong ability to work collaboratively, solve complex problems, " +
+                "and deliver high-quality solutions. I am excited about the possibility of bringing these strengths to your organization."
+            ])
+        
+        letter_parts.extend([
+            "",
+            "Thank you for considering my application. I look forward to the opportunity to discuss how my experience and skills " +
+            "can contribute to your team's success.",
+            "",
+            "Sincerely,",
+            ""
+        ])
+        
+        return "\n".join(letter_parts)
     
     async def close(self):
         """Close the HTTP client."""

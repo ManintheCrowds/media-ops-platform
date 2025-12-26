@@ -1,0 +1,41 @@
+{
+  "timestamp": "2025-12-25T18:07:34.181642",
+  "database": {
+    "connected": true,
+    "total_jobs": 242,
+    "adzuna_jobs": 18,
+    "jobs_with_source": 18,
+    "jobs_with_scores": 10,
+    "legacy_jobs": 224
+  },
+  "api_credentials": {
+    "adzuna_api_id": true,
+    "adzuna_api_key": true,
+    "jsearch_api_key": true,
+    "all_configured": true
+  },
+  "api_server": {
+    "running": true,
+    "status_code": 200,
+    "healthy": true
+  },
+  "jobs": {
+    "search_works": true,
+    "jobs_returned": 0,
+    "sources_searched": [
+      "adzuna"
+    ]
+  },
+  "recommendations": [
+    {
+      "priority": "MEDIUM",
+      "action": "Restart server to load .env credentials",
+      "command": "cd d:\\software\\job-automation-service; .\\restart_server.ps1"
+    },
+    {
+      "priority": "LOW",
+      "action": "Backfill legacy jobs with source attribution",
+      "command": "cd d:\\software\\job-automation-service; python backfill_legacy_jobs.py"
+    }
+  ]
+}

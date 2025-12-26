@@ -8,6 +8,7 @@ from sqlalchemy import func
 from ..models.security_events import SecurityEvent
 from ..models.incidents import SecurityIncident
 from ..models.threats import AuditLog, VulnerabilityScan, PatchStatus
+from ..models.breaches import UserBreach, DomainBreach
 
 
 class ComplianceReporter:
@@ -64,6 +65,28 @@ class ComplianceReporter:
             PatchStatus.patch_available == "true"
         ).count()
         
+        # Breach statistics
+        total_user_breaches = self.db.query(UserBreach).filter(
+            UserBreach.detected_at >= start_date,
+            UserBreach.detected_at <= end_date
+        ).count()
+        
+        unique_emails_breached = self.db.query(func.count(func.distinct(UserBreach.email))).filter(
+            UserBreach.detected_at >= start_date,
+            UserBreach.detected_at <= end_date
+        ).scalar() or 0
+        
+        total_domain_breaches = self.db.query(DomainBreach).filter(
+            DomainBreach.detected_at >= start_date,
+            DomainBreach.detected_at <= end_date
+        ).count()
+        
+        password_breach_attempts = self.db.query(SecurityEvent).filter(
+            SecurityEvent.event_type == "breached_password_attempt",
+            SecurityEvent.detected_at >= start_date,
+            SecurityEvent.detected_at <= end_date
+        ).count()
+        
         return {
             "report_type": "security_audit",
             "period": {
@@ -78,7 +101,13 @@ class ComplianceReporter:
                 "resolved_incidents": resolved_incidents,
                 "total_vulnerabilities": total_vulnerabilities,
                 "unresolved_vulnerabilities": unresolved_vulnerabilities,
-                "security_patches_available": security_patches
+                "security_patches_available": security_patches,
+                "breach_statistics": {
+                    "total_user_breaches": total_user_breaches,
+                    "unique_emails_breached": unique_emails_breached,
+                    "total_domain_breaches": total_domain_breaches,
+                    "password_breach_attempts_blocked": password_breach_attempts
+                }
             }
         }
     
