@@ -1,13 +1,17 @@
 {
-  "generated_at": "2025-12-25T13:39:42.829081",
+  "generated_at": "2025-12-25T18:00:47.404735",
   "test_scenarios": [
     {
       "test_name": "happy_path",
-      "status": "skip",
+      "status": "pass",
       "details": {
-        "jobs_found": 0,
-        "jobs_from_source": false,
-        "reason": "No jobs found from source (may need API keys or network)"
+        "jobs_found": 5,
+        "jobs_from_source": true,
+        "jobs_matched": 3,
+        "match_scores_calculated": true,
+        "scores_in_valid_range": true,
+        "jobs_can_be_saved": true,
+        "response_format_valid": true
       }
     },
     {
@@ -37,10 +41,10 @@
     },
     {
       "test_name": "database_failure",
-      "status": "pass",
+      "status": "skip",
       "details": {
-        "database_accessible": false,
-        "connection_error": "(psycopg2.OperationalError) connection to server at \"localhost\" (::1), port 5433 failed: Connection refused (0x0000274D/10061)\n\tIs the server running on that host and accepting TCP/IP connections?\nconnection to server at \"localhost\" (127.0.0.1), port 5433 failed: Connection refused (0x0000274D/10061)\n\tIs the server running on that host and accepting TCP/IP connections?\n\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"
+        "database_accessible": true,
+        "reason": "Database is accessible, cannot test failure scenario"
       }
     }
   ],

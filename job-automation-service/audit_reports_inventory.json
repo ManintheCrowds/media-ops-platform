@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-25T13:39:35.325100",
+  "generated_at": "2025-12-25T18:00:44.007840",
   "base_directory": "D:\\software\\job-automation-service",
   "reports": [
     {
@@ -22,8 +22,8 @@
         "generated_at": "2025-12-23T11:43:56.583524",
         "test_result_count": 2,
         "agent_types": [
-          "api_test",
-          "matcher_test"
+          "matcher_test",
+          "api_test"
         ],
         "test_success_count": 2,
         "test_fail_count": 0
@@ -60,8 +60,8 @@
         "generated_at": "2025-12-23T11:44:18.885882",
         "test_result_count": 8,
         "agent_types": [
-          "api_test",
-          "matcher_test"
+          "matcher_test",
+          "api_test"
         ],
         "test_success_count": 8,
         "test_fail_count": 0
@@ -109,8 +109,8 @@
         "generated_at": "2025-12-23T11:44:58.640465",
         "test_result_count": 8,
         "agent_types": [
-          "api_test",
-          "matcher_test"
+          "matcher_test",
+          "api_test"
         ],
         "test_success_count": 8,
         "test_fail_count": 0
@@ -147,8 +147,8 @@
         "generated_at": "2025-12-23T12:32:43.401017",
         "test_result_count": 8,
         "agent_types": [
-          "api_test",
-          "matcher_test"
+          "matcher_test",
+          "api_test"
         ],
         "test_success_count": 8,
         "test_fail_count": 0
@@ -186,10 +186,10 @@
         "test_result_count": 13,
         "agent_types": [
           "api_test",
-          "scheduler_test",
-          "scraper_test",
           "cover_letter_test",
-          "matcher_test"
+          "matcher_test",
+          "scraper_test",
+          "scheduler_test"
         ],
         "test_success_count": 13,
         "test_fail_count": 0
@@ -227,10 +227,10 @@
         "test_result_count": 13,
         "agent_types": [
           "api_test",
-          "scheduler_test",
-          "scraper_test",
           "cover_letter_test",
-          "matcher_test"
+          "matcher_test",
+          "scraper_test",
+          "scheduler_test"
         ],
         "test_success_count": 13,
         "test_fail_count": 0
@@ -268,10 +268,10 @@
         "test_result_count": 13,
         "agent_types": [
           "api_test",
-          "scheduler_test",
-          "scraper_test",
           "cover_letter_test",
-          "matcher_test"
+          "matcher_test",
+          "scraper_test",
+          "scheduler_test"
         ],
         "test_success_count": 13,
         "test_fail_count": 0
@@ -448,6 +448,28 @@
       "created_time": "2025-12-24T13:20:59.527673"
     },
     {
+      "file_path": "docs\\SCRAPER_CONFIG.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\SCRAPER_CONFIG.md",
+      "filename": "SCRAPER_CONFIG.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 7093,
+      "size_kb": 6.93,
+      "modified_time": "2025-12-25T17:14:45.229166",
+      "created_time": "2025-12-25T17:13:59.573799"
+    },
+    {
+      "file_path": "docs\\SCRAPER_STATUS.md",
+      "absolute_path": "D:\\software\\job-automation-service\\docs\\SCRAPER_STATUS.md",
+      "filename": "SCRAPER_STATUS.md",
+      "report_type": "other",
+      "timestamp": null,
+      "size_bytes": 7147,
+      "size_kb": 6.98,
+      "modified_time": "2025-12-25T17:14:45.229166",
+      "created_time": "2025-12-25T17:13:48.894863"
+    },
+    {
       "file_path": "docs\\SCRAPER_TEST_ANALYSIS.md",
       "absolute_path": "D:\\software\\job-automation-service\\docs\\SCRAPER_TEST_ANALYSIS.md",
       "filename": "SCRAPER_TEST_ANALYSIS.md",
@@ -542,16 +564,16 @@
     }
   ],
   "summary": {
-    "total_reports": 37,
+    "total_reports": 39,
     "by_type": {
-      "other": 31,
+      "other": 33,
       "status_report": 5,
       "data_inventory": 1
     },
     "by_extension": {
       ".json": 9,
-      ".md": 28
+      ".md": 30
     },
-    "total_size_kb": 456.82
+    "total_size_kb": 470.73
   }
 }

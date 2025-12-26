@@ -75,7 +75,7 @@ async def trigger_weekly_search(background_tasks: BackgroundTasks):
 @router.post("/start")
 async def start_scheduler(
     background_tasks: BackgroundTasks,
-    request: ScheduledSearchRequest
+    request: Optional[ScheduledSearchRequest] = Body(default=None)
 ):
     """Start the scheduler for continuous job searches."""
     global _scheduler_running, _scheduler_task
@@ -87,6 +87,9 @@ async def start_scheduler(
         }
     
     try:
+        # Use defaults if request is None
+        if request is None:
+            request = ScheduledSearchRequest()
         
         # Start scheduler in background
         background_tasks.add_task(

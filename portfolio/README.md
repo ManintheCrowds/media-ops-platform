@@ -30,6 +30,60 @@ Professional portfolio website for Xanadu Media showcasing services, case studie
 4. Customize business name, contact information, and content
 5. Configure email integration for contact form
 
+## Deployment
+
+### Static Hosting
+
+**Netlify:**
+1. Connect repository to Netlify
+2. Set build command: (none, static site)
+3. Set publish directory: `/`
+4. Deploy
+
+**Vercel:**
+1. Import project
+2. Configure as static site
+3. Deploy
+
+**GitHub Pages:**
+1. Enable Pages in repository settings
+2. Select source branch
+3. Site available at `https://username.github.io/repo-name`
+
+### Platform Integration
+
+The portfolio can integrate with the main platform:
+
+- **API Integration**: Contact form can submit to platform API
+- **Service Showcase**: Display services from platform registry
+- **Case Studies**: Link to detailed case study pages
+- **Analytics**: Integrate with platform monitoring
+
+**Contact Form Integration:**
+```javascript
+// Submit to platform API
+fetch('http://platform-api:8000/api/contact', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(formData)
+});
+```
+
+### Docker Deployment
+
+Deploy as static site in Docker:
+
+```dockerfile
+FROM nginx:alpine
+COPY . /usr/share/nginx/html
+EXPOSE 80
+```
+
+```bash
+docker build -t portfolio .
+docker run -d -p 8080:80 portfolio
+```
+
 ## Customization
 
 - Update business name throughout (currently "Xanadu Media")

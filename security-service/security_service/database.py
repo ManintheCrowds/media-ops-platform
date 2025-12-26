@@ -39,6 +39,12 @@ def init_db():
         PatchStatus,
         AuditLog
     )
+    # Add breach models
+    from .models.breaches import (
+        UserBreach,
+        DomainBreach,
+        BreachHistory
+    )
     
     Base.metadata.create_all(bind=engine)
 

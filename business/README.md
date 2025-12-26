@@ -32,6 +32,33 @@ Complete business setup and operational documentation for freelance development 
 - `social-media-content.md` - Social media content ideas and templates
 - `outreach-checklist.md` - Weekly outreach checklist and system
 
+## Platform Context
+
+This business documentation supports the self-hosted platform by providing:
+
+- **Service Delivery Templates**: Standardized proposals and contracts for platform services
+- **Client Onboarding**: Templates for new client setup and configuration
+- **Project Management**: Workflows adapted from platform AI principles
+- **Service Documentation**: Templates for documenting delivered services
+
+### Service Delivery Examples
+
+**Platform Integration Projects:**
+- Self-hosted platform setup and configuration
+- Service integration and customization
+- Monitoring and security implementation
+- Infrastructure automation deployment
+
+**Educational Platform Projects:**
+- Content management system setup
+- Pi client deployment and configuration
+- Educational content creation and organization
+
+**Security Services:**
+- Security monitoring implementation
+- Breach detection setup
+- Threat intelligence integration
+
 ## Usage
 
 ### Getting Started
@@ -40,6 +67,7 @@ Complete business setup and operational documentation for freelance development 
 2. **Consult Professionals:** Review contracts with attorney, accounting with CPA
 3. **Set Up Systems:** Follow setup guides for invoicing, accounting, etc.
 4. **Start Outreach:** Use outreach materials to begin client acquisition
+5. **Document Services:** Use templates to document platform services delivered
 
 ### Customization
 

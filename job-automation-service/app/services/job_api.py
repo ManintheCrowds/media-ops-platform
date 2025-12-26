@@ -38,25 +38,26 @@ class IndeedScraper(BaseJobScraper):
         from pathlib import Path
         debug_log_path = Path("C:/Users/artin/software/.cursor/debug.log")
         search_start_time = time.time()
-        try:
-            log_entry = {
-                "sessionId": "scraper-debug",
-                "runId": f"search-{int(time.time())}",
-                "hypothesisId": "H3",
-                "location": "job_api.py:IndeedScraper.search_jobs",
-                "message": "Starting Indeed job search",
-                "data": {
-                    "query": query,
-                    "location": location,
-                    "limit": limit,
-                    "source": "indeed",
-                },
-                "timestamp": int(time.time() * 1000)
-            }
-            with open(debug_log_path, "a", encoding="utf-8") as f:
-                f.write(json.dumps(log_entry) + "\n")
-        except Exception:
-            pass
+        if debug_log_path:
+            try:
+                log_entry = {
+                    "sessionId": "scraper-debug",
+                    "runId": f"search-{int(time.time())}",
+                    "hypothesisId": "H3",
+                    "location": "job_api.py:IndeedScraper.search_jobs",
+                    "message": "Starting Indeed job search",
+                    "data": {
+                        "query": query,
+                        "location": location,
+                        "limit": limit,
+                        "source": "indeed",
+                    },
+                    "timestamp": int(time.time() * 1000)
+                }
+                with open(debug_log_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except Exception:
+                pass
         # #endregion agent log
         
         jobs = []
@@ -82,25 +83,26 @@ class IndeedScraper(BaseJobScraper):
             job_cards = soup.find_all("div", class_="job_seen_beacon")
             
             # #region agent log
-            try:
-                log_entry = {
-                    "sessionId": "scraper-debug",
-                    "runId": f"search-{int(time.time())}",
-                    "hypothesisId": "H4",
-                    "location": "job_api.py:IndeedScraper.search_jobs",
-                    "message": "Parsed Indeed search page",
-                    "data": {
-                        "url": search_url,
-                        "job_cards_found": len(job_cards),
-                        "html_size": len(response.text),
-                        "source": "indeed",
-                    },
-                    "timestamp": int(time.time() * 1000)
-                }
-                with open(debug_log_path, "a", encoding="utf-8") as f:
-                    f.write(json.dumps(log_entry) + "\n")
-            except Exception:
-                pass
+            if debug_log_path:
+                try:
+                    log_entry = {
+                        "sessionId": "scraper-debug",
+                        "runId": f"search-{int(time.time())}",
+                        "hypothesisId": "H4",
+                        "location": "job_api.py:IndeedScraper.search_jobs",
+                        "message": "Parsed Indeed search page",
+                        "data": {
+                            "url": search_url,
+                            "job_cards_found": len(job_cards),
+                            "html_size": len(response.text),
+                            "source": "indeed",
+                        },
+                        "timestamp": int(time.time() * 1000)
+                    }
+                    with open(debug_log_path, "a", encoding="utf-8") as f:
+                        f.write(json.dumps(log_entry) + "\n")
+                except Exception:
+                    pass
             # #endregion agent log
             
             if not job_cards:
@@ -128,29 +130,30 @@ class IndeedScraper(BaseJobScraper):
         
         # #region agent log
         search_elapsed = time.time() - search_start_time
-        try:
-            log_entry = {
-                "sessionId": "scraper-debug",
-                "runId": f"search-{int(time.time())}",
-                "hypothesisId": "H5",
-                "location": "job_api.py:IndeedScraper.search_jobs",
-                "message": "Completed Indeed job search",
-                "data": {
-                    "query": query,
-                    "location": location,
-                    "jobs_found": len(jobs),
-                    "elapsed_time_ms": round(search_elapsed * 1000, 2),
-                    "source": "indeed",
-                    "jobs_with_title": sum(1 for j in jobs if j.get("title")),
-                    "jobs_with_url": sum(1 for j in jobs if j.get("url")),
-                    "jobs_with_description": sum(1 for j in jobs if j.get("description")),
-                },
-                "timestamp": int(time.time() * 1000)
-            }
-            with open(debug_log_path, "a", encoding="utf-8") as f:
-                f.write(json.dumps(log_entry) + "\n")
-        except Exception:
-            pass
+        if debug_log_path:
+            try:
+                log_entry = {
+                    "sessionId": "scraper-debug",
+                    "runId": f"search-{int(time.time())}",
+                    "hypothesisId": "H5",
+                    "location": "job_api.py:IndeedScraper.search_jobs",
+                    "message": "Completed Indeed job search",
+                    "data": {
+                        "query": query,
+                        "location": location,
+                        "jobs_found": len(jobs),
+                        "elapsed_time_ms": round(search_elapsed * 1000, 2),
+                        "source": "indeed",
+                        "jobs_with_title": sum(1 for j in jobs if j.get("title")),
+                        "jobs_with_url": sum(1 for j in jobs if j.get("url")),
+                        "jobs_with_description": sum(1 for j in jobs if j.get("description")),
+                    },
+                    "timestamp": int(time.time() * 1000)
+                }
+                with open(debug_log_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except Exception:
+                pass
         # #endregion agent log
         
         return jobs[:limit]
@@ -216,6 +219,7 @@ class IndeedScraper(BaseJobScraper):
                 "salary_range": salary,
                 "job_type": job_type,
                 "remote": remote,
+                "source": self.source_name,
                 "source_id": source_id,
                 "raw_data": {
                     "snippet": snippet,
@@ -374,6 +378,7 @@ class LinkedInScraper(BaseJobScraper):
                 "location": location,
                 "url": url,
                 "description": snippet,
+                "source": self.source_name,
                 "source_id": source_id,
                 "raw_data": {
                     "card_html": str(card),
@@ -460,6 +465,7 @@ class GlassdoorScraper(BaseJobScraper):
                 "url": url,
                 "description": "",
                 "salary_range": salary,
+                "source": self.source_name,
                 "source_id": source_id,
                 "raw_data": {
                     "card_html": str(card),
@@ -544,6 +550,7 @@ class ZipRecruiterScraper(BaseJobScraper):
                 "location": location,
                 "url": url,
                 "description": description,
+                "source": self.source_name,
                 "source_id": source_id,
                 "raw_data": {
                     "card_html": str(card),

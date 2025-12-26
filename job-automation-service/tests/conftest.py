@@ -4,7 +4,8 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.database import Base
-from app.models.skill_profile import SkillProfile
+# Import all models to ensure tables are registered with Base.metadata
+from app.models import SkillProfile, JobListing, Application, AgentTask, AgentLock
 
 
 @pytest.fixture(scope="function")
@@ -41,5 +42,4 @@ def sample_skills(db_session):
         db_session.add(skill)
     db_session.commit()
     return skills
-
 

@@ -12,21 +12,47 @@ from app.utils.rate_limiter import RateLimiter
 logger = logging.getLogger(__name__)
 
 
-# User agent rotation list
+# User agent rotation list - expanded with more variations
 USER_AGENTS = [
+    # Chrome on Windows
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+    # Chrome on Mac
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+    # Firefox on Windows
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+    # Firefox on Mac
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0",
+    # Safari on Mac
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+    # Chrome on Linux
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Ubuntu; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 ]
 
-# Accept-Language variations
+# Accept-Language variations - expanded
 ACCEPT_LANGUAGES = [
     "en-US,en;q=0.9",
     "en-US,en;q=0.9,es;q=0.8",
     "en-GB,en;q=0.9",
     "en-US,en;q=0.8",
+    "en-US,en;q=0.9,fr;q=0.8",
+    "en-US,en;q=0.9,de;q=0.8",
+    "en-US,en;q=0.9,zh;q=0.8",
+]
+
+# Accept header variations for different browsers
+ACCEPT_HEADERS = [
+    # Chrome-style
+    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    # Firefox-style
+    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    # Safari-style
+    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 ]
 
 
@@ -50,7 +76,7 @@ class BaseJobScraper:
         )
     
     def _get_enhanced_headers(self, referer: Optional[str] = None) -> Dict[str, str]:
-        """Get enhanced headers for HTTP requests.
+        """Get enhanced headers for HTTP requests with better rotation.
         
         Args:
             referer: Referer URL if available
@@ -58,9 +84,20 @@ class BaseJobScraper:
         Returns:
             Dictionary of headers
         """
+        # Select user agent and match Accept header style
+        user_agent = random.choice(USER_AGENTS)
+        
+        # Match Accept header to browser type
+        if "Firefox" in user_agent:
+            accept = ACCEPT_HEADERS[1]  # Firefox-style
+        elif "Safari" in user_agent and "Chrome" not in user_agent:
+            accept = ACCEPT_HEADERS[2]  # Safari-style
+        else:
+            accept = ACCEPT_HEADERS[0]  # Chrome-style (default)
+        
         headers = {
-            "User-Agent": random.choice(USER_AGENTS),
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "User-Agent": user_agent,
+            "Accept": accept,
             "Accept-Language": random.choice(ACCEPT_LANGUAGES),
             "Accept-Encoding": "gzip, deflate, br",
             "Connection": "keep-alive",
@@ -72,17 +109,25 @@ class BaseJobScraper:
         if referer and getattr(settings, 'enable_referer_chain', True):
             headers["Referer"] = referer
         
-        # Add Sec-Fetch headers (modern browsers)
+        # Determine Sec-Fetch-Site based on referer
+        sec_fetch_site = "none"
         if referer:
-            headers["Sec-Fetch-Dest"] = "document"
-            headers["Sec-Fetch-Mode"] = "navigate"
-            headers["Sec-Fetch-Site"] = "same-origin" if self._is_same_origin(referer) else "cross-site"
-            headers["Sec-Fetch-User"] = "?1"
+            if self._is_same_origin(referer):
+                sec_fetch_site = "same-origin"
+            else:
+                sec_fetch_site = "cross-site"
+        
+        # Add Sec-Fetch headers (modern browsers)
+        headers["Sec-Fetch-Dest"] = "document"
+        headers["Sec-Fetch-Mode"] = "navigate"
+        headers["Sec-Fetch-Site"] = sec_fetch_site
+        headers["Sec-Fetch-User"] = "?1"
+        
+        # Add Cache-Control for more realistic behavior
+        if referer:
+            headers["Cache-Control"] = "max-age=0"
         else:
-            headers["Sec-Fetch-Dest"] = "document"
-            headers["Sec-Fetch-Mode"] = "navigate"
-            headers["Sec-Fetch-Site"] = "none"
-            headers["Sec-Fetch-User"] = "?1"
+            headers["Cache-Control"] = "no-cache"
         
         return headers
     
@@ -144,7 +189,7 @@ class BaseJobScraper:
                 import json
                 import time
                 from pathlib import Path
-                debug_log_path = Path("C:/Users/artin/software/.cursor/debug.log")
+                debug_log_path = Path(settings.debug_log_path) if settings.debug_log_path else None
                 start_time = time.time()
                 # #endregion agent log
                 
@@ -161,28 +206,29 @@ class BaseJobScraper:
                 
                 # #region agent log
                 elapsed = time.time() - start_time
-                try:
-                    log_entry = {
-                        "sessionId": "scraper-debug",
-                        "runId": f"fetch-{int(time.time())}",
-                        "hypothesisId": "H1",
-                        "location": f"job_scraper.py:_fetch_page",
-                        "message": f"Fetched page: {self.source_name}",
-                        "data": {
-                            "url": url,
-                            "status_code": response.status_code,
-                            "response_size": len(response.text),
-                            "elapsed_time_ms": round(elapsed * 1000, 2),
-                            "source": self.source_name,
-                            "headers_present": bool(response.headers),
-                            "content_type": response.headers.get("content-type", ""),
-                        },
-                        "timestamp": int(time.time() * 1000)
-                    }
-                    with open(debug_log_path, "a", encoding="utf-8") as f:
-                        f.write(json.dumps(log_entry) + "\n")
-                except Exception:
-                    pass
+                if debug_log_path:
+                    try:
+                        log_entry = {
+                            "sessionId": "scraper-debug",
+                            "runId": f"fetch-{int(time.time())}",
+                            "hypothesisId": "H1",
+                            "location": f"job_scraper.py:_fetch_page",
+                            "message": f"Fetched page: {self.source_name}",
+                            "data": {
+                                "url": url,
+                                "status_code": response.status_code,
+                                "response_size": len(response.text),
+                                "elapsed_time_ms": round(elapsed * 1000, 2),
+                                "source": self.source_name,
+                                "headers_present": bool(response.headers),
+                                "content_type": response.headers.get("content-type", ""),
+                            },
+                            "timestamp": int(time.time() * 1000)
+                        }
+                        with open(debug_log_path, "a", encoding="utf-8") as f:
+                            f.write(json.dumps(log_entry) + "\n")
+                    except Exception:
+                        pass
                 # #endregion agent log
                 
                 return response
@@ -192,28 +238,29 @@ class BaseJobScraper:
                 import json
                 import time
                 from pathlib import Path
-                debug_log_path = Path("C:/Users/artin/software/.cursor/debug.log")
-                try:
-                    log_entry = {
-                        "sessionId": "scraper-debug",
-                        "runId": f"fetch-{int(time.time())}",
-                        "hypothesisId": "H2",
-                        "location": f"job_scraper.py:_fetch_page",
-                        "message": f"HTTP error: {self.source_name}",
-                        "data": {
-                            "url": url,
-                            "status_code": e.response.status_code,
-                            "error_type": "HTTPStatusError",
-                            "source": self.source_name,
-                            "attempt": attempt,
-                            "retries_remaining": retries - attempt,
-                        },
-                        "timestamp": int(time.time() * 1000)
-                    }
-                    with open(debug_log_path, "a", encoding="utf-8") as f:
-                        f.write(json.dumps(log_entry) + "\n")
-                except Exception:
-                    pass
+                debug_log_path = Path(settings.debug_log_path) if settings.debug_log_path else None
+                if debug_log_path:
+                    try:
+                        log_entry = {
+                            "sessionId": "scraper-debug",
+                            "runId": f"fetch-{int(time.time())}",
+                            "hypothesisId": "H2",
+                            "location": f"job_scraper.py:_fetch_page",
+                            "message": f"HTTP error: {self.source_name}",
+                            "data": {
+                                "url": url,
+                                "status_code": e.response.status_code,
+                                "error_type": "HTTPStatusError",
+                                "source": self.source_name,
+                                "attempt": attempt,
+                                "retries_remaining": retries - attempt,
+                            },
+                            "timestamp": int(time.time() * 1000)
+                        }
+                        with open(debug_log_path, "a", encoding="utf-8") as f:
+                            f.write(json.dumps(log_entry) + "\n")
+                    except Exception:
+                        pass
                 # #endregion agent log
                 
                 if e.response.status_code == 429:  # Too Many Requests
@@ -288,4 +335,3 @@ class BaseJobScraper:
         """Cleanup on deletion."""
         # Note: This won't work for async cleanup, but helps with warnings
         pass
-

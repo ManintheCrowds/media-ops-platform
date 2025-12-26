@@ -1,17 +1,17 @@
 # Report Analysis Dashboard
 
-**Generated:** 2025-12-25 13:39:35
+**Generated:** 2025-12-25 18:00:44
 
 ---
 
 ## Executive Summary
 
-This analysis consolidates findings from **37 reports** across the system.
+This analysis consolidates findings from **39 reports** across the system.
 
 ### Key Metrics
 
-- **Total Reports Analyzed:** 37
-- **Total Size:** 456.82 KB
+- **Total Reports Analyzed:** 39
+- **Total Size:** 470.73 KB
 - **API Tests:** 34
 - **Matcher Tests:** 22
 - **Scraper Tests:** 3
@@ -26,7 +26,7 @@ This analysis consolidates findings from **37 reports** across the system.
 | Type | Count |
 |------|-------|
 | data_inventory | 1 |
-| other | 31 |
+| other | 33 |
 | status_report | 5 |
 
 ### By Extension
@@ -34,7 +34,7 @@ This analysis consolidates findings from **37 reports** across the system.
 | Extension | Count |
 |-----------|-------|
 | .json | 9 |
-| .md | 28 |
+| .md | 30 |
 
 ## Critical Issues Matrix
 
@@ -43,7 +43,7 @@ This analysis consolidates findings from **37 reports** across the system.
 | API Tests | high | 7 | API endpoint test failures detected |
 | Matcher Tests | high | 22 | Matcher test failures - average score: 0.211 |
 | Scraper Tests | medium | 3 | Scraper test failures detected |
-| Errors | high | 26 | Errors detected: {'result_error': 26} |
+| Errors | high | 26 | Errors detected: {'result_error': 26} | Categories: {'endpoi... |
 
 ## Test Coverage Analysis
 

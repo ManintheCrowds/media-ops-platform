@@ -20,7 +20,7 @@ class TestScraperWebAccess:
     """Test web access for each scraper."""
     
     @pytest.mark.asyncio
-    @pytest.mark.xfail(reason="Indeed blocks scrapers with 403 - anti-bot measures")
+    @pytest.mark.xfail(reason="Indeed blocks HTTP scrapers with 403 - use browser scraper instead")
     async def test_indeed_scraper_fetch_page(self):
         """Test Indeed scraper can fetch pages."""
         scraper = IndeedScraper()
@@ -38,6 +38,7 @@ class TestScraperWebAccess:
             await scraper.close()
     
     @pytest.mark.asyncio
+    @pytest.mark.xfail(reason="Indeed blocks HTTP scrapers with 403 - use browser scraper instead")
     async def test_indeed_scraper_search(self):
         """Test Indeed scraper can search and extract jobs."""
         scraper = IndeedScraper()
@@ -67,6 +68,7 @@ class TestScraperWebAccess:
             await scraper.close()
     
     @pytest.mark.asyncio
+    @pytest.mark.xfail(reason="LinkedIn blocks HTTP scrapers with 403 - requires authentication or browser scraper")
     async def test_linkedin_scraper_fetch_page(self):
         """Test LinkedIn scraper can fetch pages."""
         scraper = LinkedInScraper()
@@ -83,7 +85,7 @@ class TestScraperWebAccess:
             await scraper.close()
     
     @pytest.mark.asyncio
-    @pytest.mark.xfail(reason="LinkedIn blocks scrapers with 403 - anti-bot measures")
+    @pytest.mark.xfail(reason="LinkedIn blocks HTTP scrapers with 403 - requires authentication or browser scraper")
     async def test_linkedin_scraper_search(self):
         """Test LinkedIn scraper search (may fail due to auth requirements)."""
         scraper = LinkedInScraper()
@@ -102,6 +104,7 @@ class TestScraperWebAccess:
             await scraper.close()
     
     @pytest.mark.asyncio
+    @pytest.mark.xfail(reason="Glassdoor blocks HTTP scrapers with 403 - use browser scraper instead")
     async def test_glassdoor_scraper_fetch_page(self):
         """Test Glassdoor scraper can fetch pages."""
         scraper = GlassdoorScraper()

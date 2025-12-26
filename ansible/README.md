@@ -57,6 +57,8 @@ ansible/
 
 ## Inventory Configuration
 
+### Basic Inventory
+
 Edit `inventory/hosts.yml`:
 
 ```yaml
@@ -68,6 +70,54 @@ all:
           ansible_host: 192.168.1.10
           ansible_user: ansible
 ```
+
+### Multi-Service Inventory
+
+Example inventory for deploying multiple services:
+
+```yaml
+all:
+  children:
+    platform-servers:
+      hosts:
+        platform-01:
+          ansible_host: 192.168.1.10
+          ansible_user: ansible
+          services:
+            - platform-api
+            - postgres
+            - security-service
+            - monitoring
+    
+    application-servers:
+      hosts:
+        app-01:
+          ansible_host: 192.168.1.20
+          ansible_user: ansible
+          services:
+            - education-service
+            - job-automation-service
+            - home-cyber-risk
+    
+    pi-devices:
+      hosts:
+        pi-001:
+          ansible_host: 192.168.1.100
+          ansible_user: pi
+          pi_client_enabled: true
+          education_service_url: http://app-01:8003
+```
+
+### Service Dependencies
+
+When deploying services, dependencies are automatically handled:
+
+- **Platform API** requires: PostgreSQL
+- **Security Service** requires: PostgreSQL, Redis
+- **Education Service** requires: PostgreSQL
+- **Job Automation Service** requires: PostgreSQL
+- **Home Cyber Risk** requires: SQLite or PostgreSQL (optional)
+- **Monitoring Stack** requires: No dependencies (standalone)
 
 ## Variables
 
@@ -142,6 +192,30 @@ Platform deployment:
 ansible-playbook playbooks/platform-deploy.yml
 ```
 
+### Service-Specific Deployment
+
+Deploy individual services:
+
+**Security Service:**
+```bash
+ansible-playbook playbooks/platform-deploy.yml --tags security-service
+```
+
+**Education Service:**
+```bash
+ansible-playbook playbooks/platform-deploy.yml --tags education-service
+```
+
+**Job Automation Service:**
+```bash
+ansible-playbook playbooks/platform-deploy.yml --tags job-automation-service
+```
+
+**Home Cyber Risk:**
+```bash
+ansible-playbook playbooks/platform-deploy.yml --tags home-cyber-risk
+```
+
 ### monitoring-setup.yml
 
 Monitoring stack:
@@ -197,6 +271,27 @@ Platform service deployment.
 - Environment file creation
 - Docker Compose deployment
 - Database initialization
+
+**Role Usage Examples:**
+
+Deploy all platform services:
+```bash
+ansible-playbook playbooks/platform-deploy.yml
+```
+
+Deploy specific service:
+```bash
+ansible-playbook playbooks/platform-deploy.yml \
+  --tags security-service \
+  --limit platform-01
+```
+
+Deploy with custom variables:
+```bash
+ansible-playbook playbooks/platform-deploy.yml \
+  -e "service_version=latest" \
+  -e "database_backup_enabled=true"
+```
 
 ### monitoring
 
@@ -262,6 +357,60 @@ ansible-playbook playbook.yml -vvv
 # Check syntax
 ansible-playbook playbook.yml --syntax-check
 ```
+
+## Service Deployment Examples
+
+### Deploy Security Service
+
+```bash
+ansible-playbook playbooks/platform-deploy.yml \
+  --tags security-service \
+  -e "security_service_version=latest" \
+  -e "abuseipdb_api_key=your-key" \
+  -e "virustotal_api_key=your-key"
+```
+
+### Deploy Education Service with Pi Support
+
+```bash
+ansible-playbook playbooks/platform-deploy.yml \
+  --tags education-service \
+  -e "education_service_version=latest" \
+  -e "pi_client_enabled=true"
+```
+
+### Deploy Monitoring Stack
+
+```bash
+ansible-playbook playbooks/monitoring-setup.yml \
+  -e "grafana_admin_password=secure-password" \
+  -e "alertmanager_email_enabled=true"
+```
+
+### Deploy All Services
+
+```bash
+# Deploy infrastructure first
+ansible-playbook playbooks/server-setup.yml
+ansible-playbook playbooks/docker-setup.yml
+
+# Deploy platform services
+ansible-playbook playbooks/platform-deploy.yml
+
+# Deploy monitoring
+ansible-playbook playbooks/monitoring-setup.yml
+
+# Provision Pi devices
+ansible-playbook playbooks/pi-provision.yml
+```
+
+## Related Services
+
+- [Platform API](../README.md) - Main integration layer
+- [Security Service](../security-service/README.md) - Security monitoring
+- [Education Service](../education-service/README.md) - Educational platform
+- [Job Automation Service](../job-automation-service/README.md) - Job search automation
+- [Monitoring Stack](../monitoring/README.md) - Prometheus, Grafana
 
 ## Additional Resources
 

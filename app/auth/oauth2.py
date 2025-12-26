@@ -7,12 +7,38 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from pydantic import BaseModel
 import logging
+import sys
+from pathlib import Path
+
+# Add security-service to path for password breach checking
+security_service_path = Path(__file__).parent.parent.parent / "security-service"
+if security_service_path.exists():
+    sys.path.insert(0, str(security_service_path))
+
 from app.config import settings
 from app.models import User, Base
 from app.auth.jwt_handler import create_access_token, verify_token
 from app.database import get_db
 
 logger = logging.getLogger(__name__)
+
+# Try to import password breach service (optional - fails gracefully if not available)
+try:
+    from security_service.intelligence.password_breach import PasswordBreachService
+    password_breach_service = PasswordBreachService()
+    PASSWORD_BREACH_CHECK_ENABLED = True
+except ImportError:
+    logger.warning("Password breach service not available - password checking disabled")
+    password_breach_service = None
+    PASSWORD_BREACH_CHECK_ENABLED = False
+
+# Try to import email breach service (optional - fails gracefully if not available)
+try:
+    from security_service.intelligence.email_breach import EmailBreachService
+    EMAIL_BREACH_CHECK_ENABLED = True
+except ImportError:
+    logger.warning("Email breach service not available - email checking disabled")
+    EMAIL_BREACH_CHECK_ENABLED = False
 
 router = APIRouter()
 
@@ -130,6 +156,42 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
             detail="Email already registered"
         )
     
+    # Check password against breach database
+    if PASSWORD_BREACH_CHECK_ENABLED and password_breach_service:
+        try:
+            is_valid, error_message = await password_breach_service.validate_password(user_data.password)
+            if not is_valid:
+                logger.warning(f"Registration blocked: breached password for email {user_data.email}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=error_message or "Password has been found in a data breach. Please choose a different password."
+                )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Password breach check failed: {e}")
+            # Fail open - don't block registration if service is unavailable
+            pass
+    
+    # Check email against breach database (warn but don't block)
+    email_breaches = []
+    if EMAIL_BREACH_CHECK_ENABLED:
+        try:
+            from security_service.intelligence.email_breach import EmailBreachService
+            email_breach_service = EmailBreachService(db)
+            email_breaches = await email_breach_service.check_email(
+                user_data.email,
+                truncate_response=True  # Faster check, just breach names
+            )
+            if email_breaches:
+                logger.warning(f"Registration: email {user_data.email} found in {len(email_breaches)} breach(es)")
+                # Note: We warn but don't block - user may still want to register
+                # In production, you might want to block or require additional verification
+        except Exception as e:
+            logger.error(f"Email breach check failed: {e}")
+            # Fail open - don't block registration if service is unavailable
+            pass
+    
     # Create new user
     hashed_password = get_password_hash(user_data.password)
     db_user = User(
@@ -140,6 +202,20 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    
+    # If email was breached, update breach records with user_id
+    if email_breaches and EMAIL_BREACH_CHECK_ENABLED:
+        try:
+            from security_service.intelligence.email_breach import EmailBreachService
+            email_breach_service = EmailBreachService(db)
+            # Re-check to associate user_id with breaches
+            await email_breach_service.check_email(
+                user_data.email,
+                user_id=db_user.id,
+                force_refresh=False  # Use cached data
+            )
+        except Exception as e:
+            logger.error(f"Failed to update breach records with user_id: {e}")
     
     return db_user
 

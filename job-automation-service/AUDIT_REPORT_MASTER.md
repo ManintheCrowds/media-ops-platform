@@ -1,6 +1,6 @@
 # Master Audit Report
 
-**Generated:** 2025-12-25 13:39:53
+**Generated:** 2025-12-25 18:00:57
 
 ---
 
@@ -13,7 +13,7 @@ This comprehensive audit analyzed the job automation system through **7 audit sc
 
 - **Pipeline Stages:** 5/5 passed (100.0%)
 - **E2E Tests:** 4/5 passed (100.0%)
-- **Data Flow Checks:** 4/5 passed (80.0%)
+- **Data Flow Checks:** 5/5 passed (100.0%)
 
 ### Critical Issues Summary
 
@@ -22,7 +22,7 @@ Found **4 critical issues** across all reports:
 - **API Tests** (high): API endpoint test failures detected
 - **Matcher Tests** (high): Matcher test failures - average score: 0.211
 - **Scraper Tests** (medium): Scraper test failures detected
-- **Errors** (high): Errors detected: {'result_error': 26}
+- **Errors** (high): Errors detected: {'result_error': 26} | Categories: {'endpoint_error': 20, 'unknown_error': 6}
 
 ### Recommendations Priority
 
@@ -35,12 +35,12 @@ Found **4 critical issues** across all reports:
 
 ### Report Inventory
 
-- **Total Reports:** 37
-- **Total Size:** 456.82 KB
+- **Total Reports:** 39
+- **Total Size:** 470.73 KB
 
 **By Type:**
 - data_inventory: 1
-- other: 31
+- other: 33
 - status_report: 5
 
 ### Consolidated Findings
@@ -70,17 +70,17 @@ Found **4 critical issues** across all reports:
 | required_fields | pass |
 | no_data_loss | pass |
 | field_transformations | pass |
-| source_attribution | fail |
+| source_attribution | pass |
 
 ### End-to-End Test Results
 
 | Test Scenario | Status |
 |---------------|--------|
-| happy_path | skip |
+| happy_path | pass |
 | error_handling | pass |
 | duplicate_detection | pass |
 | empty_results | pass |
-| database_failure | pass |
+| database_failure | skip |
 
 ## Gap Analysis
 

@@ -1,0 +1,26 @@
+FROM python:3.11-alpine
+
+# Create non-root user
+RUN adduser -D -s /bin/sh breachmon
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY services/breach_monitor/ ./services/breach_monitor/
+COPY scripts/ ./scripts/
+COPY config/ ./config/
+
+# Create data directory
+RUN mkdir -p /app/data && chown -R breachmon:breachmon /app
+
+# Switch to non-root user
+USER breachmon
+
+# Default command
+CMD ["python", "scripts/check_breaches.py"]
+

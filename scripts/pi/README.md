@@ -4,6 +4,21 @@
 
 Scripts for managing Raspberry Pi devices in the fleet, including provisioning, updates, configuration, and monitoring.
 
+## Purpose and Scope
+
+These scripts support the Pi Client integration with the Education Service:
+- **Device Provisioning**: Set up new Pi devices for educational platform
+- **Fleet Management**: Manage multiple Pi devices efficiently
+- **Configuration Sync**: Keep device configurations in sync
+- **Update Management**: Deploy updates safely across fleet
+
+## Integration with Services
+
+- **Education Service**: Pi devices connect to education service API
+- **Platform API**: Device registration and authentication
+- **Monitoring Stack**: Device health and status monitoring
+- **Ansible**: Automated provisioning and configuration
+
 ## Scripts
 
 ### pi-provision.sh

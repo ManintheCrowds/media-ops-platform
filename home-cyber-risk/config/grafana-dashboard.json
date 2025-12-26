@@ -1,0 +1,73 @@
+{
+  "dashboard": {
+    "title": "Breach Monitor Dashboard",
+    "tags": ["breach", "security"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Breach Check History",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(breach_checks_total[5m]))",
+            "legendFormat": "Checks per minute"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "New Breaches Detected",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(breach_new_total)",
+            "legendFormat": "New Breaches"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Breaches by Identifier Type",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (identifier_type) (breach_total)",
+            "legendFormat": "{{identifier_type}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+      },
+      {
+        "id": 4,
+        "title": "Check Success Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(breach_checks_success) / sum(breach_checks_total) * 100",
+            "legendFormat": "Success Rate %"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 8}
+      },
+      {
+        "id": 5,
+        "title": "Recent Breaches",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "breach_info",
+            "legendFormat": "Breach Details"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 6, "y": 8}
+      }
+    ],
+    "refresh": "30s",
+    "schemaVersion": 27,
+    "version": 1
+  }
+}
+

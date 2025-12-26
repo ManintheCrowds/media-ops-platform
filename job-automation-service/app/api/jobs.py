@@ -15,6 +15,9 @@ from app.schemas.job import (
 )
 from app.services.job_source_manager import JobSourceManager
 from app.services.skill_matcher import SkillMatcher
+import json
+import time
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +40,16 @@ async def search_jobs(
     import json
     import time
     from pathlib import Path
-    debug_log_path = Path("C:/Users/artin/software/.cursor/debug.log")
+    # Use a debug log path in the project directory instead of hardcoded user path
+    debug_log_path = Path(__file__).parent.parent.parent / "debug.log"
+    
+    def ensure_debug_log_dir():
+        """Ensure debug log directory exists."""
+        try:
+            debug_log_path.parent.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+    
     pipeline_start_time = time.time()
     try:
         log_entry = {
@@ -55,6 +67,8 @@ async def search_jobs(
             },
             "timestamp": int(time.time() * 1000)
         }
+        # Create directory if it doesn't exist
+        debug_log_path.parent.mkdir(parents=True, exist_ok=True)
         with open(debug_log_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(log_entry) + "\n")
     except Exception:
@@ -114,6 +128,7 @@ async def search_jobs(
                 },
                 "timestamp": int(time.time() * 1000)
             }
+            ensure_debug_log_dir()
             with open(debug_log_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(log_entry) + "\n")
             print(f"[DEBUG] Logged: About to call source_manager.search_jobs")  # Console output
@@ -148,6 +163,7 @@ async def search_jobs(
                     },
                     "timestamp": int(time.time() * 1000)
                 }
+                ensure_debug_log_dir()
                 with open(debug_log_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(log_entry) + "\n")
             except Exception:
@@ -182,6 +198,7 @@ async def search_jobs(
                     },
                     "timestamp": int(time.time() * 1000)
                 }
+                ensure_debug_log_dir()
                 with open(debug_log_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(log_entry) + "\n")
                 print(f"[DEBUG] Error logged to debug file")  # Console output
@@ -205,6 +222,7 @@ async def search_jobs(
                 },
                 "timestamp": int(time.time() * 1000)
             }
+            ensure_debug_log_dir()
             with open(debug_log_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(log_entry) + "\n")
         except Exception:
@@ -212,37 +230,154 @@ async def search_jobs(
         # #endregion agent log
         
         # Match and score jobs
+        # #region agent log
+        try:
+            log_entry = {
+                "sessionId": "debug-session",
+                "runId": f"run-{int(time.time())}",
+                "hypothesisId": "H6",
+                "location": "jobs.py:search_jobs",
+                "message": "Attempting to create SkillMatcher",
+                "data": {
+                    "all_jobs_count": len(all_jobs),
+                    "sources_searched": sources_searched
+                },
+                "timestamp": int(time.time() * 1000)
+            }
+            debug_log_path = Path(r"d:\CodeRepositories\.cursor\debug.log")
+            debug_log_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(debug_log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(log_entry) + "\n")
+        except Exception:
+            pass
+        # #endregion agent log
+        
         try:
             matcher = SkillMatcher(db)
+            print(f"[DEBUG] SkillMatcher created successfully")  # Console output
+            # #region agent log
+            try:
+                log_entry = {
+                    "sessionId": "debug-session",
+                    "runId": f"run-{int(time.time())}",
+                    "hypothesisId": "H6",
+                    "location": "jobs.py:search_jobs",
+                    "message": "SkillMatcher created successfully - using MAIN path",
+                    "data": {"path": "main"},
+                    "timestamp": int(time.time() * 1000)
+                }
+                with open(debug_log_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except Exception:
+                pass
+            # #endregion agent log
         except Exception as e:
             logger.error(f"Error creating SkillMatcher: {e}", exc_info=True)
             print(f"[ENDPOINT ERROR] Error creating SkillMatcher: {e}")
+            # #region agent log
+            try:
+                log_entry = {
+                    "sessionId": "debug-session",
+                    "runId": f"run-{int(time.time())}",
+                    "hypothesisId": "H6",
+                    "location": "jobs.py:search_jobs",
+                    "message": "SkillMatcher creation failed - using EARLY RETURN path",
+                    "data": {
+                        "path": "early_return",
+                        "error": str(e),
+                        "error_type": type(e).__name__
+                    },
+                    "timestamp": int(time.time() * 1000)
+                }
+                with open(debug_log_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except Exception:
+                pass
+            # #endregion agent log
             # If matcher fails, return jobs without scoring
+            # Set default scores to 0.0 to ensure schema compliance
             matched_jobs = []
-            for job_data in all_jobs:
-                # Create job listing without scoring
+            print(f"[DEBUG] Using EARLY RETURN path (no scoring)")  # Console output
+            print(f"[DEBUG] EARLY RETURN PATH: Processing {len(all_jobs)} jobs without scoring")  # Console output
+            for idx, job_data in enumerate(all_jobs):
+                # Validate required fields
+                source = job_data.get("source", "").strip()
+                source_id = job_data.get("source_id", "").strip() if job_data.get("source_id") else None
+                title = job_data.get("title", "").strip()
+                company = job_data.get("company", "").strip()
+                url = job_data.get("url", "").strip()
+                
+                # Fallback: set source from search context if missing
+                if not source:
+                    # Try to infer source from sources_searched (use first one as fallback)
+                    if sources_searched:
+                        source = sources_searched[0]
+                        job_data["source"] = source
+                        logger.warning(f"Job missing source field, inferred from search context: {source}")
+                
+                # Skip jobs with missing required fields
+                if not source or not title or not company or not url:
+                    logger.warning(f"Skipping job with missing required fields: source={source}, title={title}, company={company}, url={url}")
+                    print(f"[DEBUG] EARLY RETURN: Job {idx+1} SKIPPED (missing fields)")  # Console output
+                    continue
+                
+                print(f"[DEBUG] EARLY RETURN: Job {idx+1} processing '{title}' at {company}")  # Console output
+                # Create job listing without scoring but with default scores
                 existing = db.query(JobListing).filter(
-                    JobListing.source == job_data.get("source", ""),
-                    JobListing.source_id == job_data.get("source_id")
+                    JobListing.source == source,
+                    JobListing.source_id == source_id if source_id else JobListing.source_id.is_(None)
                 ).first()
                 
                 if not existing:
                     job_listing = JobListing(
-                        title=job_data.get("title", ""),
-                        company=job_data.get("company", ""),
+                        title=title,
+                        company=company,
                         location=job_data.get("location"),
-                        source=job_data.get("source", ""),
-                        source_id=job_data.get("source_id"),
-                        url=job_data.get("url", ""),
+                        source=source,
+                        source_id=source_id,
+                        url=url,
                         description=job_data.get("description"),
+                        skill_match_score=0.0,
+                        experience_match_score=0.0,
+                        overall_match_score=0.0,
                     )
                     db.add(job_listing)
                     matched_jobs.append(job_listing)
+                    print(f"[DEBUG] EARLY RETURN: Job {idx+1} ADDED (new job)")  # Console output
                 else:
+                    # Ensure existing job has scores set
+                    if existing.skill_match_score is None:
+                        existing.skill_match_score = 0.0
+                    if existing.experience_match_score is None:
+                        existing.experience_match_score = 0.0
+                    if existing.overall_match_score is None:
+                        existing.overall_match_score = 0.0
                     matched_jobs.append(existing)
+                    print(f"[DEBUG] EARLY RETURN: Job {idx+1} ADDED (existing job)")  # Console output
             
             db.commit()
+            print(f"[DEBUG] EARLY RETURN: {len(matched_jobs)} jobs in matched_jobs before response conversion")  # Console output
+            # #region agent log
+            try:
+                log_entry = {
+                    "sessionId": "debug-session",
+                    "runId": f"run-{int(time.time())}",
+                    "hypothesisId": "H6",
+                    "location": "jobs.py:search_jobs",
+                    "message": "Early return path - before response conversion",
+                    "data": {
+                        "matched_jobs_count": len(matched_jobs),
+                        "all_jobs_count": len(all_jobs)
+                    },
+                    "timestamp": int(time.time() * 1000)
+                }
+                with open(debug_log_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except Exception:
+                pass
+            # #endregion agent log
             job_responses = [JobListingResponse.from_orm(job) for job in matched_jobs]
+            print(f"[DEBUG] EARLY RETURN: {len(job_responses)} jobs after response conversion")  # Console output
             return JobSearchResponse(
                 jobs=job_responses,
                 count=len(job_responses),
@@ -254,7 +389,8 @@ async def search_jobs(
         updated_jobs_count = 0
         
         try:
-            for job_data in all_jobs:
+            print(f"[DEBUG] Processing {len(all_jobs)} jobs from source_manager...")  # Console output
+            for idx, job_data in enumerate(all_jobs):
                 # Validate required fields
                 source = job_data.get("source", "").strip()
                 source_id = job_data.get("source_id", "").strip() if job_data.get("source_id") else None
@@ -262,10 +398,22 @@ async def search_jobs(
                 company = job_data.get("company", "").strip()
                 url = job_data.get("url", "").strip()
                 
+                # Fallback: set source from search context if missing
+                if not source:
+                    # Try to infer source from sources_searched (use first one as fallback)
+                    if sources_searched:
+                        source = sources_searched[0]
+                        job_data["source"] = source
+                        logger.warning(f"Job missing source field, inferred from search context: {source}")
+                        print(f"[DEBUG] Job {idx+1}: Inferred source={source}")  # Console output
+                
                 # Skip jobs with missing required fields
                 if not source or not title or not company or not url:
                     logger.warning(f"Skipping job with missing required fields: source={source}, title={title}, company={company}, url={url}")
+                    print(f"[DEBUG] Job {idx+1} SKIPPED: source={bool(source)}, title={bool(title)}, company={bool(company)}, url={bool(url)}")  # Console output
                     continue
+                
+                print(f"[DEBUG] Job {idx+1}: Processing '{title}' at {company} (source={source})")  # Console output
                 
                 # Check if job already exists - use proper query with and_ for multiple conditions
                 query = db.query(JobListing).filter(JobListing.source == source)
@@ -320,21 +468,124 @@ async def search_jobs(
                 
                 # Calculate match scores
                 description = job_listing.description or ""
+                # #region agent log
+                debug_log_path = Path(r"d:\CodeRepositories\.cursor\debug.log")
+                try:
+                    log_entry = {
+                        "sessionId": "debug-session",
+                        "runId": f"run-{int(time.time())}",
+                        "hypothesisId": "H1",
+                        "location": "jobs.py:search_jobs",
+                        "message": "Before match score calculation",
+                        "data": {
+                            "job_idx": idx + 1,
+                            "title": title,
+                            "company": company,
+                            "source": source,
+                            "description_length": len(description),
+                            "has_description": bool(description)
+                        },
+                        "timestamp": int(time.time() * 1000)
+                    }
+                    debug_log_path.parent.mkdir(parents=True, exist_ok=True)
+                    with open(debug_log_path, "a", encoding="utf-8") as f:
+                        f.write(json.dumps(log_entry) + "\n")
+                except Exception:
+                    pass
+                # #endregion agent log
+                
                 try:
                     scores = matcher.calculate_match_score(description)
                     job_listing.skill_match_score = scores.get("skill_match_score", 0.0)
                     job_listing.experience_match_score = scores.get("experience_match_score", 0.0)
                     job_listing.overall_match_score = scores.get("overall_match_score", 0.0)
+                    
+                    # #region agent log
+                    try:
+                        log_entry = {
+                            "sessionId": "debug-session",
+                            "runId": f"run-{int(time.time())}",
+                            "hypothesisId": "H2",
+                            "location": "jobs.py:search_jobs",
+                            "message": "After match score calculation",
+                            "data": {
+                                "job_idx": idx + 1,
+                                "title": title,
+                                "skill_match_score": job_listing.skill_match_score,
+                                "experience_match_score": job_listing.experience_match_score,
+                                "overall_match_score": job_listing.overall_match_score
+                            },
+                            "timestamp": int(time.time() * 1000)
+                        }
+                        with open(debug_log_path, "a", encoding="utf-8") as f:
+                            f.write(json.dumps(log_entry) + "\n")
+                    except Exception:
+                        pass
+                    # #endregion agent log
+                    
+                    print(f"[DEBUG] Job {idx+1} scores: skill={job_listing.skill_match_score:.2f}, exp={job_listing.experience_match_score:.2f}, overall={job_listing.overall_match_score:.2f}")  # Console output
                 except Exception as score_error:
                     logger.error(f"Error calculating match score for job {title}: {score_error}", exc_info=True)
                     # Set default scores if matching fails
                     job_listing.skill_match_score = 0.0
                     job_listing.experience_match_score = 0.0
                     job_listing.overall_match_score = 0.0
+                    
+                    # #region agent log
+                    try:
+                        log_entry = {
+                            "sessionId": "debug-session",
+                            "runId": f"run-{int(time.time())}",
+                            "hypothesisId": "H3",
+                            "location": "jobs.py:search_jobs",
+                            "message": "Match score calculation failed",
+                            "data": {
+                                "job_idx": idx + 1,
+                                "title": title,
+                                "error": str(score_error),
+                                "scores_set_to_zero": True
+                            },
+                            "timestamp": int(time.time() * 1000)
+                        }
+                        with open(debug_log_path, "a", encoding="utf-8") as f:
+                            f.write(json.dumps(log_entry) + "\n")
+                    except Exception:
+                        pass
+                    # #endregion agent log
                 
                 # Only include if meets minimum score
-                if job_listing.overall_match_score >= request.min_match_score:
+                # Use default 0.0 if min_match_score is None (return all jobs by default)
+                # Users can set min_match_score in request to filter by score
+                min_score = request.min_match_score if request.min_match_score is not None else 0.0
+                
+                # #region agent log
+                try:
+                    log_entry = {
+                        "sessionId": "debug-session",
+                        "runId": f"run-{int(time.time())}",
+                        "hypothesisId": "H4",
+                        "location": "jobs.py:search_jobs",
+                        "message": "Checking min_score threshold",
+                        "data": {
+                            "job_idx": idx + 1,
+                            "title": title,
+                            "overall_match_score": job_listing.overall_match_score,
+                            "min_score": min_score,
+                            "passes_threshold": job_listing.overall_match_score >= min_score
+                        },
+                        "timestamp": int(time.time() * 1000)
+                    }
+                    with open(debug_log_path, "a", encoding="utf-8") as f:
+                        f.write(json.dumps(log_entry) + "\n")
+                except Exception:
+                    pass
+                # #endregion agent log
+                
+                if job_listing.overall_match_score >= min_score:
                     matched_jobs.append(job_listing)
+                    print(f"[DEBUG] Job {idx+1} ADDED to matched_jobs (score {job_listing.overall_match_score:.2f} >= {min_score})")  # Console output
+                else:
+                    print(f"[DEBUG] Job {idx+1} FILTERED OUT (score {job_listing.overall_match_score:.2f} < {min_score})")  # Console output
         except Exception as e:
             logger.error(f"Error processing jobs: {e}", exc_info=True)
             print(f"[ENDPOINT ERROR] Error processing jobs: {e}")
@@ -357,6 +608,7 @@ async def search_jobs(
                     },
                     "timestamp": int(time.time() * 1000)
                 }
+                ensure_debug_log_dir()
                 with open(debug_log_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(log_entry) + "\n")
             except Exception:
@@ -395,6 +647,7 @@ async def search_jobs(
                     },
                     "timestamp": int(time.time() * 1000)
                 }
+                ensure_debug_log_dir()
                 with open(debug_log_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(log_entry) + "\n")
             except Exception:
@@ -430,6 +683,7 @@ async def search_jobs(
                     },
                     "timestamp": int(time.time() * 1000)
                 }
+                ensure_debug_log_dir()
                 with open(debug_log_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(log_entry) + "\n")
             except Exception:
@@ -461,6 +715,7 @@ async def search_jobs(
                 },
                 "timestamp": int(time.time() * 1000)
             }
+            ensure_debug_log_dir()
             with open(debug_log_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(log_entry) + "\n")
         except Exception:
@@ -468,8 +723,58 @@ async def search_jobs(
         # #endregion agent log
         
         # Convert to response models
-        job_responses = [JobListingResponse.from_orm(job) for job in matched_jobs]
+        # #region agent log
+        try:
+            log_entry = {
+                "sessionId": "debug-session",
+                "runId": f"run-{int(time.time())}",
+                "hypothesisId": "H5",
+                "location": "jobs.py:search_jobs",
+                "message": "Before response model conversion",
+                "data": {
+                    "matched_jobs_count": len(matched_jobs),
+                    "new_jobs_count": new_jobs_count,
+                    "updated_jobs_count": updated_jobs_count
+                },
+                "timestamp": int(time.time() * 1000)
+            }
+            debug_log_path = Path(__file__).parent.parent.parent / "debug.log"
+            with open(debug_log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(log_entry) + "\n")
+        except Exception:
+            pass
+        # #endregion agent log
         
+        job_responses = []
+        for job in matched_jobs:
+            try:
+                response = JobListingResponse.from_orm(job)
+                job_responses.append(response)
+            except Exception as conv_error:
+                logger.error(f"Error converting job to response model: {conv_error}", exc_info=True)
+                # #region agent log
+                try:
+                    log_entry = {
+                        "sessionId": "debug-session",
+                        "runId": f"run-{int(time.time())}",
+                        "hypothesisId": "H5",
+                        "location": "jobs.py:search_jobs",
+                        "message": "Response model conversion failed",
+                        "data": {
+                            "job_id": job.id if hasattr(job, 'id') else None,
+                            "job_title": job.title if hasattr(job, 'title') else None,
+                            "error": str(conv_error)
+                        },
+                        "timestamp": int(time.time() * 1000)
+                    }
+                    debug_log_path = Path(__file__).parent.parent.parent / "debug.log"
+                    with open(debug_log_path, "a", encoding="utf-8") as f:
+                        f.write(json.dumps(log_entry) + "\n")
+                except Exception:
+                    pass
+                # #endregion agent log
+        
+        print(f"[DEBUG] Final response: {len(job_responses)} jobs, {new_jobs_count} new, {updated_jobs_count} updated")  # Console output
         return JobSearchResponse(
             jobs=job_responses,
             count=len(job_responses),
@@ -494,24 +799,38 @@ async def list_jobs(
     db: Session = Depends(get_db)
 ):
     """List saved job listings with filtering."""
-    query = db.query(JobListing)
-    
-    if active_only:
-        query = query.filter(JobListing.is_active == True)
-    
-    if min_score is not None:
-        query = query.filter(JobListing.overall_match_score >= min_score)
-    
-    if source:
-        query = query.filter(JobListing.source == source)
-    
-    # Order by match score
-    query = query.order_by(desc(JobListing.overall_match_score))
-    
-    # Pagination
-    jobs = query.offset(offset).limit(limit).all()
-    
-    return [JobListingResponse.from_orm(job) for job in jobs]
+    try:
+        query = db.query(JobListing)
+        
+        if active_only:
+            query = query.filter(JobListing.is_active == True)
+        
+        if min_score is not None:
+            query = query.filter(JobListing.overall_match_score >= min_score)
+        
+        if source:
+            query = query.filter(JobListing.source == source)
+        
+        # Order by match score
+        query = query.order_by(desc(JobListing.overall_match_score))
+        
+        # Pagination
+        jobs = query.offset(offset).limit(limit).all()
+        
+        # Ensure all jobs have required fields set before conversion
+        for job in jobs:
+            if job.skill_match_score is None:
+                job.skill_match_score = 0.0
+            if job.experience_match_score is None:
+                job.experience_match_score = 0.0
+            if job.overall_match_score is None:
+                job.overall_match_score = 0.0
+        
+        return [JobListingResponse.from_orm(job) for job in jobs]
+    except Exception as e:
+        logger.error(f"Error in list_jobs: {e}", exc_info=True)
+        # Return empty list on error to maintain schema compliance
+        return []
 
 
 @router.get("/recommended", response_model=List[JobListingResponse])
@@ -521,16 +840,32 @@ async def get_recommended_jobs(
     db: Session = Depends(get_db)
 ):
     """Get top recommended jobs based on match score."""
-    jobs = db.query(JobListing).filter(
-        and_(
-            JobListing.overall_match_score >= min_score,
-            JobListing.is_active == True
-        )
-    ).order_by(
-        desc(JobListing.overall_match_score)
-    ).limit(limit).all()
-    
-    return [JobListingResponse.from_orm(job) for job in jobs]
+    try:
+        # Filter jobs with score >= min_score, handling None scores
+        jobs = db.query(JobListing).filter(
+            and_(
+                JobListing.overall_match_score.isnot(None),
+                JobListing.overall_match_score >= min_score,
+                JobListing.is_active == True
+            )
+        ).order_by(
+            desc(JobListing.overall_match_score)
+        ).limit(limit).all()
+        
+        # Ensure all jobs have required fields set before conversion
+        for job in jobs:
+            if job.skill_match_score is None:
+                job.skill_match_score = 0.0
+            if job.experience_match_score is None:
+                job.experience_match_score = 0.0
+            if job.overall_match_score is None:
+                job.overall_match_score = 0.0
+        
+        return [JobListingResponse.from_orm(job) for job in jobs]
+    except Exception as e:
+        logger.error(f"Error in get_recommended_jobs: {e}", exc_info=True)
+        # Return empty list on error to maintain schema compliance
+        return []
 
 
 @router.get("/{job_id}", response_model=JobListingResponse)
@@ -539,12 +874,26 @@ async def get_job(
     db: Session = Depends(get_db)
 ):
     """Get a specific job listing by ID."""
-    job = db.query(JobListing).filter(JobListing.id == job_id).first()
-    
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    
-    return JobListingResponse.from_orm(job)
+    try:
+        job = db.query(JobListing).filter(JobListing.id == job_id).first()
+        
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        # Ensure all required fields are set before conversion
+        if job.skill_match_score is None:
+            job.skill_match_score = 0.0
+        if job.experience_match_score is None:
+            job.experience_match_score = 0.0
+        if job.overall_match_score is None:
+            job.overall_match_score = 0.0
+        
+        return JobListingResponse.from_orm(job)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in get_job: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/{job_id}/refresh")

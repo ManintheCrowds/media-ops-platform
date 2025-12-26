@@ -11,7 +11,23 @@ A unified self-hosted platform that integrates multiple Python-based solutions f
 - **Dashboard**: Unified web interface showing all services
 - **Docker Integration**: Easy deployment via Docker Compose
 
-## Architecture
+## Architecture Overview
+
+### Service Integration
+- All services integrate through Platform API
+- Unified authentication via OAuth2/JWT
+- Centralized monitoring via Prometheus/Grafana
+- Service discovery and health monitoring
+- API Gateway pattern for service access
+
+### Data Flow
+1. Platform API provides unified entry point
+2. Services register via service registry
+3. Authentication handled centrally
+4. Monitoring collects metrics from all services
+5. Security service monitors all traffic
+
+### Component Architecture
 
 The platform consists of:
 
@@ -20,27 +36,52 @@ The platform consists of:
 - **Frontend Dashboard**: Web UI for accessing all services
 - **Reverse Proxy**: Nginx for routing requests
 - **Database**: PostgreSQL for user management and service registry
+- **Monitoring Stack**: Prometheus, Grafana, Alertmanager for observability
+- **Security Layer**: IDS, threat detection, firewall automation
 
-## Services Included
+## Complete Service Inventory
 
-### A. File Storage & Sync
-- **Seafile**: Enterprise file hosting with file syncing and sharing
+### Core Platform Services
+- **Platform API** (Port 8000) - Main integration layer, authentication, service registry
+- **PostgreSQL** (Port 5432) - Primary database for platform and services
 
-### B. Media Server
-- **Jellyfin**: Media server for organizing and streaming content
+### Security & Monitoring Services
+- **Security Service** (Port 8001) - IDS, threat detection, firewall automation, SIEM
+- **Home Cyber Risk** (Port 8002) - Multi-source breach monitoring, risk scoring, DNS protection
+- **Monitoring Stack** (Ports 3001, 9090, 9093) - Prometheus, Grafana, Alertmanager
 
-### C. Productivity Tools
-- **Wiki**: Documentation and knowledge management
+### Application Services
+- **Job Automation Service** (Port 8004) - Multi-source job search, AI cover letters, application tracking
+- **Education Service** (Port 8003) - Content management, project tracking, Pi integration
+- **Pi Client** - Raspberry Pi endpoint for educational platform
 
-### E. Development Tools
-- **Gitea**: Self-hosted Git service
+### Infrastructure Services
+- **Seafile** (Port 8001) - File storage and sync
+- **Jellyfin** (Port 8096) - Media server
+- **Gitea** (Port 3000) - Git service
+- **BookStack** - Wiki/documentation (if configured)
+- **Vaultwarden** - Self-hosted password manager
 
-### F. Monitoring & Analytics
-- **Prometheus**: Metrics collection and monitoring
-- **Grafana**: Visualization and dashboards
+### Infrastructure Automation
+- **Ansible** - Server provisioning, deployment automation
+- **Terraform** - Cloud infrastructure (future)
+- **Scripts** - Automation utilities (network, monitoring, security, Pi)
 
-### G. Security & Privacy Tools
-- **Vaultwarden**: Self-hosted password manager
+### Supporting Services
+- **Portfolio Website** - Business showcase
+- **Business Documentation** - Templates, workflows, legal docs
+
+## Service Documentation
+
+Each service has its own comprehensive README:
+- [Home Cyber Risk](home-cyber-risk/README.md) - Breach monitoring and DNS protection
+- [Security Service](security-service/README.md) - Security monitoring and threat detection
+- [Education Service](education-service/README.md) - Educational content management
+- [Job Automation Service](job-automation-service/README.md) - Job search and application automation
+- [Monitoring Stack](monitoring/README.md) - Prometheus, Grafana, and Alertmanager
+- [Pi Client](pi-client/README.md) - Raspberry Pi integration
+- [Ansible Automation](ansible/README.md) - Infrastructure automation
+- [Terraform](terraform/README.md) - Infrastructure as code (future)
 
 ## Quick Start
 

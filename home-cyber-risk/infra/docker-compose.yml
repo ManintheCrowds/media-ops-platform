@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  # Breach Monitor Service
+  breach-monitor:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.breach-monitor
+    container_name: breach-monitor
+    restart: unless-stopped
+    environment:
+      - HIBP_API_KEY=${HIBP_API_KEY:-}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///data/breaches.db}
+      - CHECK_CADENCE=${CHECK_CADENCE:-168}
+      - ENABLE_PUBLIC_BREACH_DB=${ENABLE_PUBLIC_BREACH_DB:-true}
+      - ENABLE_PWDB_PUBLIC=${ENABLE_PWDB_PUBLIC:-true}
+      - ENABLE_PASTE_MONITORING=${ENABLE_PASTE_MONITORING:-true}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - ALERT_EMAIL_ENABLED=${ALERT_EMAIL_ENABLED:-false}
+      - ALERT_EMAIL_SMTP_HOST=${ALERT_EMAIL_SMTP_HOST:-}
+      - ALERT_EMAIL_SMTP_PORT=${ALERT_EMAIL_SMTP_PORT:-587}
+      - ALERT_EMAIL_SMTP_USER=${ALERT_EMAIL_SMTP_USER:-}
+      - ALERT_EMAIL_SMTP_PASSWORD=${ALERT_EMAIL_SMTP_PASSWORD:-}
+      - ALERT_EMAIL_FROM=${ALERT_EMAIL_FROM:-}
+      - ALERT_EMAIL_TO=${ALERT_EMAIL_TO:-}
+      - ALERT_EMAIL_USE_TLS=${ALERT_EMAIL_USE_TLS:-true}
+      - ALERT_TELEGRAM_ENABLED=${ALERT_TELEGRAM_ENABLED:-false}
+      - ALERT_TELEGRAM_BOT_TOKEN=${ALERT_TELEGRAM_BOT_TOKEN:-}
+      - ALERT_TELEGRAM_CHAT_ID=${ALERT_TELEGRAM_CHAT_ID:-}
+      - ALERT_WEBHOOK_ENABLED=${ALERT_WEBHOOK_ENABLED:-false}
+      - ALERT_WEBHOOK_URL=${ALERT_WEBHOOK_URL:-}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOKI_URL=${LOKI_URL:-http://loki:3100/loki/api/v1/push}
+    volumes:
+      - ../data:/app/data
+      - ../config:/app/config:ro
+    networks:
+      - monitoring
+    depends_on:
+      - loki
+    # Uncomment to run on schedule instead of continuously
+    # command: ["python", "scripts/check_breaches.py"]
+    # Uncomment for cron-like scheduling (requires additional setup)
+    # entrypoint: ["/bin/sh", "-c", "while true; do python scripts/check_breaches.py; sleep ${CHECK_CADENCE:-168}h; done"]
+
+  # PostgreSQL (optional, if not using SQLite)
+  postgres:
+    image: postgres:15-alpine
+    container_name: breach-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=breaches
+      - POSTGRES_USER=breachmon
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - monitoring
+    # Uncomment to enable Postgres
+    # ports:
+    #   - "5432:5432"
+    profiles:
+      - postgres
+
+  # Loki for log aggregation
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki_data:/loki
+    networks:
+      - monitoring
+    ports:
+      - "3100:3100"
+
+  # Grafana for observability
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../config/grafana-dashboard.json:/etc/grafana/provisioning/dashboards/dashboard.json:ro
+    networks:
+      - monitoring
+    ports:
+      - "3000:3000"
+    depends_on:
+      - loki
+
+  # Pi-hole (optional DNS protection)
+  # Uncomment to enable Pi-hole
+  # pihole:
+  #   image: pihole/pihole:latest
+  #   container_name: pihole
+  #   restart: unless-stopped
+  #   environment:
+  #     - TZ=America/New_York
+  #     - WEBPASSWORD=${PIHOLE_PASSWORD:-changeme}
+  #   volumes:
+  #     - pihole_data:/etc/pihole
+  #     - pihole_dnsmasq:/etc/dnsmasq.d
+  #   networks:
+  #     monitoring:
+  #       ipv4_address: 172.20.0.10
+  #   # Uncomment to expose DNS and web UI
+  #   # ports:
+  #   #   - "53:53/tcp"
+  #   #   - "53:53/udp"
+  #   #   - "80:80"
+  #   cap_add:
+  #     - NET_ADMIN
+  #   profiles:
+  #     - pihole
+
+volumes:
+  postgres_data:
+  loki_data:
+  grafana_data:
+  # pihole_data:
+  # pihole_dnsmasq:
+
+networks:
+  monitoring:
+    driver: bridge
+    # Uncomment for Pi-hole static IP
+    # ipam:
+    #   config:
+    #     - subnet: 172.20.0.0/16
+

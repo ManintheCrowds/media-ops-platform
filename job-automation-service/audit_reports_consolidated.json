@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-12-25T13:39:35.411563",
+  "generated_at": "2025-12-25T18:00:44.082166",
   "summary_statistics": {
     "total_api_tests": 34,
     "total_matcher_tests": 22,
@@ -3616,7 +3616,7 @@
       "category": "Errors",
       "severity": "high",
       "count": 26,
-      "description": "Errors detected: {'result_error': 26}",
+      "description": "Errors detected: {'result_error': 26} | Categories: {'endpoint_error': 20, 'unknown_error': 6}",
       "details": [
         {
           "task_id": "test-api-quick",
@@ -3624,7 +3624,9 @@
           "error": {
             "/api/v1/scheduler/start": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
           },
-          "type": "result_error"
+          "type": "result_error",
+          "error_type": "result_error",
+          "category": "endpoint_error"
         },
         {
           "task_id": "test-api-quick",
@@ -3632,7 +3634,9 @@
           "error": {
             "/api/v1/scheduler/stop": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
           },
-          "type": "result_error"
+          "type": "result_error",
+          "error_type": "result_error",
+          "category": "endpoint_error"
         },
         {
           "task_id": "test-api-quick",
@@ -3640,7 +3644,9 @@
           "error": {
             "/api/v1/scheduler/start": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
           },
-          "type": "result_error"
+          "type": "result_error",
+          "error_type": "result_error",
+          "category": "endpoint_error"
         },
         {
           "task_id": "test-api-quick",
@@ -3648,7 +3654,9 @@
           "error": {
             "/api/v1/scheduler/stop": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
           },
-          "type": "result_error"
+          "type": "result_error",
+          "error_type": "result_error",
+          "category": "endpoint_error"
         },
         {
           "task_id": "test-api",
@@ -3656,7 +3664,9 @@
           "error": {
             "/api/v1/scheduler/start": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
           },
-          "type": "result_error"
+          "type": "result_error",
+          "error_type": "result_error",
+          "category": "endpoint_error"
         },
         {
           "task_id": "test-api",
@@ -3664,7 +3674,9 @@
           "error": {
             "/api/v1/scheduler/stop": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
           },
-          "type": "result_error"
+          "type": "result_error",
+          "error_type": "result_error",
+          "category": "endpoint_error"
         },
         {
           "task_id": "test-scheduler",
@@ -3672,7 +3684,9 @@
           "error": {
             "scheduler_start": "Status 404"
           },
-          "type": "result_error"
+          "type": "result_error",
+          "error_type": "result_error",
+          "category": "endpoint_error"
         },
         {
           "task_id": "test-scheduler",
@@ -3680,7 +3694,9 @@
           "error": {
             "scheduler_stop": "Status 404"
           },
-          "type": "result_error"
+          "type": "result_error",
+          "error_type": "result_error",
+          "category": "endpoint_error"
         },
         {
           "task_id": "test-cover-letter",
@@ -3688,7 +3704,9 @@
           "error": {
             "Python Developer": "Letter too short or empty: 0 chars"
           },
-          "type": "result_error"
+          "type": "result_error",
+          "error_type": "result_error",
+          "category": "unknown_error"
         },
         {
           "task_id": "test-cover-letter",
@@ -3696,7 +3714,9 @@
           "error": {
             "Full-Stack Developer": "Letter too short or empty: 0 chars"
           },
-          "type": "result_error"
+          "type": "result_error",
+          "error_type": "result_error",
+          "category": "unknown_error"
         }
       ]
     }
@@ -8864,7 +8884,9 @@
         "error": {
           "/api/v1/scheduler/start": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-api-quick",
@@ -8872,7 +8894,9 @@
         "error": {
           "/api/v1/scheduler/stop": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-api-quick",
@@ -8880,7 +8904,9 @@
         "error": {
           "/api/v1/scheduler/start": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-api-quick",
@@ -8888,7 +8914,9 @@
         "error": {
           "/api/v1/scheduler/stop": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-api",
@@ -8896,7 +8924,9 @@
         "error": {
           "/api/v1/scheduler/start": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-api",
@@ -8904,7 +8934,9 @@
         "error": {
           "/api/v1/scheduler/stop": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-scheduler",
@@ -8912,7 +8944,9 @@
         "error": {
           "scheduler_start": "Status 404"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-scheduler",
@@ -8920,7 +8954,9 @@
         "error": {
           "scheduler_stop": "Status 404"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-cover-letter",
@@ -8928,7 +8964,9 @@
         "error": {
           "Python Developer": "Letter too short or empty: 0 chars"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "unknown_error"
       },
       {
         "task_id": "test-cover-letter",
@@ -8936,7 +8974,9 @@
         "error": {
           "Full-Stack Developer": "Letter too short or empty: 0 chars"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "unknown_error"
       },
       {
         "task_id": "test-api-quick",
@@ -8944,7 +8984,9 @@
         "error": {
           "/api/v1/scheduler/start": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-api-quick",
@@ -8952,7 +8994,9 @@
         "error": {
           "/api/v1/scheduler/stop": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-scheduler",
@@ -8960,7 +9004,9 @@
         "error": {
           "scheduler_start": "Status 404"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-scheduler",
@@ -8968,7 +9014,9 @@
         "error": {
           "scheduler_stop": "Status 404"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-cover-letter",
@@ -8976,7 +9024,9 @@
         "error": {
           "Python Developer": "Letter too short or empty: 0 chars"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "unknown_error"
       },
       {
         "task_id": "test-cover-letter",
@@ -8984,7 +9034,9 @@
         "error": {
           "Full-Stack Developer": "Letter too short or empty: 0 chars"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "unknown_error"
       },
       {
         "task_id": "test-api",
@@ -8992,7 +9044,9 @@
         "error": {
           "/api/v1/scheduler/start": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-api",
@@ -9000,7 +9054,9 @@
         "error": {
           "/api/v1/scheduler/stop": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-api-quick",
@@ -9008,7 +9064,9 @@
         "error": {
           "/api/v1/scheduler/start": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-api-quick",
@@ -9016,7 +9074,9 @@
         "error": {
           "/api/v1/scheduler/stop": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-scheduler",
@@ -9024,7 +9084,9 @@
         "error": {
           "scheduler_start": "Status 404"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-scheduler",
@@ -9032,7 +9094,9 @@
         "error": {
           "scheduler_stop": "Status 404"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-cover-letter",
@@ -9040,7 +9104,9 @@
         "error": {
           "Python Developer": "Letter too short or empty: 0 chars"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "unknown_error"
       },
       {
         "task_id": "test-cover-letter",
@@ -9048,7 +9114,9 @@
         "error": {
           "Full-Stack Developer": "Letter too short or empty: 0 chars"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "unknown_error"
       },
       {
         "task_id": "test-api",
@@ -9056,7 +9124,9 @@
         "error": {
           "/api/v1/scheduler/start": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       },
       {
         "task_id": "test-api",
@@ -9064,7 +9134,9 @@
         "error": {
           "/api/v1/scheduler/stop": "Endpoint not found (404): {\"detail\":\"Not Found\"}"
         },
-        "type": "result_error"
+        "type": "result_error",
+        "error_type": "result_error",
+        "category": "endpoint_error"
       }
     ],
     "timeline": [

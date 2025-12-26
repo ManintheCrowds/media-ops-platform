@@ -256,6 +256,74 @@ job-automation-service/
 └── requirements.txt
 ```
 
+## Architecture
+
+### Scraper Architecture
+
+The service uses a modular scraper architecture:
+- **Base Scraper**: Common scraping utilities and base class
+- **Source-Specific Scrapers**: Indeed, LinkedIn, Glassdoor, ZipRecruiter
+- **Rate Limiting**: Per-source rate limiting to respect ToS
+- **Error Handling**: Retry logic and graceful degradation
+- **Data Normalization**: Standardized job data format across sources
+
+### Matching Algorithm
+
+Skills-based matching uses:
+- **Skill Extraction**: Parses job descriptions for required skills
+- **Skill Matching**: Compares job requirements with user skill profile
+- **Proficiency Weighting**: Higher proficiency = better match score
+- **Experience Weighting**: More years of experience = higher score
+- **Composite Scoring**: Combines multiple factors for final match score
+
+### Ollama Integration Workflow
+
+Cover letter generation process:
+1. Job description and user profile sent to Ollama
+2. LLM generates personalized cover letter
+3. Cover letter formatted and returned
+4. Optionally saved with application
+5. Fallback to template if Ollama unavailable
+
+## Platform Integration
+
+The job automation service integrates with the main platform:
+
+- **Service Registry**: Registers with platform API
+- **Authentication**: Uses platform JWT tokens for API access
+- **Health Monitoring**: Exposes health endpoint for platform monitoring
+- **Metrics**: Prometheus metrics available to monitoring stack
+
+### Service Registration
+
+Register the job automation service with the platform:
+
+```bash
+curl -X POST http://localhost:8000/api/services \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "job-automation-service",
+    "service_type": "automation",
+    "base_url": "http://job-automation-service:8004",
+    "health_check_url": "http://job-automation-service:8004/health",
+    "requires_auth": true
+  }'
+```
+
+### Authentication Flow
+
+1. User authenticates with platform API
+2. Platform returns JWT token
+3. Token used for job automation API requests
+4. Service validates token with platform
+5. Authorized requests processed
+
+## Related Services
+
+- [Platform API](../README.md) - Main integration layer
+- [Monitoring Stack](../monitoring/README.md) - Prometheus, Grafana
+
 ## Important Notes
 
 ### Legal & ToS Compliance

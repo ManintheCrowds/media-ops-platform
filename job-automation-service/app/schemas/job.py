@@ -44,7 +44,7 @@ class JobSearchRequest(BaseModel):
     query: str
     location: Optional[str] = None
     sources: Optional[List[str]] = ["adzuna", "indeed", "linkedin", "glassdoor", "ziprecruiter"]
-    min_match_score: Optional[float] = 0.6
+    min_match_score: Optional[float] = 0.0  # Default to 0.0 to return all jobs (users can filter by setting this)
     limit: Optional[int] = 25
 
 

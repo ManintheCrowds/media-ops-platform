@@ -1,0 +1,95 @@
+{
+  "timestamp": "2025-12-25T18:06:37.809793",
+  "results": {
+    "started_at": "2025-12-25T18:06:00.434218",
+    "completed_at": null,
+    "status": "running",
+    "tests": {
+      "database_connection": {
+        "status": "pass",
+        "timestamp": "2025-12-25T18:06:11.438031",
+        "details": {
+          "status": "pass",
+          "message": "Database connected successfully"
+        }
+      },
+      "database_schema": {
+        "status": "pass",
+        "timestamp": "2025-12-25T18:06:11.478653",
+        "details": {
+          "status": "pass",
+          "message": "Schema valid, 242 jobs in database"
+        }
+      },
+      "api_credentials": {
+        "status": "pass",
+        "timestamp": "2025-12-25T18:06:11.479111",
+        "details": {
+          "status": "pass",
+          "credentials": {
+            "adzuna_api_id": true,
+            "adzuna_api_key": true,
+            "jsearch_api_key": true
+          },
+          "message": "All credentials configured"
+        }
+      },
+      "api_server_health": {
+        "status": "pass",
+        "timestamp": "2025-12-25T18:06:13.844629",
+        "details": {
+          "status": "pass",
+          "message": "Server is healthy",
+          "response": {
+            "status": "healthy"
+          }
+        }
+      },
+      "job_search_endpoint": {
+        "status": "pass",
+        "timestamp": "2025-12-25T18:06:18.605098",
+        "details": {
+          "status": "pass",
+          "jobs_found": 0,
+          "sources_searched": [
+            "adzuna"
+          ],
+          "message": "Found 0 jobs"
+        }
+      },
+      "jobs_saved_to_database": {
+        "status": "pass",
+        "timestamp": "2025-12-25T18:06:37.742851",
+        "details": {
+          "status": "pass",
+          "count_before": 242,
+          "count_after": 242,
+          "new_jobs": 0,
+          "message": "Database has 242 jobs (0 new)"
+        }
+      },
+      "job_source_attribution": {
+        "status": "warn",
+        "timestamp": "2025-12-25T18:06:37.781062",
+        "details": {
+          "status": "warn",
+          "total_checked": 10,
+          "with_source": 0,
+          "without_source": 10,
+          "message": "0/10 jobs have source field"
+        }
+      },
+      "match_scores": {
+        "status": "warn",
+        "timestamp": "2025-12-25T18:06:37.809772",
+        "details": {
+          "status": "warn",
+          "total_checked": 10,
+          "with_scores": 0,
+          "average_score": 0,
+          "message": "0/10 jobs have match scores (avg: 0.000)"
+        }
+      }
+    }
+  }
+}

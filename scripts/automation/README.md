@@ -2,6 +2,21 @@
 
 This directory contains automation scripts for deployment, backup, updates, and health monitoring.
 
+## Purpose and Scope
+
+These scripts automate common platform operations:
+- **Deployment**: Automated service deployment with validation
+- **Backup Management**: Database and volume backups
+- **Update Management**: System and application updates
+- **Health Monitoring**: Service health checks and alerts
+
+## Integration with Services
+
+- **Platform Services**: Deploy and manage all platform services
+- **Monitoring Stack**: Health checks integrate with Prometheus/Grafana
+- **Database Services**: Backup and restore PostgreSQL databases
+- **Docker**: Manage Docker containers and volumes
+
 ## Scripts Overview
 
 ### Deployment
