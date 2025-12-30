@@ -52,6 +52,17 @@ class Settings(BaseSettings):
     vaultwarden_url: Optional[str] = "http://vaultwarden:80"
     vaultwarden_admin_token: Optional[str] = None
     
+    # Camera Integration (Arlo)
+    arlo_username: Optional[str] = None
+    arlo_password: Optional[str] = None
+    arlo_storage_path: str = "/var/lib/platform/camera_recordings"
+    arlo_sync_interval: int = 300
+    arlo_encryption_key: Optional[str] = None
+    
+    # Video Encoder (AJA HELO)
+    encoder_storage_path: str = "/var/lib/platform/encoder_recordings"
+    encoder_network_scan_range: str = "192.168.1.0/24"
+    
     # Gateway Request Limits
     max_request_size_mb: float = 10.0  # Maximum request body size in megabytes
     service_timeouts: dict[str, float] = {

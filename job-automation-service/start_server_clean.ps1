@@ -124,3 +124,5 @@ Write-Host "  - 'Has Adzuna Client: True'" -ForegroundColor White
 Write-Host "  - No '[DEBUG] Failed to write log' errors" -ForegroundColor White
 Write-Host ""
 
+
+
