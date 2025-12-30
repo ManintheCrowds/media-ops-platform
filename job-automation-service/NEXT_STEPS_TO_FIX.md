@@ -126,3 +126,5 @@ Once credentials are loaded correctly:
 
 The code works perfectly (direct test returns 3 jobs). The issue is **environment/process configuration**, not code bugs. Once the server process has the credentials, it will work immediately.
 
+
+

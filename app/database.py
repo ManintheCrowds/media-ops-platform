@@ -31,5 +31,7 @@ def init_db():
     """Initialize database tables."""
     # Import all models to ensure they're registered
     from app.models import User, Service
+    from app.models.camera import ArloBaseStation, ArloCamera, ArloRecording, ArloEvent
+    from app.models.encoder import VideoEncoder
     
     Base.metadata.create_all(bind=engine)
