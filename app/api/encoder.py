@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import BaseModel
+import logging
 
 from app.database import get_db
 from app.auth.oauth2 import get_current_user
@@ -11,6 +12,8 @@ from app.models import User
 from services.video_encoder.encoder_service import VideoEncoderService
 from services.camera.recording_service import CameraRecordingService
 from app.exceptions import EncoderError, EncoderConnectionError, EncoderRecordingError
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/encoder", tags=["encoder"])
 
@@ -191,6 +194,13 @@ async def record_camera(
             duration=duration
         )
         return recording
+    except (EncoderError, EncoderConnectionError, EncoderRecordingError) as e:
+        logger.error(f"Encoder error recording camera {camera_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=400, detail=str(e.message) if hasattr(e, 'message') else str(e))
+    except ValueError as e:
+        logger.error(f"Invalid input for camera recording: {e}", exc_info=True)
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Unexpected error recording camera {camera_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="An internal error occurred while recording camera")
 

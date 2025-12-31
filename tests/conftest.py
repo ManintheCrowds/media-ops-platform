@@ -2,6 +2,7 @@
 
 import pytest
 import asyncio
+import os
 from typing import Generator, AsyncGenerator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -9,6 +10,10 @@ from fastapi.testclient import TestClient
 from httpx import AsyncClient
 import respx
 from faker import Faker
+
+# Set required environment variables before importing app modules
+os.environ.setdefault('SECRET_KEY', 'test-secret-key-32-chars-long-enough')
+os.environ.setdefault('JWT_SECRET_KEY', 'test-jwt-secret-key-32-chars-long-enough')
 
 from app.main import app
 from app.models import Base, User, Service
