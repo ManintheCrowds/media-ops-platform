@@ -64,14 +64,33 @@ docker exec -it platform-job-automation python scripts/init_skill_profile.py
 
 ## Configuration
 
-Set environment variables in `.env` or docker-compose:
+### Environment Variables
+
+The service uses environment variables for configuration. Create a `.env` file in the service root:
 
 ```bash
-DATABASE_URL=postgresql://jobautomation:password@job-automation-db:5432/jobautomation
-OLLAMA_URL=http://localhost:11434
-OLLAMA_MODEL=llama2
-DEFAULT_LOCATION=Minneapolis, MN
+# Copy the example file
+cp .env.example .env
+
+# Edit with your actual credentials
+nano .env
 ```
+
+**Required Variables:**
+- `DATABASE_URL` - PostgreSQL connection string
+- `ADZUNA_API_ID` - Adzuna API ID (get from https://developer.adzuna.com/)
+- `ADZUNA_API_KEY` - Adzuna API key
+- `JSEARCH_API_KEY` - JSearch API key (get from https://jsearch.app/)
+
+**Optional Variables:**
+- `OLLAMA_URL` - Ollama service URL (default: http://localhost:11434)
+- `OLLAMA_MODEL` - Model name (default: llama2)
+- `DEFAULT_LOCATION` - Default search location (default: Minneapolis, MN)
+- `SECRET_KEY` - Application secret key (generate with: `python -c "import secrets; print(secrets.token_urlsafe(32))"`)
+
+**Security Note:** Never commit `.env` files to version control. The `.env` file is already in `.gitignore`.
+
+See [CREDENTIAL_MANAGEMENT.md](../CREDENTIAL_MANAGEMENT.md) for detailed credential management guidelines.
 
 ## API Endpoints
 

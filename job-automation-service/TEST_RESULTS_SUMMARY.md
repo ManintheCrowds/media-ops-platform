@@ -104,11 +104,13 @@ cd d:\software\job-automation-service
 ### Step 5: Alternative: Pass Credentials as Environment Variables
 If `.env` file isn't being loaded, set environment variables explicitly:
 ```powershell
-$env:ADZUNA_API_ID = "a4a7673a"
-$env:ADZUNA_API_KEY = "f6163b196847b9d597b71b9df86fdd2d"
-$env:JSEARCH_API_KEY = "ak_r2baolkzsanqqwhfditlmydwa9jtcyei2qynhxqmqfdvvw4"
+# Load credentials from .env file or secure storage
+$env:ADZUNA_API_ID = "<your-adzuna-api-id>"
+$env:ADZUNA_API_KEY = "<your-adzuna-api-key>"
+$env:JSEARCH_API_KEY = "<your-jsearch-api-key>"
 .\restart_server.ps1
 ```
+**Note:** Replace placeholders with actual API keys from your secure credential store.
 
 ## 📊 Test Results
 

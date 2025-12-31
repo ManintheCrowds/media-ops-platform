@@ -60,11 +60,13 @@ The server process isn't loading the .env file. Try:
 2. **Restart with explicit environment variables**:
 ```powershell
 cd D:\software\job-automation-service
-$env:ADZUNA_API_ID = "a4a7673a"
-$env:ADZUNA_API_KEY = "f6163b196847b9d597b71b9df86fdd2d"
-$env:JSEARCH_API_KEY = "ak_r2baolkzsanqqwhfditlmydwa9jtcyei2qynhxqmqfdvvw4"
+# Load credentials from .env file or secure storage
+$env:ADZUNA_API_ID = "<your-adzuna-api-id>"
+$env:ADZUNA_API_KEY = "<your-adzuna-api-key>"
+$env:JSEARCH_API_KEY = "<your-jsearch-api-key>"
 C:\Python313\python.exe -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8004
 ```
+**Note:** Replace placeholders with actual API keys from your secure credential store.
 
 ### If you see "[DEBUG] source_manager.search_jobs returned 0 jobs"
 But `test_server_env_loading.py` returns 3 jobs, then:
@@ -80,6 +82,7 @@ But `test_server_env_loading.py` returns 3 jobs, then:
 4. **Run the manual test** to confirm credentials work
 
 The code is correct - we just need to see what the server process is actually seeing!
+
 
 
 

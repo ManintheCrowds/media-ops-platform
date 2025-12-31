@@ -20,11 +20,20 @@ Write-Host "[OK] Server stopped" -ForegroundColor Green
 Write-Host ""
 
 # Set environment variables explicitly
+# NOTE: These should be loaded from .env file or secure vault in production
 Write-Host "[2/3] Setting environment variables..." -ForegroundColor Yellow
-$env:ADZUNA_API_ID = "a4a7673a"
-$env:ADZUNA_API_KEY = "f6163b196847b9d597b71b9df86fdd2d"
-$env:JSEARCH_API_KEY = "ak_r2baolkzsanqqwhfditlmydwa9jtcyei2qynhxqmqfdvvw4"
-$env:DATABASE_URL = "postgresql://jobautomation:password@localhost:5433/jobautomation"
+if (-not $env:ADZUNA_API_ID) {
+    Write-Host "  [WARN] ADZUNA_API_ID not set. Please set it from .env file or secure storage." -ForegroundColor Yellow
+}
+if (-not $env:ADZUNA_API_KEY) {
+    Write-Host "  [WARN] ADZUNA_API_KEY not set. Please set it from .env file or secure storage." -ForegroundColor Yellow
+}
+if (-not $env:JSEARCH_API_KEY) {
+    Write-Host "  [WARN] JSEARCH_API_KEY not set. Please set it from .env file or secure storage." -ForegroundColor Yellow
+}
+if (-not $env:DATABASE_URL) {
+    Write-Host "  [WARN] DATABASE_URL not set. Please set it from .env file or secure storage." -ForegroundColor Yellow
+}
 
 Write-Host "  ADZUNA_API_ID: $env:ADZUNA_API_ID" -ForegroundColor Cyan
 Write-Host "  ADZUNA_API_KEY: Set" -ForegroundColor Cyan
@@ -41,13 +50,27 @@ if (-not (Test-Path $pythonExe)) {
 
 $serverScript = @"
 cd 'D:\software\job-automation-service'
-`$env:ADZUNA_API_ID = 'a4a7673a'
-`$env:ADZUNA_API_KEY = 'f6163b196847b9d597b71b9df86fdd2d'
-`$env:JSEARCH_API_KEY = 'ak_r2baolkzsanqqwhfditlmydwa9jtcyei2qynhxqmqfdvvw4'
-`$env:DATABASE_URL = 'postgresql://jobautomation:password@localhost:5433/jobautomation'
-Write-Host 'Starting server with explicit environment variables...' -ForegroundColor Green
-Write-Host 'ADZUNA_API_ID: ' -NoNewline; Write-Host `$env:ADZUNA_API_ID -ForegroundColor Cyan
-Write-Host 'ADZUNA_API_KEY: Set' -ForegroundColor Cyan
+# Load environment variables from .env file if it exists
+if (Test-Path '.env') {
+    Get-Content '.env' | ForEach-Object {
+        if (`$_ -match '^([^#][^=]+)=(.*)$') {
+            `$key = `$matches[1].Trim()
+            `$value = `$matches[2].Trim()
+            [Environment]::SetEnvironmentVariable(`$key, `$value, 'Process')
+        }
+    }
+}
+Write-Host 'Starting server with environment variables from .env...' -ForegroundColor Green
+if (`$env:ADZUNA_API_ID) {
+    Write-Host 'ADZUNA_API_ID: Set' -ForegroundColor Cyan
+} else {
+    Write-Host 'ADZUNA_API_ID: NOT SET' -ForegroundColor Red
+}
+if (`$env:ADZUNA_API_KEY) {
+    Write-Host 'ADZUNA_API_KEY: Set' -ForegroundColor Cyan
+} else {
+    Write-Host 'ADZUNA_API_KEY: NOT SET' -ForegroundColor Red
+}
 $pythonExe -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8004
 "@
 
@@ -100,6 +123,7 @@ Write-Host ""
 Write-Host "=" * 80 -ForegroundColor Cyan
 Write-Host "Done! Check the server console window for credential status." -ForegroundColor Cyan
 Write-Host "=" * 80 -ForegroundColor Cyan
+
 
 
 
