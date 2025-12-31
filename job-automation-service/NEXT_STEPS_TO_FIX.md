@@ -43,15 +43,16 @@ But still returns 0 jobs, then check for:
 ```powershell
 cd D:\software\job-automation-service
 
-# Set environment variables
-$env:ADZUNA_API_ID = "a4a7673a"
-$env:ADZUNA_API_KEY = "f6163b196847b9d597b71b9df86fdd2d"
-$env:JSEARCH_API_KEY = "ak_r2baolkzsanqqwhfditlmydwa9jtcyei2qynhxqmqfdvvw4"
-$env:DATABASE_URL = "postgresql://jobautomation:password@localhost:5433/jobautomation"
+# Set environment variables from .env file or secure storage
+$env:ADZUNA_API_ID = "<your-adzuna-api-id>"
+$env:ADZUNA_API_KEY = "<your-adzuna-api-key>"
+$env:JSEARCH_API_KEY = "<your-jsearch-api-key>"
+$env:DATABASE_URL = "<your-database-url>"
 
 # Start server
 C:\Python313\python.exe -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8004
 ```
+**Note:** Replace placeholders with actual credentials from your secure credential store.
 
 3. **Watch the startup messages** - should show "Has Adzuna Client: True"
 
@@ -125,6 +126,7 @@ Once credentials are loaded correctly:
 ## Key Insight
 
 The code works perfectly (direct test returns 3 jobs). The issue is **environment/process configuration**, not code bugs. Once the server process has the credentials, it will work immediately.
+
 
 
 

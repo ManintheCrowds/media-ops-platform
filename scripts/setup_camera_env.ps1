@@ -2,19 +2,53 @@
 
 Write-Host "Setting camera environment variables..." -ForegroundColor Yellow
 
-# Required secrets (use strong keys in production)
-$env:SECRET_KEY = "temp_secret_key_for_migration_only_min_32_chars_long"
-$env:JWT_SECRET_KEY = "temp_jwt_secret_key_for_migration_only_min_32_chars_long"
+# Load environment variables from .env file if it exists
+$envFile = "D:\software\.env"
+if (Test-Path $envFile) {
+    Write-Host "Loading environment variables from .env file..." -ForegroundColor Cyan
+    Get-Content $envFile | ForEach-Object {
+        if ($_ -match '^([^#][^=]+)=(.*)$') {
+            $key = $matches[1].Trim()
+            $value = $matches[2].Trim()
+            [Environment]::SetEnvironmentVariable($key, $value, 'Process')
+        }
+    }
+    Write-Host "[OK] Environment variables loaded from .env" -ForegroundColor Green
+} else {
+    Write-Host "[WARN] .env file not found at $envFile" -ForegroundColor Yellow
+    Write-Host "Please create .env file with required variables:" -ForegroundColor Yellow
+    Write-Host "  - SECRET_KEY" -ForegroundColor White
+    Write-Host "  - JWT_SECRET_KEY" -ForegroundColor White
+    Write-Host "  - ARLO_USERNAME" -ForegroundColor White
+    Write-Host "  - ARLO_PASSWORD" -ForegroundColor White
+    Write-Host "  - DATABASE_URL" -ForegroundColor White
+    Write-Host ""
+    Write-Host "See .env.example for template" -ForegroundColor Cyan
+}
 
-# Arlo Configuration
-$env:ARLO_USERNAME = "schum495@gmail.com"
-$env:ARLO_PASSWORD = "Gungho495@"
-$env:ARLO_STORAGE_PATH = "D:\CodeRepositories\software\camera_recordings"
-$env:ARLO_SYNC_INTERVAL = "300"
-$env:ARLO_ENCRYPTION_KEY = "your_encryption_key_here"  # Replace with a strong key
+# Set defaults if not already set from .env
+if (-not $env:SECRET_KEY) {
+    Write-Host "[WARN] SECRET_KEY not set. Using temporary key for development only." -ForegroundColor Yellow
+    $env:SECRET_KEY = "temp_secret_key_for_migration_only_min_32_chars_long"
+}
+
+if (-not $env:JWT_SECRET_KEY) {
+    Write-Host "[WARN] JWT_SECRET_KEY not set. Using temporary key for development only." -ForegroundColor Yellow
+    $env:JWT_SECRET_KEY = "temp_jwt_secret_key_for_migration_only_min_32_chars_long"
+}
+
+if (-not $env:ARLO_STORAGE_PATH) {
+    $env:ARLO_STORAGE_PATH = "D:\software\camera_recordings"
+}
+
+if (-not $env:ARLO_SYNC_INTERVAL) {
+    $env:ARLO_SYNC_INTERVAL = "300"
+}
 
 # Database (use PostgreSQL in production, SQLite for testing)
-$env:DATABASE_URL = "sqlite:///./test_platform.db"
+if (-not $env:DATABASE_URL) {
+    $env:DATABASE_URL = "sqlite:///./test_platform.db"
+}
 
 # Create storage directories
 $storagePath = "D:\CodeRepositories\software\camera_recordings"
