@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import logging
 import ipaddress
+import socket
 import asyncio
 import aiohttp
 from sqlalchemy.orm import Session
@@ -432,7 +433,8 @@ class ArloService:
                 local_ip = socket.gethostbyname(hostname)
                 # Assume /24 subnet
                 network = f"{'.'.join(local_ip.split('.')[:-1])}.0/24"
-            except:
+            except (socket.gaierror, OSError, ValueError) as e:
+                logger.warning(f"Failed to determine local network, using default: {e}")
                 network = "192.168.1.0/24"  # Default fallback
         
         logger.info(f"Scanning network for Arlo base stations: {network}")
@@ -488,7 +490,8 @@ class ArloService:
                                         text = await response.text()
                                         if 'arlo' in text.lower() or 'netgear' in text.lower():
                                             device_info['confirmed'] = True
-                                except:
+                                except (aiohttp.ClientError, asyncio.TimeoutError, UnicodeDecodeError) as e:
+                                    logger.debug(f"Could not read response text for {ip}: {e}")
                                     pass
                                 
                                 return device_info

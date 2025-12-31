@@ -47,7 +47,9 @@ class AJAHELOClient:
         try:
             error_data = await response.json()
             error_msg = error_data.get('error', 'Unknown error')
-        except:
+        except (ValueError, aiohttp.ContentTypeError, asyncio.TimeoutError) as e:
+            # Response is not valid JSON, use status code as error message
+            logger.debug(f"Could not parse error response as JSON: {e}")
             error_msg = f"HTTP {response.status}"
         
         if response.status == 400:

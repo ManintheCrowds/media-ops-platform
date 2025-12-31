@@ -59,7 +59,8 @@ class Arlo(object):
         # signals only work in main thread
         try:
             signal.signal(signal.SIGINT, self.interrupt_handler)
-        except:
+        except (ValueError, OSError) as e:
+            # Signal handling only works in main thread, ignore in other threads
             pass
 
         self.event_stream = None
@@ -339,7 +340,8 @@ class Arlo(object):
             while not stop_event.wait(30.0):
                 try:
                     self.Ping(basestation)
-                except:
+                except (ConnectionError, TimeoutError, Exception) as e:
+                    # Log but continue heartbeat - connection issues are expected
                     pass
 
         if not self.event_stream or not self.event_stream.connected:

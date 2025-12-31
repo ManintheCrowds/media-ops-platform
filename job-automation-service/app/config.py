@@ -117,16 +117,19 @@ class Settings(BaseSettings):
 # Explicitly load .env file BEFORE creating Settings instance
 # This ensures environment variables are available to pydantic_settings
 _env_file_path = _find_env_file()
+import logging
+logger = logging.getLogger(__name__)
+
 if Path(_env_file_path).exists():
     load_dotenv(_env_file_path, override=True)
-    print(f"[CONFIG] Loaded .env file from: {_env_file_path}")
+    logger.debug(f"Loaded .env file from: {_env_file_path}")
 else:
-    print(f"[CONFIG] WARNING: .env file not found at: {_env_file_path}")
+    logger.warning(f".env file not found at: {_env_file_path}")
     # Try loading from default location as fallback
     default_env = Path(__file__).parent.parent / ".env"
     if default_env.exists():
         load_dotenv(default_env, override=True)
-        print(f"[CONFIG] Loaded .env file from fallback: {default_env}")
+        logger.debug(f"Loaded .env file from fallback: {default_env}")
 
 
 settings = Settings()

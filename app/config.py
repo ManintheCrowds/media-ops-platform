@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     prometheus_url: Optional[str] = "http://prometheus:9090"
     grafana_url: Optional[str] = "http://grafana:3000"
     grafana_username: Optional[str] = "admin"
-    grafana_password: Optional[str] = "Bul1Dic@"
+    grafana_password: Optional[str] = None  # Must be set via environment variable
     
     vaultwarden_url: Optional[str] = "http://vaultwarden:80"
     vaultwarden_admin_token: Optional[str] = None

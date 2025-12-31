@@ -1,12 +1,15 @@
 """Main FastAPI application for Job Application Automation Service."""
 
 import json
+import logging
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import Base
 from app.api import jobs, applications, matching, scheduler
+
+logger = logging.getLogger(__name__)
 
 LOG_PATH = Path(r"d:\CodeRepositories\.cursor\debug.log")
 
@@ -86,32 +89,31 @@ async def startup_event():
     env_file = _find_env_file()
     env_exists = Path(env_file).exists()
     
-    print("=" * 80)
-    print("SERVER STARTUP - CREDENTIALS CHECK")
-    print("=" * 80)
-    print(f"Working Directory: {Path.cwd()}")
-    print(f"Env File Path: {env_file}")
-    print(f"Env File Exists: {env_exists}")
-    print(f"Adzuna API ID: {settings.adzuna_api_id}")
-    print(f"Adzuna API Key: {'Set' if settings.adzuna_api_key else 'NOT SET'}")
-    print(f"JSearch API Key: {'Set' if settings.jsearch_api_key else 'NOT SET'}")
+    logger.info("=" * 80)
+    logger.info("SERVER STARTUP - CREDENTIALS CHECK")
+    logger.info("=" * 80)
+    logger.info(f"Working Directory: {Path.cwd()}")
+    logger.info(f"Env File Path: {env_file}")
+    logger.info(f"Env File Exists: {env_exists}")
+    logger.info(f"Adzuna API ID: {settings.adzuna_api_id}")
+    logger.info(f"Adzuna API Key: {'Set' if settings.adzuna_api_key else 'NOT SET'}")
+    logger.info(f"JSearch API Key: {'Set' if settings.jsearch_api_key else 'NOT SET'}")
     
     # Test JobSourceManager
     from app.services.job_source_manager import JobSourceManager
     manager = JobSourceManager()
     has_adzuna = manager.has_api_client("adzuna")
-    print(f"Has Adzuna Client: {has_adzuna}")
+    logger.info(f"Has Adzuna Client: {has_adzuna}")
     
     if not has_adzuna:
-        print("=" * 80)
-        print("WARNING: Adzuna client not available!")
-        print("Server will not be able to fetch jobs from Adzuna.")
-        print("=" * 80)
+        logger.warning("=" * 80)
+        logger.warning("WARNING: Adzuna client not available!")
+        logger.warning("Server will not be able to fetch jobs from Adzuna.")
+        logger.warning("=" * 80)
     else:
-        print("=" * 80)
-        print("SUCCESS: All credentials loaded correctly")
-        print("=" * 80)
-    print()
+        logger.info("=" * 80)
+        logger.info("SUCCESS: All credentials loaded correctly")
+        logger.info("=" * 80)
 
 
 @app.on_event("shutdown")

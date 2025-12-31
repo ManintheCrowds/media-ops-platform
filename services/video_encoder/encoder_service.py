@@ -75,7 +75,8 @@ class VideoEncoderService:
                                 'status': EncoderStatus.ONLINE.value,
                                 'device_info': data
                             }
-            except:
+            except (aiohttp.ClientError, asyncio.TimeoutError, ValueError, KeyError) as e:
+                logger.debug(f"Failed to probe encoder at {ip}: {e}")
                 pass
             return None
         
