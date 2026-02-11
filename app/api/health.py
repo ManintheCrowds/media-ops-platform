@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.get("/")
-async def health_check():
+async def health_check() -> Dict[str, str]:
     """Basic health check endpoint."""
     return {
         "status": "healthy",

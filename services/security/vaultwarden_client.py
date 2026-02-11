@@ -1,84 +1,69 @@
 """Vaultwarden API client."""
 
-import httpx
 from typing import Optional, Dict, List, Any
+from services.base import BaseServiceClient
 from services.security.config import VaultwardenConfig
+from app.exceptions import VaultwardenError
 
 
-class VaultwardenClient:
+class VaultwardenClient(BaseServiceClient):
     """Client for interacting with Vaultwarden API."""
     
     def __init__(self, config: Optional[VaultwardenConfig] = None):
         self.config = config or VaultwardenConfig()
-        self.base_url = self.config.base_url.rstrip('/')
         self.admin_token = self.config.admin_token
-        self._session: Optional[httpx.AsyncClient] = None
+        super().__init__(self.config.base_url)
     
-    async def __aenter__(self):
+    def _build_headers(self) -> Dict[str, str]:
+        """Build headers for Vaultwarden admin API."""
         headers = {}
         if self.admin_token:
             headers["X-Vaultwarden-Admin-Token"] = self.admin_token
-        
-        self._session = httpx.AsyncClient(
-            base_url=f"{self.base_url}/admin",
-            timeout=30.0,
-            headers=headers
-        )
-        return self
+        return headers
     
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self._session:
-            await self._session.aclose()
+    def _get_api_base_url(self) -> str:
+        """Get Vaultwarden admin API base URL."""
+        return f"{self.base_url}/admin"
     
-    async def ping(self) -> bool:
-        """Check if Vaultwarden is accessible."""
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(f"{self.base_url}/")
-                return response.status_code == 200
-        except Exception:
-            return False
+    def _get_ping_endpoint(self) -> str:
+        """Get Vaultwarden health check endpoint."""
+        return "/"
     
     async def get_users(self) -> List[Dict[str, Any]]:
         """Get list of users (admin only)."""
-        if not self._session:
-            async with self:
-                return await self.get_users()
+        await self._ensure_session()
         
-        try:
-            response = await self._session.get("/users")
-            if response.status_code == 200:
-                return response.json()
-        except Exception:
-            pass
-        return []
+        result = await self._handle_request(
+            lambda: self._session.get("/users"),
+            "get_users",
+            default_return=[]
+        )
+        return result if isinstance(result, list) else []
     
     async def get_user(self, user_id: str) -> Optional[Dict[str, Any]]:
         """Get user information (admin only)."""
-        if not self._session:
-            async with self:
-                return await self.get_user(user_id)
+        await self._ensure_session()
         
-        try:
-            response = await self._session.get(f"/users/{user_id}")
-            if response.status_code == 200:
-                return response.json()
-        except Exception:
-            pass
-        return None
+        result = await self._handle_request(
+            lambda: self._session.get(f"/users/{user_id}"),
+            "get_user",
+            default_return=None,
+            raise_on_error=True,
+            exception_class=VaultwardenError
+        )
+        return result
     
     async def get_stats(self) -> Optional[Dict[str, Any]]:
         """Get Vaultwarden statistics (admin only)."""
-        if not self._session:
-            async with self:
-                return await self.get_stats()
+        await self._ensure_session()
         
-        try:
-            response = await self._session.get("/stats")
-            if response.status_code == 200:
-                return response.json()
-        except Exception:
-            pass
-        return None
+        result = await self._handle_request(
+            lambda: self._session.get("/stats"),
+            "get_stats",
+            default_return=None,
+            raise_on_error=True,
+            exception_class=VaultwardenError
+        )
+        return result
 
 

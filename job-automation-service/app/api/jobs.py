@@ -187,8 +187,10 @@ async def search_jobs(
             debug_log_path.parent.mkdir(parents=True, exist_ok=True)
             with open(debug_log_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(log_entry) + "\n")
-        except Exception:
-            pass
+        except (IOError, OSError) as e:
+            logger.warning(f"Failed to write debug log entry: {e}")
+        except Exception as e:
+            logger.warning(f"Unexpected error writing debug log entry: {e}", exc_info=True)
         # #endregion agent log
         
         try:
@@ -207,8 +209,10 @@ async def search_jobs(
                 }
                 with open(debug_log_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(log_entry) + "\n")
-            except Exception:
-                pass
+            except (IOError, OSError) as e:
+                logger.warning(f"Failed to write debug log entry: {e}")
+            except Exception as e:
+                logger.warning(f"Unexpected error writing debug log entry: {e}", exc_info=True)
             # #endregion agent log
         except Exception as e:
             logger.error(f"Error creating SkillMatcher: {e}", exc_info=True)
@@ -229,8 +233,10 @@ async def search_jobs(
                 }
                 with open(debug_log_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(log_entry) + "\n")
-            except Exception:
-                pass
+            except (IOError, OSError) as e:
+                logger.warning(f"Failed to write debug log entry: {e}")
+            except Exception as e:
+                logger.warning(f"Unexpected error writing debug log entry: {e}", exc_info=True)
             # #endregion agent log
             # If matcher fails, return jobs without scoring
             # Set default scores to 0.0 to ensure schema compliance
@@ -311,8 +317,10 @@ async def search_jobs(
                 }
                 with open(debug_log_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(log_entry) + "\n")
-            except Exception:
-                pass
+            except (IOError, OSError) as e:
+                logger.warning(f"Failed to write debug log entry: {e}")
+            except Exception as e:
+                logger.warning(f"Unexpected error writing debug log entry: {e}", exc_info=True)
             # #endregion agent log
             job_responses = [JobListingResponse.from_orm(job) for job in matched_jobs]
             logger.debug(f"EARLY RETURN: {len(job_responses)} jobs after response conversion")
@@ -548,8 +556,10 @@ async def search_jobs(
                 ensure_debug_log_dir()
                 with open(debug_log_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(log_entry) + "\n")
-            except Exception:
-                pass
+            except (IOError, OSError) as e:
+                logger.warning(f"Failed to write debug log entry: {e}")
+            except Exception as e:
+                logger.warning(f"Unexpected error writing debug log entry: {e}", exc_info=True)
             # Rollback on error
             db.rollback()
             # Return empty result since processing failed
@@ -587,8 +597,10 @@ async def search_jobs(
                 ensure_debug_log_dir()
                 with open(debug_log_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(log_entry) + "\n")
-            except Exception:
-                pass
+            except (IOError, OSError) as e:
+                logger.warning(f"Failed to write debug log entry: {e}")
+            except Exception as e:
+                logger.warning(f"Unexpected error writing debug log entry: {e}", exc_info=True)
             # Return empty result since flush failed
             return JobSearchResponse(
                 jobs=[],
@@ -622,8 +634,10 @@ async def search_jobs(
                 ensure_debug_log_dir()
                 with open(debug_log_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(log_entry) + "\n")
-            except Exception:
-                pass
+            except (IOError, OSError) as e:
+                logger.warning(f"Failed to write debug log entry: {e}")
+            except Exception as e:
+                logger.warning(f"Unexpected error writing debug log entry: {e}", exc_info=True)
             # Return empty result since commit failed
             return JobSearchResponse(
                 jobs=[],
@@ -654,8 +668,10 @@ async def search_jobs(
             ensure_debug_log_dir()
             with open(debug_log_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(log_entry) + "\n")
-        except Exception:
-            pass
+        except (IOError, OSError) as e:
+            logger.warning(f"Failed to write debug log entry: {e}")
+        except Exception as e:
+            logger.warning(f"Unexpected error writing debug log entry: {e}", exc_info=True)
         # #endregion agent log
         
         # Convert to response models
@@ -677,8 +693,10 @@ async def search_jobs(
             debug_log_path = Path(__file__).parent.parent.parent / "debug.log"
             with open(debug_log_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(log_entry) + "\n")
-        except Exception:
-            pass
+        except (IOError, OSError) as e:
+            logger.warning(f"Failed to write debug log entry: {e}")
+        except Exception as e:
+            logger.warning(f"Unexpected error writing debug log entry: {e}", exc_info=True)
         # #endregion agent log
         
         job_responses = []

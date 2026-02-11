@@ -1,63 +1,45 @@
 """Prometheus API client."""
 
-import httpx
 from typing import Optional, Dict, List, Any
+from services.base import BaseServiceClient
 from services.monitoring.config import PrometheusConfig
 
 
-class PrometheusClient:
+class PrometheusClient(BaseServiceClient):
     """Client for interacting with Prometheus API."""
     
     def __init__(self, config: Optional[PrometheusConfig] = None):
         self.config = config or PrometheusConfig()
-        self.base_url = self.config.base_url.rstrip('/')
-        self._session: Optional[httpx.AsyncClient] = None
+        super().__init__(self.config.base_url)
     
-    async def __aenter__(self):
-        self._session = httpx.AsyncClient(
-            base_url=f"{self.base_url}/api/v1",
-            timeout=30.0
-        )
-        return self
+    def _build_headers(self) -> Dict[str, str]:
+        """Build headers for Prometheus (no authentication required)."""
+        return {}
     
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self._session:
-            await self._session.aclose()
+    def _get_api_base_url(self) -> str:
+        """Get Prometheus API base URL."""
+        return f"{self.base_url}/api/v1"
     
-    async def ping(self) -> bool:
-        """Check if Prometheus is accessible."""
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(f"{self.base_url}/-/healthy")
-                return response.status_code == 200
-        except Exception:
-            return False
+    def _get_ping_endpoint(self) -> str:
+        """Get Prometheus health check endpoint."""
+        return "/-/healthy"
     
     async def query(self, query: str) -> Optional[Dict[str, Any]]:
         """Execute a PromQL query."""
-        if not self._session:
-            async with self:
-                return await self.query(query)
+        await self._ensure_session()
         
-        try:
-            response = await self._session.get(
-                "/query",
-                params={"query": query}
-            )
-            if response.status_code == 200:
-                return response.json()
-        except Exception:
-            pass
-        return None
+        return await self._handle_request(
+            lambda: self._session.get("/query", params={"query": query}),
+            "query",
+            default_return=None
+        )
     
     async def query_range(self, query: str, start: str, end: str, step: str = "15s") -> Optional[Dict[str, Any]]:
         """Execute a range query."""
-        if not self._session:
-            async with self:
-                return await self.query_range(query, start, end, step)
+        await self._ensure_session()
         
-        try:
-            response = await self._session.get(
+        return await self._handle_request(
+            lambda: self._session.get(
                 "/query_range",
                 params={
                     "query": query,
@@ -65,37 +47,43 @@ class PrometheusClient:
                     "end": end,
                     "step": step
                 }
-            )
-            if response.status_code == 200:
-                return response.json()
-        except Exception:
-            pass
-        return None
+            ),
+            "query_range",
+            default_return=None
+        )
     
     async def get_targets(self) -> Optional[Dict[str, Any]]:
         """Get list of targets."""
-        if not self._session:
-            async with self:
-                return await self.get_targets()
+        await self._ensure_session()
         
-        try:
-            response = await self._session.get("/targets")
-            if response.status_code == 200:
-                return response.json()
-        except Exception:
-            pass
-        return None
+        return await self._handle_request(
+            lambda: self._session.get("/targets"),
+            "get_targets",
+            default_return=None
+        )
     
     async def get_metrics(self) -> List[str]:
         """Get list of available metrics."""
+        # This method doesn't use the session, so we handle it separately
+        import httpx
+        import logging
+        
+        logger = logging.getLogger(__name__)
+        
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(f"{self.base_url}/api/v1/label/__name__/values")
                 if response.status_code == 200:
                     data = response.json()
                     return data.get("data", [])
-        except Exception:
-            pass
-        return []
+        except httpx.HTTPError as e:
+            logger.warning(f"HTTP error in {self.__class__.__name__}.get_metrics(): {e}")
+            return []
+        except httpx.TimeoutException as e:
+            logger.warning(f"Timeout in {self.__class__.__name__}.get_metrics(): {e}")
+            return []
+        except Exception as e:
+            logger.error(f"Unexpected error in {self.__class__.__name__}.get_metrics(): {e}", exc_info=True)
+            return []
 
 

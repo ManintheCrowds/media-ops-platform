@@ -7,6 +7,13 @@ from app.auth.oauth2 import verify_password, get_password_hash
 from datetime import timedelta
 
 
+def _detail_text(response) -> str:
+    """Normalize error detail payload to text."""
+    detail = response.json().get("detail", "")
+    if isinstance(detail, dict):
+        return str(detail.get("error", ""))
+    return str(detail)
+
 @pytest.mark.unit
 @pytest.mark.security
 class TestAuthenticationSecurity:
@@ -227,7 +234,7 @@ class TestServiceSecurity:
             )
             # SSRF protection should reject all invalid URLs
             assert response.status_code == status.HTTP_400_BAD_REQUEST, f"URL {url} should be rejected"
-            error_detail = response.json().get("detail", "").lower()
+            error_detail = _detail_text(response).lower()
             assert expected_error_keyword.lower() in error_detail, f"Error message should mention '{expected_error_keyword}' for URL {url}"
     
     def test_service_url_validation_allows_valid_urls(self, client, admin_token):

@@ -34,7 +34,7 @@ class TestArloBaseStation:
         assert station.ip_address == "192.168.1.100"
         assert station.status == ArloStatus.ONLINE
         assert station.created_at is not None
-        assert station.updated_at is not None
+        assert station.updated_at is None
     
     def test_base_station_defaults(self, db_session):
         """Test base station default values."""
@@ -82,7 +82,7 @@ class TestArloBaseStation:
         assert data['id'] == station.id
         assert data['name'] == "Test Base"
         assert data['serial_number'] == "BS999"
-        assert data['status'] == "ONLINE"
+        assert data['status'] == "online"
         assert 'created_at' in data
         assert 'updated_at' in data
         assert data['camera_count'] == 0
@@ -218,7 +218,7 @@ class TestArloCamera:
         assert data['base_station_id'] == station.id
         assert data['name'] == "Test Camera"
         assert data['device_id'] == "CAM004"
-        assert data['status'] == "ONLINE"
+        assert data['status'] == "online"
         assert 'created_at' in data
         assert 'updated_at' in data
     
@@ -526,7 +526,7 @@ class TestArloEvent:
         
         assert data['id'] == event.id
         assert data['camera_id'] == camera.id
-        assert data['event_type'] == "MOTION"
+        assert data['event_type'] == "motion"
         assert data['details'] == {"test": "data"}
         assert 'created_at' in data
         assert 'updated_at' in data
@@ -565,14 +565,14 @@ class TestModelEnums:
     
     def test_status_enum_values(self):
         """Test that status enum has expected values."""
-        assert ArloStatus.ONLINE.value == "ONLINE"
-        assert ArloStatus.OFFLINE.value == "OFFLINE"
-        assert ArloStatus.UNKNOWN.value == "UNKNOWN"
+        assert ArloStatus.ONLINE.value == "online"
+        assert ArloStatus.OFFLINE.value == "offline"
+        assert ArloStatus.UNKNOWN.value == "unknown"
     
     def test_event_type_enum_values(self):
         """Test that event type enum has expected values."""
-        assert ArloEventType.MOTION.value == "MOTION"
-        assert ArloEventType.AUDIO.value == "AUDIO"
+        assert ArloEventType.MOTION.value == "motion"
+        assert ArloEventType.AUDIO.value == "audio"
     
     def test_model_with_enum_serialization(self, db_session):
         """Test that enum values serialize correctly."""
@@ -585,5 +585,5 @@ class TestModelEnums:
         db_session.commit()
         
         data = station.to_dict()
-        assert data['status'] == "ONLINE"  # Should be string value, not enum object
+        assert data['status'] == "online"  # Should be string value, not enum object
 

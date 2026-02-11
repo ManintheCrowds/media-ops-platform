@@ -1,6 +1,7 @@
 """Unit tests for database models."""
 
 import pytest
+from sqlalchemy import text
 from datetime import datetime, timezone
 from app.models import User, Service
 from app.auth.oauth2 import get_password_hash
@@ -293,7 +294,7 @@ class TestServiceModel:
         
         # Manually set a plain-text token (simulating old data)
         db_session.execute(
-            "UPDATE services SET auth_token = :token WHERE id = :id",
+            text("UPDATE services SET auth_token = :token WHERE id = :id"),
             {"token": "plain-text-token", "id": service.id}
         )
         db_session.commit()
@@ -304,6 +305,7 @@ class TestServiceModel:
         
         # On first access, it should detect plain text and encrypt it
         assert service.auth_token == "plain-text-token"
+        db_session.commit()
         
         # After access, it should be encrypted
         db_session.refresh(service)

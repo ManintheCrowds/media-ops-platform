@@ -102,17 +102,26 @@ class VideoEncoderService:
         if existing:
             # Update existing encoder
             existing.name = encoder_data.get('name', existing.name)
-            existing.port = encoder_data.get('port', 80)
-            existing.device_type = EncoderDeviceType[encoder_data.get('device_type', 'AJA_HELO').upper()]
+            port_value = encoder_data.get('port')
+            if port_value is not None:
+                existing.port = port_value
+            elif existing.port is None:
+                existing.port = 80
+
+            device_type_value = encoder_data.get('device_type') or 'AJA_HELO'
+            existing.device_type = EncoderDeviceType[device_type_value.upper()]
             db.commit()
             return existing.to_dict()
         
         # Create new encoder
+        port_value = encoder_data.get('port')
+        device_type_value = encoder_data.get('device_type') or 'AJA_HELO'
+
         encoder = VideoEncoder(
             name=encoder_data['name'],
             ip_address=encoder_data['ip_address'],
-            port=encoder_data.get('port', 80),
-            device_type=EncoderDeviceType[encoder_data.get('device_type', 'AJA_HELO').upper()],
+            port=port_value if port_value is not None else 80,
+            device_type=EncoderDeviceType[device_type_value.upper()],
             status=EncoderStatus.UNKNOWN
         )
         

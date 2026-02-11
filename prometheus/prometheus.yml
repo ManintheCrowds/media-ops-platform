@@ -57,6 +57,26 @@ scrape_configs:
     metrics_path: '/metrics'
     scrape_timeout: 10s
 
+  # WatchTower_main - DAGGR workflow metrics (shared label: project=watchtower_main)
+  - job_name: 'watchtower'
+    static_configs:
+      - targets: ['host.docker.internal:5000']
+        labels:
+          project: 'watchtower_main'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Campaign_kb - DAGGR workflow metrics (shared label: project=campaign_kb)
+  - job_name: 'campaign_kb'
+    static_configs:
+      - targets: ['host.docker.internal:8000']
+        labels:
+          project: 'campaign_kb'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
 # Alerting rules
 rule_files:
   - '/etc/prometheus/alert_rules.yml'

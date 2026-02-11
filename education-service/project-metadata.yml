@@ -1,0 +1,13 @@
+project:
+  name: education-service
+  owner: schum
+  data_tier: internal
+  repo_visibility: private
+  security_scanning:
+    secrets: required
+    sast: required
+    dependency: required
+  compliance:
+    requirements: []
+    notes: ""
+

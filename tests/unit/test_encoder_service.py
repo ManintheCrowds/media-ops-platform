@@ -135,8 +135,10 @@ class TestVideoEncoderServiceDiscover:
             'firmware_version': '1.0.0'
         })
         
-        with patch('aiohttp.ClientSession') as mock_session:
-            mock_session.return_value.__aenter__.return_value.get.return_value.__aenter__.return_value = mock_response
+        with patch('aiohttp.ClientSession', new_callable=AsyncMock) as mock_session:
+            session_instance = AsyncMock()
+            session_instance.get.return_value.__aenter__.return_value = mock_response
+            mock_session.return_value.__aenter__.return_value = session_instance
             
             discovered = await encoder_service.discover_encoders(db_session, "192.168.1.0/24")
             
@@ -150,8 +152,10 @@ class TestVideoEncoderServiceDiscover:
         mock_response = MagicMock()
         mock_response.status = 404
         
-        with patch('aiohttp.ClientSession') as mock_session:
-            mock_session.return_value.__aenter__.return_value.get.return_value.__aenter__.return_value = mock_response
+        with patch('aiohttp.ClientSession', new_callable=AsyncMock) as mock_session:
+            session_instance = AsyncMock()
+            session_instance.get.return_value.__aenter__.return_value = mock_response
+            mock_session.return_value.__aenter__.return_value = session_instance
             
             discovered = await encoder_service.discover_encoders(db_session, "192.168.1.0/24")
             
@@ -164,8 +168,10 @@ class TestVideoEncoderServiceDiscover:
         mock_response.status = 200
         mock_response.json = AsyncMock(return_value={'device_name': 'AJA HELO'})
         
-        with patch('aiohttp.ClientSession') as mock_session:
-            mock_session.return_value.__aenter__.return_value.get.return_value.__aenter__.return_value = mock_response
+        with patch('aiohttp.ClientSession', new_callable=AsyncMock) as mock_session:
+            session_instance = AsyncMock()
+            session_instance.get.return_value.__aenter__.return_value = mock_response
+            mock_session.return_value.__aenter__.return_value = session_instance
             
             discovered = await encoder_service.discover_encoders(db_session)
             

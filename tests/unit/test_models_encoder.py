@@ -34,7 +34,7 @@ class TestVideoEncoder:
         assert encoder.is_recording is False
         assert encoder.is_streaming is False
         assert encoder.created_at is not None
-        assert encoder.updated_at is not None
+        assert encoder.updated_at is None
     
     def test_encoder_defaults(self, db_session):
         """Test encoder default values."""

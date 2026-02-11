@@ -36,6 +36,7 @@ Visualization and dashboards.
 - Service-specific dashboards
 - Infrastructure dashboards
 - Cursor Connection Monitoring
+- **DAGGR Workflow Metrics** – workflow runs and duration by project (WatchTower, campaign_kb)
 
 ### Alertmanager
 
@@ -70,6 +71,23 @@ The monitoring stack monitors all platform services:
 - **Seafile** (Port 8001) - File operations, storage usage, sync status
 - **Jellyfin** (Port 8096) - Media streaming, library size, user activity
 - **Gitea** (Port 3000) - Repository operations, webhook delivery, user activity
+
+### DAGGR and App Pipeline (WatchTower, campaign_kb)
+
+**Projects monitored:** WatchTower_main (Flask, port 5000), campaign_kb (FastAPI, port 8000). Both expose `/metrics` with DAGGR workflow metrics.
+
+**Shared label convention:** All DAGGR metrics use:
+- `project` = `watchtower_main` | `campaign_kb`
+- `workflow` = workflow name (e.g. simple, rag, ingest, search, merge)
+- `status` = `success` | `failure`
+
+**Metric names:** `daggr_workflow_runs_total` (Counter), `daggr_workflow_duration_seconds` (Histogram). Grafana can filter with `project=~"watchtower_main|campaign_kb"`.
+
+**How DAGGR integrates:** Workflow runs in Gradio/Daggr POST to WatchTower `POST /api/daggr/run-complete`; WatchTower records to Prometheus. campaign_kb can also POST run-complete with `project=campaign_kb` and exposes its own `/metrics` for direct scrape.
+
+**How to add a new project:** Add a scrape job in `prometheus/prometheus.yml` with a unique `job_name` and label `project: '<name>'`; ensure the app exposes `/metrics` with the same metric names and label scheme.
+
+**How to verify:** Start WatchTower (and optionally campaign_kb), run a DAGGR workflow from Gradio, then in Grafana open the "DAGGR Workflow Metrics" dashboard and confirm `daggr_workflow_runs_total` or duration series appear. Scrape targets use `host.docker.internal:5000` and `host.docker.internal:8000` for host-run apps; adjust if running in Docker.
 
 ### Service-Specific Dashboards
 

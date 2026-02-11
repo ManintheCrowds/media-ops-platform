@@ -498,7 +498,8 @@ class Arlo(object):
         self.Subscribe(basestation)
         trigger(self)
 
-        # NOTE: Calling HandleEvents() calls Subscribe() again, which basically turns into a no-op. Hackie I know, but it cleans up the code a bit.
+        # NOTE: Calling HandleEvents() calls Subscribe() again, which basically turns into a no-op.
+        # This is intentional design to ensure proper event stream setup and cleanup.
         return self.HandleEvents(basestation, callback, timeout)
 
     def GetBaseStationState(self, basestation):
@@ -1674,33 +1675,32 @@ class Arlo(object):
         It can be streamed with: ffmpeg -re -i 'rtsps://<url>' -acodec copy -vcodec copy test.mp4
         The request to /users/devices/startStream returns: { url:rtsp://<url>:443/vzmodulelive?egressToken=b<xx>&userAgent=iOS&cameraId=<camid>}
         """
-        # nonlocal variable hack for Python 2.x.
-        class nl:
-            stream_url_dict = None
+        stream_url_dict = None
 
         def trigger(self):
-            nl.stream_url_dict = self.request.post(f'https://{self.BASE_URL}/hmsweb/users/devices/startStream', {"to":camera.get('parentId'),"from":self.user_id+"_web","resource":"cameras/"+camera.get('deviceId'),"action":"set","responseUrl":"", "publishResponse":True,"transId":self.genTransId(),"properties":{"activityState":"startUserStream","cameraId":camera.get('deviceId')}}, headers={"xcloudId":camera.get('xCloudId')})
+            nonlocal stream_url_dict
+            stream_url_dict = self.request.post(f'https://{self.BASE_URL}/hmsweb/users/devices/startStream', {"to":camera.get('parentId'),"from":self.user_id+"_web","resource":"cameras/"+camera.get('deviceId'),"action":"set","responseUrl":"", "publishResponse":True,"transId":self.genTransId(),"properties":{"activityState":"startUserStream","cameraId":camera.get('deviceId')}}, headers={"xcloudId":camera.get('xCloudId')})
 
         def callback(self, event):
+            nonlocal stream_url_dict
             if event.get("from") == basestation.get("deviceId") and event.get("resource") == "cameras/"+camera.get("deviceId") and event.get("properties", {}).get("activityState") == "userStreamActive":
-                return nl.stream_url_dict['url'].replace("rtsp://", "rtsps://")
+                return stream_url_dict['url'].replace("rtsp://", "rtsps://")
 
             return None
 
         return self.TriggerAndHandleEvent(basestation, trigger, callback)
 
     def StopStream(self, basestation, camera):
-
-        # nonlocal variable hack for Python 2.x.
-        class nl:
-            stream_url_dict = None
+        stream_url_dict = None
 
         def trigger(self):
+            nonlocal stream_url_dict
             self.request.post(f'https://{self.BASE_URL}/hmsweb/users/devices/stopStream', {"to":camera.get('parentId'),"from":self.user_id+"_web","resource":"cameras/"+camera.         get('deviceId'),"action":"set","responseUrl":"", "publishResponse":True,"transId":self.genTransId(),"properties":{"activityState":"stopUserStream","cameraId":camera.get('deviceId')}}, headers={"xcloudId": camera.get('xCloudId')})
 
         def callback(self, event):
+            nonlocal stream_url_dict
             if event.get("from") == basestation.get("deviceId") and event.get("resource") == "cameras/"+camera.get("deviceId") and event.get("properties", {}).get("activityState") == "userStreamActive":
-                return nl.stream_url_dict['url'].replace("rtsp://", "rtsps://")
+                return stream_url_dict['url'].replace("rtsp://", "rtsps://") if stream_url_dict else None
             return None
 
         return self.TriggerAndHandleEvent(basestation, trigger, callback)

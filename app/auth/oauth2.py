@@ -1,6 +1,7 @@
 """OAuth2 authentication endpoints."""
 
 from datetime import timedelta
+from typing import Dict
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -114,7 +115,7 @@ async def get_current_user(
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
-):
+) -> Token:
     """OAuth2 token endpoint."""
     user = db.query(User).filter(User.username == form_data.username).first()
     
@@ -141,7 +142,7 @@ async def login(
 
 
 @router.post("/register", response_model=UserResponse)
-async def register(user_data: UserCreate, db: Session = Depends(get_db)):
+async def register(user_data: UserCreate, db: Session = Depends(get_db)) -> UserResponse:
     """Register a new user."""
     # Check if user exists
     if db.query(User).filter(User.username == user_data.username).first():
@@ -221,7 +222,7 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user_info(current_user: User = Depends(get_current_user)):
+async def get_current_user_info(current_user: User = Depends(get_current_user)) -> UserResponse:
     """Get current user information."""
     return current_user
 
@@ -230,7 +231,7 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
 async def init_database(
     request: Request,
     current_user: User = Depends(get_current_user)
-):
+) -> Dict[str, str]:
     """Initialize database tables (development only - requires explicit enable)."""
     # Layer 1: Check explicit enable flag
     if not settings.enable_debug_endpoints:

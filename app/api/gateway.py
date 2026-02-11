@@ -103,7 +103,7 @@ async def proxy_request(
 async def get_file_storage_libraries(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Get file storage libraries."""
     service = db.query(Service).filter(
         Service.service_type == "file_storage",
@@ -122,7 +122,7 @@ async def get_file_storage_libraries(
 async def get_media_libraries(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Get media server libraries."""
     service = db.query(Service).filter(
         Service.service_type == "media_server",
@@ -142,7 +142,7 @@ async def get_recent_media(
     limit: int = 10,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Get recently added media."""
     service = db.query(Service).filter(
         Service.service_type == "media_server",
@@ -161,7 +161,7 @@ async def get_recent_media(
 async def get_wiki_pages(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Get wiki pages."""
     service = db.query(Service).filter(
         Service.service_type == "productivity",
@@ -182,7 +182,7 @@ async def get_repositories(
     limit: int = 20,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Get repositories from Gitea."""
     service = db.query(Service).filter(
         Service.service_type == "dev_tools",
@@ -202,7 +202,7 @@ async def get_monitoring_metrics(
     query: Optional[str] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Get monitoring metrics from Prometheus."""
     service = db.query(Service).filter(
         Service.service_type == "monitoring",
@@ -225,7 +225,7 @@ async def get_monitoring_metrics(
 async def get_grafana_dashboards(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Get Grafana dashboards."""
     service = db.query(Service).filter(
         Service.service_type == "monitoring",
@@ -244,7 +244,7 @@ async def get_grafana_dashboards(
 async def get_security_stats(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Get Vaultwarden statistics (admin only)."""
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -269,7 +269,7 @@ async def proxy_to_service(
     request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Response:
     """Generic proxy endpoint for any service."""
     service = db.query(Service).filter(
         Service.name == service_name,

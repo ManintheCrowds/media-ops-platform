@@ -118,3 +118,6 @@ Write-Host "Your .env files have been updated with your credentials." -Foregroun
 Write-Host "Remember: .env files are in .gitignore and will NOT be committed." -ForegroundColor Yellow
 Write-Host ""
 
+
+
+

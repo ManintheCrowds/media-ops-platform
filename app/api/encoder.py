@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
 import logging
 
@@ -12,6 +12,12 @@ from app.models import User
 from services.video_encoder.encoder_service import VideoEncoderService
 from services.camera.recording_service import CameraRecordingService
 from app.exceptions import EncoderError, EncoderConnectionError, EncoderRecordingError
+from app.utils.error_responses import (
+    convert_to_http_exception,
+    ErrorCodes
+)
+from datetime import datetime, timezone
+from fastapi import status
 
 logger = logging.getLogger(__name__)
 
@@ -51,14 +57,14 @@ class RecordingRequest(BaseModel):
 async def list_encoders(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> List[EncoderResponse]:
     """List all registered encoders."""
     try:
         service = VideoEncoderService()
         encoders = await service.list_encoders(db)
         return encoders
     except EncoderError as e:
-        raise HTTPException(status_code=500, detail=str(e.message))
+        raise convert_to_http_exception(e)
 
 
 @router.get("/encoders/{encoder_id}", response_model=EncoderResponse)
@@ -66,7 +72,7 @@ async def get_encoder(
     encoder_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> EncoderResponse:
     """Get encoder details by ID."""
     try:
         service = VideoEncoderService()
@@ -81,10 +87,17 @@ async def discover_encoders(
     network_range: Optional[str] = Query(None, description="Network range (e.g., 192.168.1.0/24)"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Discover encoders on the network."""
     if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "Admin access required",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
     
     try:
         service = VideoEncoderService()
@@ -94,7 +107,7 @@ async def discover_encoders(
             "discovered": discovered
         }
     except EncoderError as e:
-        raise HTTPException(status_code=500, detail=str(e.message))
+        raise convert_to_http_exception(e)
 
 
 @router.post("/encoders", response_model=EncoderResponse)
@@ -102,10 +115,17 @@ async def register_encoder(
     encoder_data: dict,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> EncoderResponse:
     """Register an encoder."""
     if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "Admin access required",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
     
     try:
         service = VideoEncoderService()
@@ -121,10 +141,17 @@ async def start_recording(
     request: RecordingRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Start recording a stream on encoder."""
     if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "Admin access required",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
     
     try:
         service = VideoEncoderService()
@@ -136,8 +163,8 @@ async def start_recording(
             duration=request.duration
         )
         return recording
-    except (EncoderError, EncoderRecordingError) as e:
-        raise HTTPException(status_code=400, detail=str(e.message))
+    except EncoderError as e:
+        raise convert_to_http_exception(e)
 
 
 @router.post("/encoders/{encoder_id}/stop")
@@ -145,17 +172,24 @@ async def stop_recording(
     encoder_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Stop recording on encoder."""
     if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "Admin access required",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
     
     try:
         service = VideoEncoderService()
         result = await service.stop_recording(db, encoder_id)
         return result
-    except (EncoderError, EncoderRecordingError) as e:
-        raise HTTPException(status_code=400, detail=str(e.message))
+    except EncoderError as e:
+        raise convert_to_http_exception(e)
 
 
 @router.get("/encoders/{encoder_id}/status")
@@ -163,7 +197,7 @@ async def get_encoder_status(
     encoder_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Get encoder health/status."""
     try:
         service = VideoEncoderService()
@@ -180,10 +214,17 @@ async def record_camera(
     duration: int = Query(3600, description="Recording duration in seconds"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Record a camera feed using an encoder."""
     if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "Admin access required",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
     
     try:
         service = CameraRecordingService()
@@ -194,13 +235,27 @@ async def record_camera(
             duration=duration
         )
         return recording
-    except (EncoderError, EncoderConnectionError, EncoderRecordingError) as e:
+    except EncoderError as e:
         logger.error(f"Encoder error recording camera {camera_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=400, detail=str(e.message) if hasattr(e, 'message') else str(e))
+        raise convert_to_http_exception(e)
     except ValueError as e:
         logger.error(f"Invalid input for camera recording: {e}", exc_info=True)
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": str(e),
+                "error_code": ErrorCodes.VALIDATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
     except Exception as e:
         logger.error(f"Unexpected error recording camera {camera_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="An internal error occurred while recording camera")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "error": "An internal error occurred while recording camera",
+                "error_code": ErrorCodes.INTERNAL_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
 

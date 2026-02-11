@@ -3,6 +3,8 @@
 import pytest
 import asyncio
 import os
+import tempfile
+import uuid
 from typing import Generator, AsyncGenerator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -14,6 +16,13 @@ from faker import Faker
 # Set required environment variables before importing app modules
 os.environ.setdefault('SECRET_KEY', 'test-secret-key-32-chars-long-enough')
 os.environ.setdefault('JWT_SECRET_KEY', 'test-jwt-secret-key-32-chars-long-enough')
+# CORS: force explicit origins for tests (credentials + '*' fails validation)
+os.environ['CORS_ORIGINS'] = '["http://localhost:3000","http://127.0.0.1:3000"]'
+# Redirect coverage output to a temp path to avoid permission issues
+os.environ.setdefault(
+    "COVERAGE_FILE",
+    os.path.join(tempfile.gettempdir(), f"coverage-{uuid.uuid4().hex}")
+)
 
 from app.main import app
 from app.models import Base, User, Service

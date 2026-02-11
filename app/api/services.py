@@ -4,11 +4,13 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from datetime import datetime, timezone
 from app.models import Service, User
 from app.auth.oauth2 import get_current_user
 from app.database import get_db
 from app.validation import validate_service_url
 from app.config import settings
+from app.utils.error_responses import ErrorCodes
 
 router = APIRouter()
 
@@ -45,7 +47,7 @@ class ServiceResponse(BaseModel):
 async def list_services(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> List[ServiceResponse]:
     """List all registered services."""
     services = db.query(Service).filter(Service.is_active == True).all()
     return services
@@ -56,13 +58,17 @@ async def get_service(
     service_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> ServiceResponse:
     """Get a specific service by ID."""
     service = db.query(Service).filter(Service.id == service_id).first()
     if not service:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Service not found"
+            detail={
+                "error": "Service not found",
+                "error_code": ErrorCodes.NOT_FOUND,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
         )
     return service
 
@@ -72,19 +78,27 @@ async def create_service(
     service_data: ServiceCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> ServiceResponse:
     """Register a new service."""
     if not current_user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only admins can register services"
+            detail={
+                "error": "Only admins can register services",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
         )
     
     # Check if service name already exists
     if db.query(Service).filter(Service.name == service_data.name).first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Service name already exists"
+            detail={
+                "error": "Service name already exists",
+                "error_code": ErrorCodes.CONFLICT,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
         )
     
     # Validate service URLs to prevent SSRF attacks
@@ -103,7 +117,11 @@ async def create_service(
             if not is_valid:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Invalid {url_field}: {error_message}"
+                    detail={
+                        "error": f"Invalid {url_field}: {error_message}",
+                        "error_code": ErrorCodes.VALIDATION_ERROR,
+                        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                    }
                 )
     
     service = Service(**service_data.dict())
@@ -120,19 +138,27 @@ async def update_service(
     service_data: ServiceCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> ServiceResponse:
     """Update a service."""
     if not current_user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only admins can update services"
+            detail={
+                "error": "Only admins can update services",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
         )
     
     service = db.query(Service).filter(Service.id == service_id).first()
     if not service:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Service not found"
+            detail={
+                "error": "Service not found",
+                "error_code": ErrorCodes.NOT_FOUND,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
         )
     
     # Validate service URLs to prevent SSRF attacks
@@ -151,7 +177,11 @@ async def update_service(
             if not is_valid:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Invalid {url_field}: {error_message}"
+                    detail={
+                        "error": f"Invalid {url_field}: {error_message}",
+                        "error_code": ErrorCodes.VALIDATION_ERROR,
+                        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                    }
                 )
     
     for key, value in service_data.dict().items():
@@ -168,19 +198,27 @@ async def delete_service(
     service_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> None:
     """Delete a service."""
     if not current_user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only admins can delete services"
+            detail={
+                "error": "Only admins can delete services",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
         )
     
     service = db.query(Service).filter(Service.id == service_id).first()
     if not service:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Service not found"
+            detail={
+                "error": "Service not found",
+                "error_code": ErrorCodes.NOT_FOUND,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
         )
     
     db.delete(service)

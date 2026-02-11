@@ -14,6 +14,7 @@
                 <button id="help-btn" class="btn btn-help" title="Show help and documentation">?</button>
                 <span id="username">Loading...</span>
                 <button id="refresh-btn" class="btn btn-secondary" title="Refresh service status">Refresh</button>
+                <button id="admin-btn" class="btn btn-secondary" title="Manage services (admin)" style="display: none;">Admin</button>
                 <button id="logout-btn" class="btn btn-secondary">Logout</button>
             </div>
         </header>
@@ -149,6 +150,75 @@
                         <p id="unhealthy-services">-</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Modal (service list and CRUD) -->
+    <div id="admin-modal" class="modal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>Manage Services</h2>
+                <span class="modal-close" data-dismiss="admin-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <button id="admin-add-service-btn" class="btn btn-primary">Add Service</button>
+                <div id="admin-services-table-wrap" class="admin-table-wrap">
+                    <table id="admin-services-table" class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Base URL</th>
+                                <th>Health</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-services-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Service Form Modal (Add/Edit) -->
+    <div id="admin-service-form-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="admin-form-title">Add Service</h2>
+                <span class="modal-close" data-dismiss="admin-service-form-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="admin-service-form">
+                    <input type="hidden" id="admin-service-id" value="">
+                    <div class="form-group">
+                        <label for="admin-service-name">Name</label>
+                        <input type="text" id="admin-service-name" required placeholder="e.g. Seafile">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-service-type">Service type</label>
+                        <input type="text" id="admin-service-type" required placeholder="e.g. file_storage">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-service-base-url">Base URL</label>
+                        <input type="url" id="admin-service-base-url" required placeholder="http://seafile:8000">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-service-api-url">API URL (optional)</label>
+                        <input type="url" id="admin-service-api-url" placeholder="">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-service-health-url">Health check URL (optional)</label>
+                        <input type="url" id="admin-service-health-url" placeholder="">
+                    </div>
+                    <div class="form-group">
+                        <label><input type="checkbox" id="admin-service-requires-auth" checked> Requires auth</label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="admin-service-form-modal">Cancel</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
