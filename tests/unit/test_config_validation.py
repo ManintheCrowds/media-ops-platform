@@ -70,7 +70,8 @@ class TestConfigFieldValidation:
             None
         )
         assert secret_key_error is not None
-        assert 'min_length' in str(secret_key_error['type']).lower()
+        type_str = str(secret_key_error.get('type', '')).lower()
+        assert 'min_length' in type_str or 'string_too_short' in type_str
     
     def test_jwt_secret_key_min_length(self):
         """Test that jwt_secret_key must be at least 32 characters."""
@@ -86,7 +87,8 @@ class TestConfigFieldValidation:
             None
         )
         assert jwt_error is not None
-        assert 'min_length' in str(jwt_error['type']).lower()
+        type_str = str(jwt_error.get('type', '')).lower()
+        assert 'min_length' in type_str or 'string_too_short' in type_str
     
     def test_secret_key_valid_length(self):
         """Test that secret_key with valid length passes."""

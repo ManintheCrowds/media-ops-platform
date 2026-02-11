@@ -1,6 +1,8 @@
 # Self-Hosted Platform Integration
 
-A unified self-hosted platform that integrates multiple Python-based solutions from the awesome-selfhosted ecosystem. This platform provides a central management interface and unified authentication across all services.
+One place to run and manage security, job automation, education, and monitoring services—with a single dashboard, SSO, and an API gateway so everything is discoverable and authenticated in one go.
+
+**Tech stack:** FastAPI, PostgreSQL, Docker Compose, Nginx, Prometheus, Grafana.
 
 ## Features
 
