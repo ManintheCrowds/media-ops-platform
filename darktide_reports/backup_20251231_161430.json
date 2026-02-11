@@ -1,0 +1,81 @@
+﻿{
+    "CertificateRevocation":  {
+                                  "Path":  "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\WinTrust\\Trust Providers\\Software Publishing\\State",
+                                  "Exists":  true,
+                                  "State":  146432
+                              },
+    "SchannelConfig":  null,
+    "Timestamp":  "20251231_161430",
+    "NetworkAdapters":  [
+                            {
+                                "Name":  "Wi-Fi",
+                                "InterfaceMetric":  null
+                            }
+                        ],
+    "FirewallRules":  [
+                          {
+                              "DisplayName":  "Warhammer 40,000: Darktide",
+                              "Direction":  1,
+                              "Action":  2,
+                              "Enabled":  1,
+                              "Profile":  0,
+                              "Program":  null
+                          },
+                          {
+                              "DisplayName":  "Warhammer 40,000: Darktide",
+                              "Direction":  1,
+                              "Action":  2,
+                              "Enabled":  1,
+                              "Profile":  0,
+                              "Program":  null
+                          },
+                          {
+                              "DisplayName":  "Warhammer 40,000: Darktide",
+                              "Direction":  1,
+                              "Action":  2,
+                              "Enabled":  1,
+                              "Profile":  0,
+                              "Program":  null
+                          },
+                          {
+                              "DisplayName":  "Warhammer 40,000: Darktide",
+                              "Direction":  1,
+                              "Action":  2,
+                              "Enabled":  1,
+                              "Profile":  0,
+                              "Program":  null
+                          },
+                          {
+                              "DisplayName":  "Darktide.exe",
+                              "Direction":  1,
+                              "Action":  2,
+                              "Enabled":  2,
+                              "Profile":  1,
+                              "Program":  null
+                          },
+                          {
+                              "DisplayName":  "Darktide.exe",
+                              "Direction":  1,
+                              "Action":  2,
+                              "Enabled":  2,
+                              "Profile":  1,
+                              "Program":  null
+                          },
+                          {
+                              "DisplayName":  "Darktide.exe",
+                              "Direction":  1,
+                              "Action":  2,
+                              "Enabled":  1,
+                              "Profile":  6,
+                              "Program":  null
+                          },
+                          {
+                              "DisplayName":  "Darktide.exe",
+                              "Direction":  1,
+                              "Action":  2,
+                              "Enabled":  1,
+                              "Profile":  6,
+                              "Program":  null
+                          }
+                      ]
+}

@@ -9,7 +9,11 @@ from typing import Dict, List
 from pathlib import Path
 
 BASE_URL = "http://localhost:8004"
-DEBUG_LOG_PATH = Path("C:/Users/artin/software/.cursor/debug.log")
+import os
+import tempfile
+DEBUG_LOG_PATH = Path(
+    os.environ.get("TEST_DEBUG_LOG", str(Path(tempfile.gettempdir()) / "job_automation_test_debug.log"))
+)
 
 
 def write_debug_log(session_id: str, run_id: str, hypothesis_id: str, location: str, message: str, data: Dict):

@@ -1,91 +1,74 @@
 """Grafana API client."""
 
-import httpx
 from typing import Optional, Dict, List, Any
+import base64
+from services.base import BaseServiceClient
 from services.monitoring.config import GrafanaConfig
+from app.exceptions import GrafanaError
 
 
-class GrafanaClient:
+class GrafanaClient(BaseServiceClient):
     """Client for interacting with Grafana API."""
     
     def __init__(self, config: Optional[GrafanaConfig] = None):
         self.config = config or GrafanaConfig()
-        self.base_url = self.config.base_url.rstrip('/')
         self.api_key = self.config.api_key
-        self._session: Optional[httpx.AsyncClient] = None
+        super().__init__(self.config.base_url)
     
-    async def __aenter__(self):
+    def _build_headers(self) -> Dict[str, str]:
+        """Build headers for Grafana (Bearer token or Basic auth)."""
         headers = {}
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
         else:
             # Use basic auth if no API key
-            import base64
             auth_string = f"{self.config.username}:{self.config.password}"
             auth_bytes = auth_string.encode('ascii')
             auth_b64 = base64.b64encode(auth_bytes).decode('ascii')
             headers["Authorization"] = f"Basic {auth_b64}"
-        
-        self._session = httpx.AsyncClient(
-            base_url=f"{self.base_url}/api",
-            timeout=30.0,
-            headers=headers
-        )
-        return self
+        return headers
     
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self._session:
-            await self._session.aclose()
+    def _get_api_base_url(self) -> str:
+        """Get Grafana API base URL."""
+        return f"{self.base_url}/api"
     
-    async def ping(self) -> bool:
-        """Check if Grafana is accessible."""
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(f"{self.base_url}/api/health")
-                return response.status_code == 200
-        except Exception:
-            return False
+    def _get_ping_endpoint(self) -> str:
+        """Get Grafana health check endpoint."""
+        return "/api/health"
     
     async def get_dashboards(self) -> List[Dict[str, Any]]:
         """Get list of dashboards."""
-        if not self._session:
-            async with self:
-                return await self.get_dashboards()
+        await self._ensure_session()
         
-        try:
-            response = await self._session.get("/search", params={"type": "dash-db"})
-            if response.status_code == 200:
-                return response.json()
-        except Exception:
-            pass
-        return []
+        result = await self._handle_request(
+            lambda: self._session.get("/search", params={"type": "dash-db"}),
+            "get_dashboards",
+            default_return=[]
+        )
+        return result if isinstance(result, list) else []
     
     async def get_dashboard(self, uid: str) -> Optional[Dict[str, Any]]:
         """Get a specific dashboard."""
-        if not self._session:
-            async with self:
-                return await self.get_dashboard(uid)
+        await self._ensure_session()
         
-        try:
-            response = await self._session.get(f"/dashboards/uid/{uid}")
-            if response.status_code == 200:
-                return response.json()
-        except Exception:
-            pass
-        return None
+        result = await self._handle_request(
+            lambda: self._session.get(f"/dashboards/uid/{uid}"),
+            "get_dashboard",
+            default_return=None,
+            raise_on_error=True,
+            exception_class=GrafanaError
+        )
+        return result
     
     async def get_datasources(self) -> List[Dict[str, Any]]:
         """Get list of datasources."""
-        if not self._session:
-            async with self:
-                return await self.get_datasources()
+        await self._ensure_session()
         
-        try:
-            response = await self._session.get("/datasources")
-            if response.status_code == 200:
-                return response.json()
-        except Exception:
-            pass
-        return []
+        result = await self._handle_request(
+            lambda: self._session.get("/datasources"),
+            "get_datasources",
+            default_return=[]
+        )
+        return result if isinstance(result, list) else []
 
 

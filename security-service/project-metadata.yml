@@ -1,0 +1,13 @@
+project:
+  name: security-service
+  owner: schum
+  data_tier: restricted
+  repo_visibility: private
+  security_scanning:
+    secrets: required
+    sast: required
+    dependency: required
+  compliance:
+    requirements: []
+    notes: ""
+

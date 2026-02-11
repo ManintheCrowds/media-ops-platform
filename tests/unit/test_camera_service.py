@@ -227,7 +227,7 @@ class TestArloServiceRegister:
         result = await arlo_service.register_camera(db_session, camera_data)
         
         assert result['name'] == 'New Name'
-        assert result['status'] == 'ONLINE'
+        assert result['status'] == 'online'
         
         # Verify update
         db_session.refresh(camera)

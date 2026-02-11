@@ -1,0 +1,13 @@
+project:
+  name: software_platform
+  owner: schum
+  data_tier: confidential
+  repo_visibility: private
+  security_scanning:
+    secrets: required
+    sast: required
+    dependency: required
+  compliance:
+    requirements: []
+    notes: ""
+

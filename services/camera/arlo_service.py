@@ -497,7 +497,11 @@ class ArloService:
                                 return device_info
                     except asyncio.TimeoutError:
                         continue
-                    except Exception:
+                    except (aiohttp.ClientError, OSError, socket.error) as e:
+                        logger.debug(f"Network error probing {ip}: {e}")
+                        continue
+                    except Exception as e:
+                        logger.warning(f"Unexpected error probing {ip}: {e}", exc_info=True)
                         continue
         
         except Exception as e:

@@ -2,9 +2,9 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 from app.database import get_db
@@ -18,6 +18,11 @@ from app.exceptions import (
     ArloConnectionError,
     ArloCameraError,
     ArloRecordingError
+)
+from app.utils.error_responses import (
+    handle_service_error,
+    convert_to_http_exception,
+    ErrorCodes
 )
 
 router = APIRouter(prefix="/api/camera", tags=["camera"])
@@ -98,14 +103,14 @@ class DiscoverRequest(BaseModel):
 async def list_cameras(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> List[CameraResponse]:
     """List all registered cameras."""
     try:
         service = ArloService()
         cameras = await service.list_cameras(db)
         return cameras
     except ArloError as e:
-        raise HTTPException(status_code=500, detail=str(e.message))
+        raise convert_to_http_exception(e)
 
 
 @router.get("/cameras/{camera_id}", response_model=CameraResponse)
@@ -113,16 +118,14 @@ async def get_camera(
     camera_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> CameraResponse:
     """Get camera details by ID."""
     try:
         service = ArloService()
         camera = await service.get_camera(db, camera_id)
         return camera
-    except ArloCameraError as e:
-        raise HTTPException(status_code=404, detail=str(e.message))
     except ArloError as e:
-        raise HTTPException(status_code=500, detail=str(e.message))
+        raise convert_to_http_exception(e)
 
 
 @router.post("/cameras/discover", response_model=List[CameraResponse])
@@ -130,10 +133,17 @@ async def discover_cameras(
     request: Optional[DiscoverRequest] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> List[CameraResponse]:
     """Discover and register cameras from base station."""
     if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "Admin access required",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
     
     try:
         service = ArloService()
@@ -152,10 +162,8 @@ async def discover_cameras(
                 logger.error(f"Failed to register camera {camera_data.get('device_id')}: {str(e)}")
         
         return registered
-    except ArloConnectionError as e:
-        raise HTTPException(status_code=503, detail=str(e.message))
     except ArloError as e:
-        raise HTTPException(status_code=500, detail=str(e.message))
+        raise convert_to_http_exception(e)
 
 
 @router.post("/cameras/{camera_id}/arm", response_model=CameraResponse)
@@ -163,19 +171,24 @@ async def arm_camera(
     camera_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> CameraResponse:
     """Arm camera (enable motion detection)."""
     if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "Admin access required",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
     
     try:
         service = ArloService()
         camera = await service.arm_camera(db, camera_id)
         return camera
-    except ArloCameraError as e:
-        raise HTTPException(status_code=404, detail=str(e.message))
     except ArloError as e:
-        raise HTTPException(status_code=500, detail=str(e.message))
+        raise convert_to_http_exception(e)
 
 
 @router.post("/cameras/{camera_id}/disarm", response_model=CameraResponse)
@@ -183,19 +196,24 @@ async def disarm_camera(
     camera_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> CameraResponse:
     """Disarm camera (disable motion detection)."""
     if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "Admin access required",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
     
     try:
         service = ArloService()
         camera = await service.disarm_camera(db, camera_id)
         return camera
-    except ArloCameraError as e:
-        raise HTTPException(status_code=404, detail=str(e.message))
     except ArloError as e:
-        raise HTTPException(status_code=500, detail=str(e.message))
+        raise convert_to_http_exception(e)
 
 
 @router.post("/cameras/{camera_id}/snapshot", response_model=SnapshotResponse)
@@ -203,19 +221,24 @@ async def capture_snapshot(
     camera_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> SnapshotResponse:
     """Capture a snapshot from camera."""
     if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "Admin access required",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
     
     try:
         service = ArloService()
         snapshot = await service.capture_snapshot(db, camera_id)
         return snapshot
-    except ArloCameraError as e:
-        raise HTTPException(status_code=404, detail=str(e.message))
     except ArloError as e:
-        raise HTTPException(status_code=500, detail=str(e.message))
+        raise convert_to_http_exception(e)
 
 
 @router.get("/cameras/{camera_id}/status")
@@ -223,16 +246,14 @@ async def get_camera_status(
     camera_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Get camera health/status."""
     try:
         service = ArloService()
         status_info = await service.get_camera_status(db, camera_id)
         return status_info
-    except ArloCameraError as e:
-        raise HTTPException(status_code=404, detail=str(e.message))
     except ArloError as e:
-        raise HTTPException(status_code=500, detail=str(e.message))
+        raise convert_to_http_exception(e)
 
 
 @router.get("/cameras/{camera_id}/recordings", response_model=List[RecordingResponse])
@@ -243,16 +264,14 @@ async def get_recordings(
     limit: int = Query(100, ge=1, le=1000, description="Maximum number of recordings"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> List[RecordingResponse]:
     """List recordings for a specific camera."""
     try:
         service = ArloService()
         recordings = await service.get_library(db, camera_id, start_date, end_date, limit)
         return recordings
-    except ArloCameraError as e:
-        raise HTTPException(status_code=404, detail=str(e.message))
     except ArloError as e:
-        raise HTTPException(status_code=500, detail=str(e.message))
+        raise convert_to_http_exception(e)
 
 
 @router.get("/cameras/{camera_id}/recordings/{recording_id}/download")
@@ -261,19 +280,24 @@ async def download_recording(
     recording_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Get download URL for a recording."""
     if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "Admin access required",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
     
     try:
         service = ArloService()
         recording = await service.download_recording(db, camera_id, recording_id)
         return recording
-    except (ArloCameraError, ArloRecordingError) as e:
-        raise HTTPException(status_code=404, detail=str(e.message))
     except ArloError as e:
-        raise HTTPException(status_code=500, detail=str(e.message))
+        raise convert_to_http_exception(e)
 
 
 @router.delete("/cameras/{camera_id}/recordings/{recording_id}")
@@ -282,35 +306,38 @@ async def delete_recording(
     recording_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Delete a recording from Arlo cloud."""
     if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "Admin access required",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
     
     try:
         service = ArloService()
         result = await service.delete_recording(db, camera_id, recording_id)
         return result
-    except (ArloCameraError, ArloRecordingError) as e:
-        raise HTTPException(status_code=404, detail=str(e.message))
     except ArloError as e:
-        raise HTTPException(status_code=500, detail=str(e.message))
+        raise convert_to_http_exception(e)
 
 
 @router.get("/base-station", response_model=BaseStationResponse)
 async def get_base_station(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> BaseStationResponse:
     """Get information about the Arlo base station."""
     try:
         service = ArloService()
         base_station = await service.get_base_station(db)
         return base_station
-    except ArloConnectionError as e:
-        raise HTTPException(status_code=404, detail=str(e.message))
     except ArloError as e:
-        raise HTTPException(status_code=500, detail=str(e.message))
+        raise convert_to_http_exception(e)
 
 
 @router.post("/cameras/{camera_id}/live-stream", response_model=StreamResponse)
@@ -318,29 +345,41 @@ async def start_live_stream(
     camera_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> StreamResponse:
     """Start a live stream from an Arlo camera."""
     if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "Admin access required",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
     
     try:
         service = ArloService()
         stream = await service.start_live_stream(db, camera_id)
         return stream
-    except ArloCameraError as e:
-        raise HTTPException(status_code=404, detail=str(e.message))
     except ArloError as e:
-        raise HTTPException(status_code=500, detail=str(e.message))
+        raise convert_to_http_exception(e)
 
 
 @router.post("/scan-network")
 async def scan_network(
     network_range: Optional[str] = Query(None, description="Network range (e.g., 192.168.1.0/24)"),
     current_user: User = Depends(get_current_user)
-):
+) -> Dict[str, Any]:
     """Scan local network for potential Arlo base stations."""
     if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "Admin access required",
+                "error_code": ErrorCodes.AUTHORIZATION_ERROR,
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            }
+        )
     
     try:
         service = ArloService()
@@ -357,7 +396,7 @@ async def scan_network(
 async def arlo_webhook_event(
     event_data: dict,
     db: Session = Depends(get_db)
-):
+) -> Dict[str, Any]:
     """Endpoint for Arlo to send event webhooks."""
     # Note: This would typically not require authentication for webhooks
     # but you may want to add webhook signature verification

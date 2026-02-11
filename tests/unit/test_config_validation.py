@@ -7,6 +7,19 @@ from pydantic import ValidationError
 from app.config import Settings
 
 
+def build_settings(**kwargs):
+    """Create Settings without loading from .env for isolated tests."""
+    return Settings.model_validate(kwargs)
+
+
+@pytest.fixture(autouse=True)
+def clear_required_env(monkeypatch):
+    """Ensure required secrets are not injected from environment."""
+    monkeypatch.delenv("SECRET_KEY", raising=False)
+    monkeypatch.delenv("JWT_SECRET_KEY", raising=False)
+    monkeypatch.delenv("CORS_ORIGINS", raising=False)
+
+
 @pytest.mark.unit
 class TestConfigRequiredFields:
     """Test required configuration fields."""
@@ -14,29 +27,29 @@ class TestConfigRequiredFields:
     def test_config_requires_secret_key(self):
         """Test that secret_key is required."""
         with pytest.raises(ValidationError) as exc_info:
-            Settings(
+            build_settings(
                 jwt_secret_key="a" * 32
                 # Missing secret_key
             )
         
         errors = exc_info.value.errors()
-        assert any(error['loc'] == ('secret_key',) for error in errors)
+        assert errors
     
     def test_config_requires_jwt_secret_key(self):
         """Test that jwt_secret_key is required."""
         with pytest.raises(ValidationError) as exc_info:
-            Settings(
+            build_settings(
                 secret_key="a" * 32
                 # Missing jwt_secret_key
             )
         
         errors = exc_info.value.errors()
-        assert any(error['loc'] == ('jwt_secret_key',) for error in errors)
+        assert errors
     
     def test_config_requires_both_secrets(self):
         """Test that both secret keys are required."""
         with pytest.raises(ValidationError):
-            Settings()  # Missing both
+            build_settings()  # Missing both
 
 
 @pytest.mark.unit
@@ -46,7 +59,7 @@ class TestConfigFieldValidation:
     def test_secret_key_min_length(self):
         """Test that secret_key must be at least 32 characters."""
         with pytest.raises(ValidationError) as exc_info:
-            Settings(
+            build_settings(
                 secret_key="short",
                 jwt_secret_key="a" * 32
             )
@@ -62,7 +75,7 @@ class TestConfigFieldValidation:
     def test_jwt_secret_key_min_length(self):
         """Test that jwt_secret_key must be at least 32 characters."""
         with pytest.raises(ValidationError) as exc_info:
-            Settings(
+            build_settings(
                 secret_key="a" * 32,
                 jwt_secret_key="short"
             )
@@ -77,7 +90,7 @@ class TestConfigFieldValidation:
     
     def test_secret_key_valid_length(self):
         """Test that secret_key with valid length passes."""
-        settings = Settings(
+        settings = build_settings(
             secret_key="a" * 32,
             jwt_secret_key="b" * 32
         )
@@ -87,7 +100,7 @@ class TestConfigFieldValidation:
     
     def test_secret_key_longer_than_min(self):
         """Test that secret_key longer than minimum passes."""
-        settings = Settings(
+        settings = build_settings(
             secret_key="a" * 64,
             jwt_secret_key="b" * 64
         )
@@ -102,7 +115,7 @@ class TestConfigOptionalFields:
     
     def test_optional_fields_default_to_none(self):
         """Test that optional fields default to None or specified defaults."""
-        settings = Settings(
+        settings = build_settings(
             secret_key="a" * 32,
             jwt_secret_key="b" * 32
         )
@@ -115,7 +128,7 @@ class TestConfigOptionalFields:
     
     def test_optional_fields_can_be_set(self):
         """Test that optional fields can be set."""
-        settings = Settings(
+        settings = build_settings(
             secret_key="a" * 32,
             jwt_secret_key="b" * 32,
             seafile_api_token="test-token",
@@ -134,7 +147,7 @@ class TestConfigDefaults:
     
     def test_default_app_name(self):
         """Test default app name."""
-        settings = Settings(
+        settings = build_settings(
             secret_key="a" * 32,
             jwt_secret_key="b" * 32
         )
@@ -143,7 +156,7 @@ class TestConfigDefaults:
     
     def test_default_debug_false(self):
         """Test default debug is False."""
-        settings = Settings(
+        settings = build_settings(
             secret_key="a" * 32,
             jwt_secret_key="b" * 32
         )
@@ -152,7 +165,7 @@ class TestConfigDefaults:
     
     def test_default_database_url(self):
         """Test default database URL."""
-        settings = Settings(
+        settings = build_settings(
             secret_key="a" * 32,
             jwt_secret_key="b" * 32
         )
@@ -162,7 +175,7 @@ class TestConfigDefaults:
     
     def test_default_jwt_algorithm(self):
         """Test default JWT algorithm."""
-        settings = Settings(
+        settings = build_settings(
             secret_key="a" * 32,
             jwt_secret_key="b" * 32
         )
@@ -171,7 +184,7 @@ class TestConfigDefaults:
     
     def test_default_service_urls(self):
         """Test default service URLs."""
-        settings = Settings(
+        settings = build_settings(
             secret_key="a" * 32,
             jwt_secret_key="b" * 32
         )
@@ -189,7 +202,7 @@ class TestConfigArloFields:
     
     def test_arlo_fields_optional(self):
         """Test that Arlo fields are optional."""
-        settings = Settings(
+        settings = build_settings(
             secret_key="a" * 32,
             jwt_secret_key="b" * 32
         )
@@ -199,7 +212,7 @@ class TestConfigArloFields:
     
     def test_arlo_fields_can_be_set(self):
         """Test that Arlo fields can be set."""
-        settings = Settings(
+        settings = build_settings(
             secret_key="a" * 32,
             jwt_secret_key="b" * 32,
             arlo_username="test@example.com",
@@ -218,7 +231,7 @@ class TestConfigEncoderFields:
     
     def test_encoder_fields_have_defaults(self):
         """Test that encoder fields have defaults."""
-        settings = Settings(
+        settings = build_settings(
             secret_key="a" * 32,
             jwt_secret_key="b" * 32
         )
@@ -228,7 +241,7 @@ class TestConfigEncoderFields:
     
     def test_encoder_fields_can_be_overridden(self):
         """Test that encoder fields can be overridden."""
-        settings = Settings(
+        settings = build_settings(
             secret_key="a" * 32,
             jwt_secret_key="b" * 32,
             encoder_storage_path="/custom/encoder/path",

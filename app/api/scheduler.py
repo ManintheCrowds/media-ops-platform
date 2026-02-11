@@ -77,12 +77,16 @@ class SchedulerStatusResponse(BaseModel):
     limit_per_query: Optional[int] = None
 
 
-@router.post("/start", response_model=SchedulerStatusResponse)
+@router.post(
+    "/start",
+    response_model=SchedulerStatusResponse,
+    responses={401: {"description": "Not authenticated"}, 500: {"description": "Failed to start scheduler"}},
+)
 async def start_scheduler(
     background_tasks: BackgroundTasks,
     request: ScheduledSearchRequest,
     current_user: User = Depends(get_current_user)
-):
+) -> SchedulerStatusResponse:
     """Start the scheduler for continuous job searches."""
     global _scheduler_running, _current_config
     
@@ -139,10 +143,14 @@ async def start_scheduler(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/status", response_model=SchedulerStatusResponse)
+@router.get(
+    "/status",
+    response_model=SchedulerStatusResponse,
+    responses={401: {"description": "Not authenticated"}},
+)
 async def get_scheduler_status(
     current_user: User = Depends(get_current_user)
-):
+) -> SchedulerStatusResponse:
     """Get current scheduler status."""
     global _scheduler_running, _current_config
     
@@ -163,10 +171,14 @@ async def get_scheduler_status(
         }
 
 
-@router.post("/stop", response_model=SchedulerStatusResponse)
+@router.post(
+    "/stop",
+    response_model=SchedulerStatusResponse,
+    responses={401: {"description": "Not authenticated"}, 500: {"description": "Failed to stop scheduler"}},
+)
 async def stop_scheduler(
     current_user: User = Depends(get_current_user)
-):
+) -> SchedulerStatusResponse:
     """Stop the scheduler."""
     global _scheduler_running, _current_config
     

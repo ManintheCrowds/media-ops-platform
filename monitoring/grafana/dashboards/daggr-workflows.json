@@ -1,0 +1,69 @@
+{
+  "dashboard": {
+    "title": "DAGGR Workflow Metrics",
+    "tags": ["daggr", "workflows", "watchtower", "campaign_kb"],
+    "timezone": "browser",
+    "schemaVersion": 27,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Workflow runs by project and status",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "increase(daggr_workflow_runs_total{project=~\"watchtower_main|campaign_kb\"}[5m])",
+            "legendFormat": "{{project}} {{workflow}} {{status}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {"drawStyle": "line", "fillOpacity": 10}
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Workflow run duration (seconds) by project",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.5, sum(rate(daggr_workflow_duration_seconds_bucket{project=~\"watchtower_main|campaign_kb\"}[5m])) by (le, project, workflow))",
+            "legendFormat": "p50 {{project}} {{workflow}}",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(daggr_workflow_duration_seconds_bucket{project=~\"watchtower_main|campaign_kb\"}[5m])) by (le, project, workflow))",
+            "legendFormat": "p95 {{project}} {{workflow}}",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "custom": {"drawStyle": "line", "fillOpacity": 10}
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Total workflow runs (counter by project/workflow/status)",
+        "type": "table",
+        "gridPos": {"h": 6, "w": 24, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "daggr_workflow_runs_total{project=~\"watchtower_main|campaign_kb\"}",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ]
+      }
+    ]
+  }
+}

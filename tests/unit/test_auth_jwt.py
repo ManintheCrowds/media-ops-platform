@@ -45,7 +45,7 @@ class TestJWTHandler:
         )
         
         # Check expiration is approximately 60 minutes from now
-        exp_time = datetime.fromtimestamp(payload["exp"])
+        exp_time = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
         now = datetime.now(timezone.utc)
         diff = exp_time - now
         

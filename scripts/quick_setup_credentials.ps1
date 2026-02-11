@@ -119,3 +119,6 @@ Write-Host "Example usage:" -ForegroundColor Yellow
 Write-Host '  .\quick_setup_credentials.ps1 -ArloUsername "email@example.com" -ArloPassword "password"' -ForegroundColor White
 Write-Host '  .\quick_setup_credentials.ps1 -AdzunaApiKey "your-key" -JSearchApiKey "your-key"' -ForegroundColor White
 
+
+
+

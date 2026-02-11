@@ -68,31 +68,32 @@ class TestPasswordHashing:
 
 @pytest.mark.unit
 @pytest.mark.auth
+@pytest.mark.asyncio
 class TestGetCurrentUser:
     """Test get_current_user dependency."""
     
-    def test_get_current_user_valid_token(self, db_session, test_user):
+    async def test_get_current_user_valid_token(self, db_session, test_user):
         """Test getting user with valid token."""
         token = create_access_token(
             data={"sub": test_user.username, "email": test_user.email, "is_admin": test_user.is_admin},
             expires_delta=timedelta(minutes=30)
         )
         
-        user = get_current_user(token, db_session)
+        user = await get_current_user(token, db_session)
         
         assert user is not None
         assert user.id == test_user.id
         assert user.username == test_user.username
         assert user.email == test_user.email
     
-    def test_get_current_user_invalid_token(self, db_session):
+    async def test_get_current_user_invalid_token(self, db_session):
         """Test getting user with invalid token."""
         invalid_token = "invalid.token.here"
         
         with pytest.raises(Exception):  # Should raise HTTPException
-            get_current_user(invalid_token, db_session)
+            await get_current_user(invalid_token, db_session)
     
-    def test_get_current_user_nonexistent_user(self, db_session):
+    async def test_get_current_user_nonexistent_user(self, db_session):
         """Test getting user that doesn't exist."""
         token = create_access_token(
             data={"sub": "nonexistent", "email": "nonexistent@example.com", "is_admin": False},
@@ -100,9 +101,9 @@ class TestGetCurrentUser:
         )
         
         with pytest.raises(Exception):  # Should raise HTTPException
-            get_current_user(token, db_session)
+            await get_current_user(token, db_session)
     
-    def test_get_current_user_expired_token(self, db_session, test_user):
+    async def test_get_current_user_expired_token(self, db_session, test_user):
         """Test getting user with expired token."""
         token = create_access_token(
             data={"sub": test_user.username, "email": test_user.email, "is_admin": test_user.is_admin},
@@ -110,4 +111,4 @@ class TestGetCurrentUser:
         )
         
         with pytest.raises(Exception):  # Should raise HTTPException
-            get_current_user(token, db_session)
+            await get_current_user(token, db_session)

@@ -1,11 +1,13 @@
 """Configuration for camera services."""
 
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
 from typing import Optional
 from pathlib import Path
+from app.config_base import BaseServiceConfig
 
 
-class CameraConfig(BaseSettings):
+class CameraConfig(BaseServiceConfig):
     """Camera service configuration."""
     
     # Arlo Configuration
@@ -18,6 +20,25 @@ class CameraConfig(BaseSettings):
     class Config:
         env_prefix = "ARLO_"
         case_sensitive = False
+    
+    @field_validator('arlo_storage_path')
+    @classmethod
+    def validate_storage_path(cls, v: str) -> str:
+        """Validate storage path exists or is creatable."""
+        BaseServiceConfig.validate_path(v, must_be_creatable=True)
+        return v
+    
+    @field_validator('arlo_sync_interval')
+    @classmethod
+    def validate_sync_interval(cls, v: int) -> int:
+        """Validate sync interval is positive."""
+        return BaseServiceConfig.validate_positive_int(v, "arlo_sync_interval")
+    
+    @field_validator('arlo_username', 'arlo_password')
+    @classmethod
+    def validate_credentials(cls, v: Optional[str]) -> Optional[str]:
+        """Validate credentials are non-empty if provided."""
+        return BaseServiceConfig.validate_non_empty_string(v, "arlo_credentials")
     
     @property
     def storage_path(self) -> Path:

@@ -61,7 +61,7 @@ def matches_allowed_pattern(url: str, patterns: list[str]) -> bool:
         pattern_netloc = pattern_parsed.netloc
         
         # Check if pattern has wildcard port (e.g., "seafile:*")
-        has_wildcard_port = pattern_netloc and ":*" in pattern_netloc
+        has_wildcard_port = pattern_netloc and pattern_netloc.endswith(":*")
         
         # Extract hostname - if wildcard port, remove ":*" first
         if has_wildcard_port:
@@ -69,7 +69,13 @@ def matches_allowed_pattern(url: str, patterns: list[str]) -> bool:
         else:
             pattern_hostname = pattern_parsed.hostname
         
-        pattern_port = pattern_parsed.port
+        pattern_port = None
+        if not has_wildcard_port:
+            try:
+                pattern_port = pattern_parsed.port
+            except ValueError:
+                # Invalid port in pattern - treat as non-match
+                continue
         
         # Check scheme match
         if pattern_scheme and url_scheme != pattern_scheme:
@@ -221,7 +227,7 @@ def validate_service_url(
         ]
         path_lower = parsed.path.lower()
         for pattern in dangerous_path_patterns:
-            if pattern in path_lower:
+            if pattern.lower() in path_lower:
                 return False, "Path traversal attempts are not allowed"
     
     # URL is valid
