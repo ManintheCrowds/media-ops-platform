@@ -1,8 +1,16 @@
-# Self-Hosted Platform Integration
+# Self-Hosted Platform — Unified Home Lab Integration
 
 One place to run and manage security, job automation, education, and monitoring services—with a single dashboard, SSO, and an API gateway so everything is discoverable and authenticated in one go.
 
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/) [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 **Tech stack:** FastAPI, PostgreSQL, Docker Compose, Nginx, Prometheus, Grafana.
+
+## Problem → Solution → Impact
+
+- **Problem:** Self-hosted services (Jellyfin, Seafile, Gitea, Vaultwarden, etc.) each have their own auth, dashboards, and health checks—no single pane of glass.
+- **Solution:** FastAPI-based Platform API with OAuth2/JWT SSO, service registry, API gateway, and unified dashboard. All services integrate through one authenticated entry point.
+- **Impact:** Single sign-on across services; centralized monitoring; one API to discover and manage everything.
 
 ## Features
 
@@ -14,6 +22,33 @@ One place to run and manage security, job automation, education, and monitoring 
 - **Docker Integration**: Easy deployment via Docker Compose
 
 ## Architecture Overview
+
+```mermaid
+flowchart TB
+  subgraph platform [Platform API]
+    API[FastAPI Gateway]
+    Auth[OAuth2/JWT SSO]
+    Registry[Service Registry]
+  end
+  subgraph services [Services]
+    Jellyfin[Jellyfin]
+    Seafile[Seafile]
+    Gitea[Gitea]
+    Vaultwarden[Vaultwarden]
+  end
+  subgraph monitor [Monitoring]
+    Prom[Prometheus]
+    Grafana[Grafana]
+  end
+  API --> Auth
+  API --> Registry
+  API --> Jellyfin
+  API --> Seafile
+  API --> Gitea
+  API --> Vaultwarden
+  API --> Prom
+  Prom --> Grafana
+```
 
 ### Service Integration
 - All services integrate through Platform API
