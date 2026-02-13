@@ -1,23 +1,38 @@
 """Unit tests for configuration validation and error handling."""
 
 import pytest
-import os
 from pydantic import ValidationError
 
 from app.config import Settings
 
 
+class _TestSettings(Settings):
+    """Settings that only use init/kwargs, not env or .env (for isolated validation tests)."""
+
+    @classmethod
+    def settings_customise_sources(cls, settings_cls, init_settings, env_settings, dotenv_settings, file_secret_settings):
+        return (init_settings,)  # Exclude env and dotenv so tests are deterministic
+
+
 def build_settings(**kwargs):
     """Create Settings without loading from .env for isolated tests."""
-    return Settings.model_validate(kwargs)
+    if "cors_origins" not in kwargs:
+        kwargs["cors_origins"] = []
+    return _TestSettings.model_validate(kwargs)
 
 
 @pytest.fixture(autouse=True)
-def clear_required_env(monkeypatch):
-    """Ensure required secrets are not injected from environment."""
+def clear_config_env(monkeypatch):
+    """Isolate config tests: clear env vars that conftest/.env set so validation tests behave correctly."""
     monkeypatch.delenv("SECRET_KEY", raising=False)
     monkeypatch.delenv("JWT_SECRET_KEY", raising=False)
     monkeypatch.delenv("CORS_ORIGINS", raising=False)
+    monkeypatch.delenv("DEBUG", raising=False)
+    monkeypatch.delenv("SEAFILE_API_TOKEN", raising=False)
+    monkeypatch.delenv("JELLYFIN_API_KEY", raising=False)
+    monkeypatch.delenv("GITEA_API_TOKEN", raising=False)
+    monkeypatch.delenv("GRAFANA_PASSWORD", raising=False)
+    monkeypatch.delenv("VAULTWARDEN_ADMIN_TOKEN", raising=False)
 
 
 @pytest.mark.unit
@@ -94,7 +109,7 @@ class TestConfigFieldValidation:
         """Test that secret_key with valid length passes."""
         settings = build_settings(
             secret_key="a" * 32,
-            jwt_secret_key="b" * 32
+            jwt_secret_key="b" * 32,
         )
         
         assert len(settings.secret_key) == 32
@@ -262,10 +277,10 @@ class TestConfigErrorHandling:
         """Test that invalid database URL format is handled."""
         # Pydantic will validate URL format if we add validators
         # For now, just test that it accepts string
-        settings = Settings(
+        settings = build_settings(
             secret_key="a" * 32,
             jwt_secret_key="b" * 32,
-            database_url="invalid-url"
+            database_url="invalid-url",
         )
         
         # Should still create settings (validation happens at connection time)
@@ -274,16 +289,10 @@ class TestConfigErrorHandling:
     def test_empty_string_secret_key(self):
         """Test that empty string secret_key fails validation."""
         with pytest.raises(ValidationError):
-            Settings(
-                secret_key="",
-                jwt_secret_key="b" * 32
-            )
-    
+            build_settings(secret_key="", jwt_secret_key="b" * 32)
+
     def test_none_secret_key(self):
         """Test that None secret_key fails validation."""
         with pytest.raises(ValidationError):
-            Settings(
-                secret_key=None,
-                jwt_secret_key="b" * 32
-            )
+            build_settings(secret_key=None, jwt_secret_key="b" * 32)
 
