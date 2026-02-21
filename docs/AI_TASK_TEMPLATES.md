@@ -87,7 +87,7 @@
 ### Dependency Graph
 
 ```mermaid
-graph LR
+flowchart LR
     T1[Task 1: Config] --> T2[Task 2: Client]
     T2 --> T3[Task 3: Gateway]
     T3 --> T4[Task 4: Docker]
@@ -193,7 +193,7 @@ graph LR
 ### Dependency Graph
 
 ```mermaid
-graph LR
+flowchart LR
     T1[Task 1: Models] --> T2[Task 2: Endpoint]
     T2 --> T3[Task 3: Error Handling]
     T2 --> T4[Task 4: Register]
@@ -300,7 +300,7 @@ graph LR
 ### Dependency Graph
 
 ```mermaid
-graph TB
+flowchart TB
     T1[Task 1: Backup] --> T9[Task 9: Apply]
     T2[Task 2: Git Tag] --> T9
     T3[Task 3: Review] --> T4[Task 4: Create Script]
@@ -389,7 +389,7 @@ Tasks 1, 2, 3, 4, 5, 6, 7, 8, 9 form the critical path. No parallelization recom
 ### Dependency Graph
 
 ```mermaid
-graph LR
+flowchart LR
     T1[Task 1: Reproduce] --> T2[Task 2: Failing Test]
     T2 --> T3[Task 3: Fix]
     T3 --> T4[Task 4: Regression Tests]
@@ -459,7 +459,7 @@ None - sequential execution required.
 ### Dependency Graph
 
 ```mermaid
-graph LR
+flowchart LR
     T1[Task 1: Identify] --> T2[Task 2: Preserve]
     T2 --> T3[Task 3: Update]
     T3 --> T4[Task 4: Cross-refs]
@@ -533,7 +533,7 @@ None - sequential execution required.
 ### Dependency Graph
 
 ```mermaid
-graph LR
+flowchart LR
     T1[Task 1: Assess] --> T2[Task 2: Tests]
     T2 --> T3[Task 3: Git Tag]
     T3 --> T4[Task 4: Refactor]
@@ -643,7 +643,7 @@ None - incremental refactoring requires sequential execution.
 ### Dependency Graph
 
 ```mermaid
-graph TB
+flowchart TB
     T1[Task 1: Design] --> T2[Task 2: Design Doc]
     T1 --> T3[Task 3: Models]
     T3 --> T4[Task 4: Core Logic]

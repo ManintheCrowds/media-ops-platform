@@ -41,7 +41,7 @@
 ## Document Relationships
 
 ```mermaid
-graph TB
+flowchart TB
     Start[AI Agent Starts Task] --> Index[AI_DOCUMENTATION_INDEX.md]
     Index -->|Understand Principles| Principles[AI_PRINCIPLES.md]
     Index -->|Plan Task| Templates[AI_TASK_TEMPLATES.md]
@@ -328,6 +328,8 @@ graph TB
 
 ---
 
-**Last Updated**: 2024-01-01  
+**Last Updated**: 2026-02-20  
 **Maintained By**: Project Team  
 **Review Cycle**: Quarterly
+
+**Multi-workspace:** For agents operating across CodeRepositories, Arc_Forge, moltbook-watchtower, and other roots, see [D:\CodeRepositories\.cursor\docs\AGENT_ENTRY_INDEX.md](D:\CodeRepositories\.cursor\docs\AGENT_ENTRY_INDEX.md) for handoff, context engineering, and cross-repo navigation.

@@ -9,7 +9,7 @@ This document describes the network architecture, port mappings, and service com
 The platform uses a single Docker bridge network (`platform-network`) that connects all services, enabling secure internal communication while maintaining isolation from external networks.
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph "Docker Network: platform-network"
         subgraph "Platform Services"
             Platform[Platform API<br/>platform-api<br/>8000]
@@ -111,7 +111,7 @@ graph TB
 ### Internal Service Communication
 
 ```mermaid
-graph LR
+flowchart LR
     subgraph "Platform API Communication"
         Platform[Platform API] -->|HTTP| Seafile[Seafile]
         Platform -->|HTTP| Jellyfin[Jellyfin]
@@ -152,7 +152,7 @@ graph LR
 ### Security Boundaries
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph "External Zone"
         Internet[Internet]
     end
@@ -367,7 +367,7 @@ For enhanced security and network segmentation, the platform supports VLAN-based
 ### VLAN Network Topology
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph "Internet"
         WAN[WAN Connection]
     end

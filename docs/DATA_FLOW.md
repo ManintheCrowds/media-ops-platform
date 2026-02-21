@@ -353,7 +353,7 @@ sequenceDiagram
 ### Request Transformation
 
 ```mermaid
-graph LR
+flowchart LR
     ClientRequest[Client Request<br/>JSON] --> Validation[Pydantic Validation]
     Validation --> BusinessLogic[Business Logic]
     BusinessLogic --> DBQuery[Database Query]
@@ -363,7 +363,7 @@ graph LR
 ### Response Transformation
 
 ```mermaid
-graph LR
+flowchart LR
     DBResult[Database Result<br/>SQLAlchemy Model] --> Serialization[Pydantic Serialization]
     ServiceResponse[Service Response<br/>Raw JSON] --> Transformation[Data Transformation]
     Serialization --> JSONResponse[JSON Response]
