@@ -7,7 +7,7 @@ The Self-Hosted Platform Integration is a unified gateway system that integrates
 ## System Architecture
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph "Client Layer"
         Browser[Web Browser]
         API_Client[API Client]
@@ -221,7 +221,7 @@ All service clients follow a consistent pattern:
 ## Deployment Architecture
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph "Docker Network"
         subgraph "Platform Services"
             Platform[Platform API Container]
@@ -280,7 +280,7 @@ graph TB
 ### FastAPI Application Structure
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph "FastAPI Application"
         subgraph "Middleware Layer"
             CORS[CORS Middleware]
@@ -328,7 +328,7 @@ graph TB
 ### Service Client Pattern
 
 ```mermaid
-graph LR
+flowchart LR
     subgraph "Service Client Pattern"
         Config[Configuration<br/>- Base URL<br/>- API Token<br/>- Timeout]
         Client[Service Client<br/>- Async Context Manager<br/>- HTTP Client]
@@ -382,7 +382,7 @@ erDiagram
 ### Security Architecture Layers
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph "Security Layers"
         subgraph "Network Security"
             Firewall[Firewall Rules]
@@ -418,7 +418,7 @@ graph TB
 ### Service Integration Architecture
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph "Platform API"
         Gateway[API Gateway]
         ServiceRegistry[Service Registry<br/>Database]
@@ -465,7 +465,7 @@ graph TB
 ### Observability Stack
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph "Application Layer"
         FastAPI[FastAPI Application]
         Logs[Application Logs]
@@ -496,7 +496,7 @@ graph TB
 ### Horizontal Scaling Design
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph "Load Balancer"
         LB[Nginx/Traefik<br/>Load Balancer]
     end
@@ -531,7 +531,7 @@ graph TB
 ### Caching Strategy (Future)
 
 ```mermaid
-graph LR
+flowchart LR
     Client[Client Request] --> LB[Load Balancer]
     LB --> API[API Instance]
     API --> Cache{Cache Check}
@@ -557,7 +557,7 @@ graph LR
 ### Error Handling Architecture
 
 ```mermaid
-graph TB
+flowchart TB
     Request[API Request] --> Validation{Input Validation}
     Validation -->|Invalid| Error400[400 Bad Request]
     Validation -->|Valid| Auth{Authentication}

@@ -11,7 +11,7 @@ This document describes the service integration patterns, service client archite
 All service clients follow a consistent pattern for integration:
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph "Service Client Structure"
         Config[Configuration Class<br/>- Base URL<br/>- API Token/Key<br/>- Timeout settings]
         Client[Service Client Class<br/>- Async context manager<br/>- HTTP session management]
