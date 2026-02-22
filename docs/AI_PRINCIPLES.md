@@ -560,6 +560,16 @@ class Task:
 - [ ] Rollback tested
 - [ ] Learnings documented
 
+### Comprehension Before Ship
+
+**Principle**: Do not accept AI-generated code without understanding it. Quick generation feels productive, but without comprehension you miss architectural and performance pitfalls; time saved initially is lost in debugging, refactoring, and incident response.
+
+**Practices**:
+- Use AI for boilerplate, exploration, and repetitive tasks you already understand.
+- For core logic and critical paths: review, understand, and be able to explain before shipping.
+- When debugging unfamiliar code: diagnose from first principles rather than trial-and-error prompting.
+- Periodically rebuild an AI-written feature by hand from docs and first principles to force understanding.
+
 ---
 
 ## 6. Quick Reference Playbook
