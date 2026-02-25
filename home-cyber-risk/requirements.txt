@@ -13,7 +13,7 @@ psycopg2-binary==2.9.9
 httpx==0.25.2
 
 # Email
-aiosmtplib==3.0.1
+aiosmtplib==5.1.0
 
 # Telegram (optional)
 python-telegram-bot==20.7
