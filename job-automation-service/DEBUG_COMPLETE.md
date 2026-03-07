@@ -113,7 +113,7 @@ python backfill_legacy_jobs.py
 ## Debug Logs
 
 All debug instrumentation is active and logging to:
-- **Log Path**: `d:\CodeRepositories\.cursor\debug.log`
+- **Log Path**: `d:\portfolio-harness\.cursor\debug.log`
 - **Format**: NDJSON (one JSON object per line)
 
 **Key Log Entries**:

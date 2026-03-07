@@ -7,7 +7,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app.config import settings
 
-LOG_PATH = Path(r"d:\CodeRepositories\.cursor\debug.log")
+LOG_PATH = Path(r"d:\portfolio-harness\.cursor\debug.log")
 
 def log_entry(session_id, run_id, hypothesis_id, location, message, data):
     """Write debug log entry."""

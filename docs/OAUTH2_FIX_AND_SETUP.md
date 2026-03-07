@@ -135,7 +135,7 @@ $env:DATABASE_URL = "sqlite:///./test_platform.db"  # or PostgreSQL URL
 # Arlo Configuration
 $env:ARLO_USERNAME = "your@email.com"
 $env:ARLO_PASSWORD = "your_password"
-$env:ARLO_STORAGE_PATH = "D:\CodeRepositories\software\camera_recordings"
+$env:ARLO_STORAGE_PATH = "D:\portfolio-harness\software\camera_recordings"
 $env:ARLO_SYNC_INTERVAL = "300"
 $env:ARLO_ENCRYPTION_KEY = "your_encryption_key"
 ```

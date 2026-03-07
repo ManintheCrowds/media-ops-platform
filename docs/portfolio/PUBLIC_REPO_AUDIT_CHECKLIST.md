@@ -1,8 +1,8 @@
 # Public Repo Audit Checklist
 
-Use this checklist when preparing or maintaining a repository for public/portfolio use. Run from **each repo root** (e.g. `CodeRepositories`, `software`, `Arc_Forge`, `moltbook-watchtower`). Tick items as you complete them.
+Use this checklist when preparing or maintaining a repository for public/portfolio use. Run from **each repo root** (e.g. `portfolio-harness`, `software`, `Arc_Forge`, `moltbook-watchtower`). Tick items as you complete them.
 
-**Scope:** CodeRepositories (and in-repo projects: obsidian_cursor_integration, WatchTower_main), software, Arc_Forge, moltbook-watchtower.
+**Scope:** portfolio-harness (and in-repo projects: obsidian_cursor_integration, WatchTower_main), software, Arc_Forge, moltbook-watchtower.
 
 **Latest results:** [PUBLIC_REPO_AUDIT_RESULTS.md](PUBLIC_REPO_AUDIT_RESULTS.md)  
 **Pending actions status (later version):** [PENDING_ACTIONS_STATUS.md](PENDING_ACTIONS_STATUS.md) — Done/Pending snapshot from the consolidated pending-action-items plan.

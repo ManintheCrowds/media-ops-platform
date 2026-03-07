@@ -46,4 +46,4 @@ mmdc -i architecture-detailed.mmd -o ../../portfolio/assets/diagrams/architectur
 - Link back to the repository README sections for deeper context on architecture and performance
 
 ## For Other Projects- **[PORTFOLIO_README_TEMPLATE.md](PORTFOLIO_README_TEMPLATE.md)** — Reusable README structure (hero, problem/solution/impact, features, tech stack, quick start, docs, testing, license) and a portfolio-readiness checklist for any repo.
-- **[PUBLIC_REPO_AUDIT_CHECKLIST.md](PUBLIC_REPO_AUDIT_CHECKLIST.md)** — Single audit checklist (security, hygiene, runnability, consistency, trust, narrative) with concrete commands and file names to run across CodeRepositories, software, Arc_Forge, and moltbook-watchtower.
+- **[PUBLIC_REPO_AUDIT_CHECKLIST.md](PUBLIC_REPO_AUDIT_CHECKLIST.md)** — Single audit checklist (security, hygiene, runnability, consistency, trust, narrative) with concrete commands and file names to run across portfolio-harness, software, Arc_Forge, and moltbook-watchtower.

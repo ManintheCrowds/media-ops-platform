@@ -183,7 +183,7 @@ async def search_jobs(
                 },
                 "timestamp": int(time.time() * 1000)
             }
-            debug_log_path = Path(r"d:\CodeRepositories\.cursor\debug.log")
+            debug_log_path = Path(r"d:\portfolio-harness\.cursor\debug.log")
             debug_log_path.parent.mkdir(parents=True, exist_ok=True)
             with open(debug_log_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(log_entry) + "\n")
@@ -415,7 +415,7 @@ async def search_jobs(
                 # Calculate match scores
                 description = job_listing.description or ""
                 # #region agent log
-                debug_log_path = Path(r"d:\CodeRepositories\.cursor\debug.log")
+                debug_log_path = Path(r"d:\portfolio-harness\.cursor\debug.log")
                 try:
                     log_entry = {
                         "sessionId": "debug-session",

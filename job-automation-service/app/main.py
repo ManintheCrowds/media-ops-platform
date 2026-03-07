@@ -11,7 +11,7 @@ from app.api import jobs, applications, matching, scheduler
 
 logger = logging.getLogger(__name__)
 
-LOG_PATH = Path(r"d:\CodeRepositories\.cursor\debug.log")
+LOG_PATH = Path(r"d:\portfolio-harness\.cursor\debug.log")
 
 def log_entry(session_id, run_id, hypothesis_id, location, message, data):
     """Write debug log entry."""

@@ -6,7 +6,7 @@ param(
     [switch]$Verbose
 )
 
-$logPath = "d:\CodeRepositories\.cursor\debug.log"
+$logPath = "d:\portfolio-harness\.cursor\debug.log"
 $sessionId = "darktide-debug-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 $runId = "run1"
 
