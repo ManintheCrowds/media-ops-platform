@@ -12,7 +12,7 @@
 → Start with [AI_CODEBASE_MAP.md](AI_CODEBASE_MAP.md) to understand the structure, then read [AI_PRINCIPLES.md](AI_PRINCIPLES.md) for core principles.
 
 ### I need to write code
-→ Use [AI_PATTERNS.md](AI_PATTERNS.md) for code patterns, [AI_CODEBASE_MAP.md](AI_CODEBASE_MAP.md) to find where code goes, and [AI_VALIDATION_CHECKLIST.md](AI_VALIDATION_CHECKLIST.md) before committing.
+→ Consult [coding_standards_matrix.md](coding_standards_matrix.md) for standards and references, use [AI_PATTERNS.md](AI_PATTERNS.md) for code patterns, [AI_CODEBASE_MAP.md](AI_CODEBASE_MAP.md) to find where code goes, and [AI_VALIDATION_CHECKLIST.md](AI_VALIDATION_CHECKLIST.md) before committing.
 
 ### I need to plan a task
 → Start with [AI_TASK_TEMPLATES.md](AI_TASK_TEMPLATES.md) to decompose your task, then use [AI_VALIDATION_CHECKLIST.md](AI_VALIDATION_CHECKLIST.md) for safety checks.
@@ -22,6 +22,9 @@
 
 ### I need a prompt template
 → Check [AI_PROMPT_LIBRARY.md](AI_PROMPT_LIBRARY.md) for reusable prompt templates.
+
+### I need to run AI task evals
+→ See [AI_TASK_EVALS.md](AI_TASK_EVALS.md) for software-specific evals. For harness-wide evals (handoff, Daggr, calibration), see [portfolio-harness AI_TASK_EVALS](D:\portfolio-harness\.cursor\docs\AI_TASK_EVALS.md).
 
 ---
 
@@ -34,7 +37,9 @@
 | **[AI_TASK_TEMPLATES.md](AI_TASK_TEMPLATES.md)** | Standardized task decomposition templates | Planning tasks, breaking down work, identifying dependencies | AI agents planning work | 5-10 min |
 | **[AI_VALIDATION_CHECKLIST.md](AI_VALIDATION_CHECKLIST.md)** | Pre-execution validation checklists | Before executing any change, safety verification | All AI agents, reviewers | 5-10 min |
 | **[AI_CODEBASE_MAP.md](AI_CODEBASE_MAP.md)** | Navigation guide and file location reference | Finding where code lives, understanding structure | All AI agents, new contributors | 10-15 min |
+| **[coding_standards_matrix.md](coding_standards_matrix.md)** | Standards and reference lookup | Before generating code | AI agents | 2-5 min |
 | **[AI_PROMPT_LIBRARY.md](AI_PROMPT_LIBRARY.md)** | Reusable prompt templates for AI interactions | Standardizing AI interactions, consistent prompts | AI agents, prompt engineers | 10-15 min |
+| **[AI_TASK_EVALS.md](AI_TASK_EVALS.md)** | AI task eval registry and spot-check procedures | Verifying retrieve-before-generate, matrix links, audit output | AI agents, reviewers | 5 min |
 
 ---
 
@@ -298,10 +303,12 @@ flowchart TB
 1. **Review Cycle**: Quarterly review of all AI documentation
 2. **Update Triggers**:
    - New patterns emerge → Update [AI_PATTERNS.md](AI_PATTERNS.md)
+   - New standards or reference repos → Update [coding_standards_matrix.md](coding_standards_matrix.md)
    - New task types → Update [AI_TASK_TEMPLATES.md](AI_TASK_TEMPLATES.md)
    - New validation requirements → Update [AI_VALIDATION_CHECKLIST.md](AI_VALIDATION_CHECKLIST.md)
    - Codebase structure changes → Update [AI_CODEBASE_MAP.md](AI_CODEBASE_MAP.md)
    - New prompt needs → Update [AI_PROMPT_LIBRARY.md](AI_PROMPT_LIBRARY.md)
+   - New eval tasks → Update [AI_TASK_EVALS.md](AI_TASK_EVALS.md)
    - Principle changes → Update [AI_PRINCIPLES.md](AI_PRINCIPLES.md) and cross-references
 
 3. **Contribution Guidelines**:
@@ -324,7 +331,10 @@ flowchart TB
 - [AI Task Templates](AI_TASK_TEMPLATES.md) - Task decomposition templates
 - [AI Validation Checklist](AI_VALIDATION_CHECKLIST.md) - Pre-execution validation
 - [AI Codebase Map](AI_CODEBASE_MAP.md) - Navigation guide
+- [coding_standards_matrix.md](coding_standards_matrix.md) - Standards and reference lookup
 - [AI Prompt Library](AI_PROMPT_LIBRARY.md) - Reusable prompt templates
+- [AI Task Evals](AI_TASK_EVALS.md) - Eval registry and spot-check procedures
+- [portfolio-harness AI_TASK_EVALS](D:\portfolio-harness\.cursor\docs\AI_TASK_EVALS.md) - Harness-wide evals (handoff, Daggr, calibration)
 
 ---
 

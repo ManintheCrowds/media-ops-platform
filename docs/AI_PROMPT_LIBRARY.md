@@ -438,6 +438,22 @@ Reference Documents:
 **Template**:
 
 ```
+RETRIEVE BEFORE GENERATE (required):
+1. Consult docs/coding_standards_matrix.md for relevant domain standards
+2. Identify applicable patterns and reference implementations (internal + external)
+3. Read AI_PATTERNS.md Section(s) for the pattern(s) you will use
+4. Locate similar code in codebase via AI_CODEBASE_MAP.md
+5. Summarize: Standards applied | Reference code used | Design plan
+6. Only then proceed to implementation
+
+Output sections (in order):
+- Standards applied (from matrix)
+- Reference code used (internal paths + external links if consulted)
+- Design plan (brief)
+- Implementation
+
+---
+
 Generate code for the following:
 
 Feature: {feature_description}
@@ -474,9 +490,20 @@ Validation:
 - Use file locations from AI_CODEBASE_MAP.md
 
 Reference Documents:
+- docs/coding_standards_matrix.md for standards and reference implementations
 - AI_PATTERNS.md for code patterns
 - AI_CODEBASE_MAP.md for file locations
 - AI_VALIDATION_CHECKLIST.md Section 2 for validation
+
+CRITIC (before finalizing):
+Produce model-as-judge critic report (domain: code). Check: Did you cite standards and references before implementation?
+{
+  "pass": true|false,
+  "score": 0.0-1.0,
+  "issues": [{"type": "...", "detail": "..."}],
+  "fixes": [{"action": "...", "detail": "..."}]
+}
+If pass=false or score below threshold, revise output. Include final critic report in response summary.
 ```
 
 **Pattern Reference Requirement**: Must follow patterns from AI_PATTERNS.md.
@@ -737,6 +764,91 @@ Reference Documents:
 
 ---
 
+## Prompt 15: Pattern Extraction Prompt
+
+**When to Use**: When internalizing a new repository into reusable engineering pattern docs.
+
+**Template**:
+
+```
+Analyze the following repository and extract a reusable engineering pattern document.
+
+Repository: {repo_path_or_url}
+Target output: Add to docs/ or update AI_PATTERNS.md
+
+Extract:
+1. Directory structure
+2. Architecture pattern (e.g., layered, modular, gateway)
+3. Dependency management (requirements.txt, pyproject.toml)
+4. Testing approach (framework, fixtures, mocking)
+5. Security patterns (auth, validation, rate limiting)
+6. API conventions (REST, OpenAPI, error codes)
+
+Output format:
+- pattern: {short_name}
+- structure: {directory tree}
+- principles: [list]
+- benefits: [list]
+- reference_files: [paths or URLs]
+- checklist: [items for new implementations]
+
+Convert output into a markdown document suitable for AI_PATTERNS.md or a new docs/coding_standards_matrix.md row.
+```
+
+**Integration**: Use when onboarding a new reference repo. Output can feed into AI_PATTERNS.md or coding_standards_matrix.md Table 2.
+
+---
+
+## Prompt 16: Code Quality Auditor Prompt
+
+**When to Use**: When reviewing code against canonical standards and patterns.
+
+**Template**:
+
+```
+Act as a software architecture reviewer.
+
+Compare the current code against:
+- docs/coding_standards_matrix.md Table 1 (PEP8, OpenAPI, OWASP, SQLAlchemy, etc.)
+- AI_PATTERNS.md patterns
+
+Return:
+1. Violations (with standard/pattern reference)
+2. Security risks (OWASP mapping)
+3. Architectural smells
+4. Suggested refactor
+```
+
+**Integration**: Complements Code Review prompt (Prompt 2) with explicit standards-matrix alignment.
+
+---
+
+## Prompt 17: Matrix Generation Prompt
+
+**When to Use**: When onboarding new reference repositories to extend the coding standards matrix.
+
+**Template**:
+
+```
+Scan the following repositories and extract coding standards:
+
+Repositories: {repo_paths_or_urls}
+
+Extract:
+- formatting rules
+- architecture patterns
+- testing practices
+- security patterns
+
+Produce a matrix linking: pattern | repository | documentation | example file
+
+Output markdown table suitable for docs/coding_standards_matrix.md Table 2.
+```
+
+**Integration**: Use with Pattern Extraction (Prompt 15) when adding new reference repos. Output feeds into coding_standards_matrix.md.
+
+---
+
 ## Section: Prompt Usage Guidelines
 
 ### When to Use Each Prompt
@@ -757,6 +869,9 @@ Reference Documents:
 | **Configuration** | Adding/updating configuration |
 | **Deployment** | Deploying changes |
 | **Emergency Rollback** | Rolling back changes |
+| **Pattern Extraction** | Internalizing new repo into pattern docs |
+| **Code Quality Auditor** | Reviewing code against standards matrix |
+| **Matrix Generation** | Extending matrix from new reference repos |
 
 ### How to Customize Prompts
 
@@ -778,6 +893,9 @@ Reference Documents:
 - **Code Generation + Testing**: Generate code, then write tests
 - **Service Integration + Deployment**: Integrate service, then deploy
 - **Bug Fix + Code Review**: Fix bug, then review
+- **Pattern Extraction + Code Generation**: Extract pattern from new repo, then use for future code
+- **Code Generation + Code Quality Auditor**: Generate code, then audit against standards
+- **Matrix Generation + Pattern Extraction**: Scan repos for matrix, then extract full pattern docs
 
 ---
 
