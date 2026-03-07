@@ -54,6 +54,7 @@ This file defines the core principles for AI agents operating in this codebase. 
 
 ## Code Style & Practices
 
+- Before generating code, consult `docs/coding_standards_matrix.md` for standards and reference implementations
 - Follow existing code patterns in the codebase
 - Use type hints for all functions
 - Include docstrings for public APIs
@@ -82,6 +83,7 @@ For comprehensive AI documentation, see:
 - [AI Task Templates](docs/AI_TASK_TEMPLATES.md) - Task decomposition templates with dependency graphs
 - [AI Validation Checklist](docs/AI_VALIDATION_CHECKLIST.md) - Pre-execution validation checklists
 - [AI Codebase Map](docs/AI_CODEBASE_MAP.md) - Navigation guide and file location reference
+- [coding_standards_matrix](docs/coding_standards_matrix.md) - Standards and reference implementations lookup
 - [AI Prompt Library](docs/AI_PROMPT_LIBRARY.md) - Reusable prompt templates for AI interactions
 
 These documents work together as a cohesive system. Reference them as needed for specific tasks.
