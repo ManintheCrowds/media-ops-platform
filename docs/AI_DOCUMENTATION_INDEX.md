@@ -332,4 +332,4 @@ flowchart TB
 **Maintained By**: Project Team  
 **Review Cycle**: Quarterly
 
-**Multi-workspace:** For agents operating across CodeRepositories, Arc_Forge, moltbook-watchtower, and other roots, see [D:\CodeRepositories\.cursor\docs\AGENT_ENTRY_INDEX.md](D:\CodeRepositories\.cursor\docs\AGENT_ENTRY_INDEX.md) for handoff, context engineering, and cross-repo navigation.
+**Multi-workspace:** For agents operating across portfolio-harness, Arc_Forge, moltbook-watchtower, and other roots, see [D:\portfolio-harness\.cursor\docs\AGENT_ENTRY_INDEX.md](D:\portfolio-harness\.cursor\docs\AGENT_ENTRY_INDEX.md) for handoff, context engineering, and cross-repo navigation.

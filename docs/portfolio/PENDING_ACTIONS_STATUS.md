@@ -1,7 +1,7 @@
 # Pending Action Items — Status (later version)
 
 **Status as of:** 2025-02-10 (post-implementation pass)  
-**Source (canonical list):** [Pending Action Items plan](D:\CodeRepositories\.cursor\plans\pending_action_items_35faf7f5.plan.md) in CodeRepositories `.cursor/plans/`.  
+**Source (canonical list):** [Pending Action Items plan](D:\portfolio-harness\.cursor\plans\pending_action_items_35faf7f5.plan.md) in portfolio-harness `.cursor/plans/`.  
 This doc is a **later snapshot** of that plan with Done / Pending applied after the implementation run. Re-run the checklist or update this file when you complete more items.
 
 ---
@@ -20,7 +20,7 @@ This doc is a **later snapshot** of that plan with Done / Pending applied after 
 
 ---
 
-## 2. Security remediation (CodeRepositories / software)
+## 2. Security remediation (portfolio-harness / software)
 
 | Status  | Priority | Action |
 |---------|----------|--------|

@@ -51,7 +51,7 @@ if (-not $env:DATABASE_URL) {
 }
 
 # Create storage directories
-$storagePath = "D:\CodeRepositories\software\camera_recordings"
+$storagePath = "D:\portfolio-harness\software\camera_recordings"
 if (-not (Test-Path $storagePath)) {
     New-Item -ItemType Directory -Path $storagePath -Force | Out-Null
     Write-Host "Created storage directory: $storagePath" -ForegroundColor Green

@@ -1,12 +1,12 @@
 # Public Repo Audit Results
 
 **Date:** 2025-02-10  
-**Scope:** CodeRepositories (root + obsidian_cursor_integration, WatchTower_main\WatchTower_main), software, Arc_Forge, moltbook-watchtower.  
+**Scope:** portfolio-harness (root + obsidian_cursor_integration, WatchTower_main\WatchTower_main), software, Arc_Forge, moltbook-watchtower.  
 **Checklist:** [PUBLIC_REPO_AUDIT_CHECKLIST.md](PUBLIC_REPO_AUDIT_CHECKLIST.md)
 
 ---
 
-## 1. CodeRepositories (root)
+## 1. portfolio-harness (root)
 
 | Check | Result |
 |-------|--------|

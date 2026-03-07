@@ -67,7 +67,7 @@ The script `darktide_ssl_timeout_debug.ps1` will:
 7. Monitor Darktide process network connections in real-time
 8. Capture schannel errors from Event Log
 
-All evidence is logged to: `d:\CodeRepositories\.cursor\debug.log` in NDJSON format.
+All evidence is logged to: `d:\portfolio-harness\.cursor\debug.log` in NDJSON format.
 
 
 
