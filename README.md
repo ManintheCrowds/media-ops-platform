@@ -483,6 +483,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 These AI documentation files work together as a cohesive system to guide AI agents and maintain alignment with project principles. Start with the [AI Documentation Index](docs/AI_DOCUMENTATION_INDEX.md) for navigation.
 
+## Cursor plans
+
+Plans live in a private submodule at `.cursor/plans/` (Planswithinplans). Run `git submodule update --init` after cloning if you have access.
+
 ## Support
 
 For issues and questions:
