@@ -54,7 +54,11 @@ Each service may have its own `.env.example` file:
 - `ADZUNA_API_KEY` - Adzuna API key
 - `JSEARCH_API_KEY` - JSearch API key
 - `DATABASE_URL` - PostgreSQL connection string
-- `OLLAMA_URL` - Ollama service URL (default: http://localhost:11434)
+- `LLM_PROVIDER` - LLM provider: `ollama` (local), `openai`, or `anthropic` (default: ollama)
+- `LLM_MODEL` - Model name per provider (default: llama3.2 for Ollama)
+- `OLLAMA_URL` - Ollama service URL when using local LLM (default: http://localhost:11434)
+- `OPENAI_API_KEY` - OpenAI API key (required when LLM_PROVIDER=openai)
+- `ANTHROPIC_API_KEY` - Anthropic API key (required when LLM_PROVIDER=anthropic)
 
 ### Generating Secure Keys
 

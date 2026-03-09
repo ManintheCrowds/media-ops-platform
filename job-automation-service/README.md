@@ -6,7 +6,7 @@ A comprehensive job search and application automation service that discovers, ma
 
 - **Multi-Source Job Search**: Scrapes jobs from Indeed, LinkedIn, Glassdoor, and ZipRecruiter
 - **Skills-Based Matching**: Automatically scores jobs based on your skill profile
-- **AI Cover Letter Generation**: Uses local LLM (Ollama) to generate personalized cover letters
+- **AI Cover Letter Generation**: Uses configurable LLM (Ollama local, OpenAI, or Anthropic) to generate personalized cover letters
 - **Application Tracking**: Track application status, follow-ups, and notes
 - **Scheduled Searches**: Automated daily/weekly job searches
 - **RESTful API**: Complete API for job search, matching, and application management
@@ -82,9 +82,24 @@ nano .env
 - `ADZUNA_API_KEY` - Adzuna API key
 - `JSEARCH_API_KEY` - JSearch API key (get from https://jsearch.app/)
 
-**Optional Variables:**
-- `OLLAMA_URL` - Ollama service URL (default: http://localhost:11434)
-- `OLLAMA_MODEL` - Model name (default: llama2)
+**Optional Variables (LLM / Cover Letter):**
+- `LLM_PROVIDER` - `ollama` (local), `openai`, or `anthropic` (default: ollama)
+- `LLM_MODEL` - Model name (default: llama3.2). Examples: `llama3.2`, `mistral`, `gpt-4o`, `claude-3-5-sonnet`, `meta/llama-3.1-8b-instruct` (NIM)
+- `OLLAMA_URL` - Ollama service URL when using local LLM (default: http://localhost:11434)
+- `OPENAI_API_KEY` - Required when LLM_PROVIDER=openai (also used for NVIDIA NIM)
+- `OPENAI_BASE_URL` - Base URL when using OpenAI-compatible API (e.g. NIM: https://integrate.api.nvidia.com/v1)
+- `ANTHROPIC_API_KEY` - Required when LLM_PROVIDER=anthropic
+
+**Docker:** When running via `docker compose up`, set NIM vars in `.env` at `job-automation-service/` or export before starting. The container will use NIM when `LLM_PROVIDER=openai` and `OPENAI_API_KEY` is set.
+
+**Recommended local models:**
+
+| Model | Size | Best for |
+|-------|------|----------|
+| llama3.2 | ~2GB | Fast, general purpose |
+| mistral | ~4GB | Strong instruction following |
+
+**Other optional variables:**
 - `DEFAULT_LOCATION` - Default search location (default: Minneapolis, MN)
 - `SECRET_KEY` - Application secret key (generate with: `python -c "import secrets; print(secrets.token_urlsafe(32))"`)
 
@@ -174,19 +189,23 @@ Skills are automatically matched against job descriptions to calculate match sco
 
 ## Cover Letter Generation
 
-Cover letters are generated using Ollama (local LLM). Make sure Ollama is running:
+Cover letters are generated using a configurable LLM. Choose local (Ollama) or cloud (OpenAI, Anthropic) via `LLM_PROVIDER`.
+
+**Local (Ollama):** Set `LLM_PROVIDER=ollama` (default). Make sure Ollama is running:
 
 ```bash
 # Install Ollama (if not already installed)
 # https://ollama.ai
 
-# Pull a model
-ollama pull llama2
+# Pull a model (llama3.2 or mistral recommended)
+ollama pull llama3.2
 
 # Start Ollama (usually runs on port 11434)
 ```
 
-The service will automatically generate personalized cover letters based on:
+**Cloud:** Set `LLM_PROVIDER=openai` or `LLM_PROVIDER=anthropic` and provide the corresponding API key.
+
+The service redacts PII (email, phone, SSN) from job descriptions before sending to the LLM. It automatically generates personalized cover letters based on:
 - Job title and company
 - Key requirements from job description
 - Your relevant skills and experience
@@ -295,14 +314,14 @@ Skills-based matching uses:
 - **Experience Weighting**: More years of experience = higher score
 - **Composite Scoring**: Combines multiple factors for final match score
 
-### Ollama Integration Workflow
+### LLM Cover Letter Workflow
 
 Cover letter generation process:
-1. Job description and user profile sent to Ollama
-2. LLM generates personalized cover letter
-3. Cover letter formatted and returned
-4. Optionally saved with application
-5. Fallback to template if Ollama unavailable
+1. PII (email, phone, SSN) redacted from job description
+2. Prompt built with system + user messages (chat format)
+3. LLM called via configured provider (Ollama, OpenAI, or Anthropic)
+4. Cover letter formatted and returned
+5. Fallback to template if LLM unavailable or returns empty
 
 ## Platform Integration
 
@@ -351,9 +370,9 @@ curl -X POST http://localhost:8000/api/services \
 - **Rate Limiting**: The service includes rate limiting to be respectful of target sites.
 - **LinkedIn**: LinkedIn has strict ToS. Consider using their official API for production.
 
-### Ollama Setup
+### LLM Setup
 
-Cover letter generation requires Ollama. If Ollama is not available, the service will skip cover letter generation but continue to function.
+Cover letter generation uses the configured `LLM_PROVIDER`. For local (Ollama), ensure Ollama is running and the model is pulled. For cloud (OpenAI/Anthropic), set the corresponding API key. If the LLM is unavailable, the service falls back to a template-based cover letter.
 
 ### Database Migrations
 
@@ -364,6 +383,32 @@ alembic upgrade head
 ```
 
 ## Troubleshooting
+
+### Docker build fails: Unable to connect (network)
+
+The Dockerfile no longer uses `apt-get` (psycopg2-binary has wheels). If the build still fails, Docker cannot reach PyPI or other hosts. Check:
+
+- **VPN**: Disconnect or allow Docker through VPN split-tunneling
+- **Firewall**: Allow Docker Desktop / WSL2 outbound HTTP (80) and HTTPS (443)
+- **Proxy**: If behind a corporate proxy, configure Docker daemon proxy settings
+- **Connectivity tests**:
+  - `docker run --rm alpine ping -c 2 8.8.8.8` — basic connectivity
+  - `docker run --rm alpine wget -qO- https://pypi.org` — PyPI/HTTPS access
+
+### pip install fails: pg_config not found (psycopg2-binary)
+
+On Windows with Python 3.13, `psycopg2-binary==2.9.9` has no pre-built wheel and tries to build from source, which requires PostgreSQL dev tools (`pg_config`).
+
+**Fix:** `requirements.txt` pins `psycopg2-binary>=2.9.11`, which has Python 3.13 Windows wheels. Ensure you have the latest requirements and run:
+
+```bash
+pip install -r requirements.txt
+```
+
+**If still failing:**
+- **Option A (pre-built wheel only):** `pip install psycopg2-binary --only-binary :all:` then `pip install -r requirements.txt`
+- **Option B (PostgreSQL dev tools):** Install [PostgreSQL for Windows](https://www.postgresql.org/download/windows/) and add its `bin` directory (contains `pg_config`) to `PATH`
+- **Option C (Docker):** Use `docker-compose up` for the full stack; the container uses Python 3.11 with wheels
 
 ### Service won't start
 
@@ -379,9 +424,9 @@ alembic upgrade head
 
 ### Cover letters not generating
 
-- Verify Ollama is running: `curl http://localhost:11434/api/tags`
-- Check `OLLAMA_URL` environment variable
-- Ensure model is available: `ollama list`
+- **Ollama (local):** Verify Ollama is running: `curl http://localhost:11434/api/tags`; check `OLLAMA_URL`; ensure model is available: `ollama list`
+- **OpenAI/Anthropic:** Verify `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` is set when `LLM_PROVIDER` is openai or anthropic
+- Service falls back to template if LLM is unavailable
 
 ## License
 

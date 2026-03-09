@@ -1,6 +1,9 @@
 ---
 name: Context Universe Implementation
 overview: "Implement the four \"context universe\" components: (1) coding standards matrix with two lookup tables, (2) explicit \"retrieve before generate\" in the Code Generation prompt, (3) external reference repos as curated links, and (4) Pattern Extraction prompt. All changes are in D:\\software."
+status: pending
+priority: 4
+phase: later
 todos: []
 isProject: false
 ---

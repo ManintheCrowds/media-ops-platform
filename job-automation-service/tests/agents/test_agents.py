@@ -365,10 +365,12 @@ async def cover_letter_test_agent(task: AgentTask) -> Dict[str, Any]:
         "errors": []
     }
     
+    from app.services.llm_client import is_ollama_available
+
     generator = CoverLetterGenerator()
-    
+
     # Pre-flight check: Verify Ollama is available (optional, will use fallback if not)
-    ollama_available = await generator._check_ollama_available()
+    ollama_available = await is_ollama_available()
     if not ollama_available:
         logger.info("Ollama service is not available - will use fallback template generation")
     
