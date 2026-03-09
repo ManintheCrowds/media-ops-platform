@@ -1,0 +1,14 @@
+# Copy to project-metadata.yml and set owner for your deployment.
+# project-metadata.yml is gitignored to avoid committing personal identifiers.
+project:
+  name: software_platform
+  owner: ${OWNER}  # Set to your username or org identifier
+  data_tier: confidential  # confidential | restricted | internal | public
+  repo_visibility: private  # private | public
+  security_scanning:
+    secrets: required
+    sast: required
+    dependency: required
+  compliance:
+    requirements: []
+    notes: ""
