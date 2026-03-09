@@ -10,7 +10,7 @@ alembic==1.13.1
 psycopg2-binary==2.9.9
 
 # HIBP API
-httpx==0.25.2
+httpx==0.28.1
 
 # Email
 aiosmtplib==3.0.1
