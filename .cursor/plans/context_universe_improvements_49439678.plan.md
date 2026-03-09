@@ -1,6 +1,9 @@
 ---
 name: Context Universe Improvements
 overview: Improve the Context Universe system with easy wins (link validation, Code Quality Auditor prompt, eval registry), gap closure (AI task evals for software, critic integration), and testing/audit mechanisms.
+status: pending
+priority: 4
+phase: later
 todos: []
 isProject: false
 ---

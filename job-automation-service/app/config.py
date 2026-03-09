@@ -77,9 +77,19 @@ class Settings(BaseSettings):
     browser_timeout: int = 30
     stealth_mode: bool = True
     
-    # Ollama Configuration
+    # LLM Provider Configuration (ollama | openai | anthropic)
+    llm_provider: str = "ollama"
+    llm_model: str = "llama3.2"  # Model name per provider (e.g. llama3.2, gpt-4o, claude-3-5-sonnet)
+
+    # Ollama (local) Configuration
     ollama_url: str = "http://localhost:11434"
-    ollama_model: str = "llama2"  # Default model, can be changed
+
+    # OpenAI (cloud) Configuration
+    openai_api_key: Optional[str] = None
+    openai_base_url: Optional[str] = None  # Defaults to https://api.openai.com/v1
+
+    # Anthropic (cloud) Configuration
+    anthropic_api_key: Optional[str] = None
     
     # Rate Limiting
     scraper_delay_min: float = 2.0  # Minimum seconds between requests

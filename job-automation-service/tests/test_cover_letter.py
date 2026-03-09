@@ -19,7 +19,7 @@ async def test_cover_letter_generation_success(generator):
         "company": "Test Company",
         "description": "We need a Python developer with FastAPI experience."
     }
-    
+
     skill_profile = {
         "matched_skills": [
             {"skill": "Python", "proficiency": 5},
@@ -27,31 +27,26 @@ async def test_cover_letter_generation_success(generator):
         ],
         "summary": {"total_skills": 20}
     }
-    
-    with patch.object(generator, '_check_ollama_available', return_value=True):
-        with patch.object(generator.client, 'post') as mock_post:
-            mock_response = AsyncMock()
-            mock_response.json.return_value = {
-                "response": "Dear Hiring Manager,\n\nI am writing to apply..."
-            }
-            mock_response.raise_for_status = AsyncMock()
-            mock_post.return_value = mock_response
-            
+
+    with patch("app.services.cover_letter.is_ollama_available", new_callable=AsyncMock, return_value=True):
+        with patch("app.services.cover_letter.generate_via_llm", new_callable=AsyncMock) as mock_gen:
+            mock_gen.return_value = "Dear Hiring Manager,\n\nI am writing to apply for the Python Developer position..."
             result = await generator.generate_cover_letter(job_listing, skill_profile)
-            
             assert result is not None
             assert "Dear" in result or "Hiring" in result
 
 
 @pytest.mark.asyncio
 async def test_cover_letter_generation_ollama_unavailable(generator):
-    """Test cover letter generation when Ollama is unavailable."""
+    """Test cover letter generation when Ollama is unavailable uses fallback."""
     job_listing = {"title": "Test", "company": "Test", "description": "Test"}
     skill_profile = {"matched_skills": [], "summary": {}}
-    
-    with patch('app.services.cover_letter.CoverLetterGenerator._check_ollama_available', return_value=False):
+
+    with patch("app.services.cover_letter.is_ollama_available", new_callable=AsyncMock, return_value=False):
         result = await generator.generate_cover_letter(job_listing, skill_profile)
-        assert result is None
+        # Uses fallback template, not None
+        assert result is not None
+        assert "Dear Hiring Manager" in result
 
 
 def test_build_prompt(generator):

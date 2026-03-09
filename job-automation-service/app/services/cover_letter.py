@@ -1,22 +1,21 @@
-"""Cover letter generation using local LLM (Ollama)."""
+"""Cover letter generation using configurable LLM (Ollama, OpenAI, Anthropic)."""
 
 import logging
-import httpx
 from typing import Dict, Optional
 from app.config import settings
+from app.services.llm_client import generate_via_llm, is_ollama_available
+from app.utils.pii_redaction import redact_pii
 
 logger = logging.getLogger(__name__)
 
 
 class CoverLetterGenerator:
-    """Generate personalized cover letters using Ollama."""
-    
+    """Generate personalized cover letters using configured LLM provider."""
+
     def __init__(self):
         """Initialize cover letter generator."""
-        self.ollama_url = settings.ollama_url
-        self.model = settings.ollama_model
-        self.client = httpx.AsyncClient(timeout=120.0)  # Longer timeout for LLM
-    
+        pass
+
     async def generate_cover_letter(
         self,
         job_listing: Dict,
@@ -36,45 +35,23 @@ class CoverLetterGenerator:
             Generated cover letter text or None if generation failed
         """
         try:
-            # Check if Ollama is available
-            ollama_available = await self._check_ollama_available()
-            
-            if ollama_available:
-                # Build prompt
-                prompt = self._build_prompt(job_listing, skill_profile, tone, length)
-                
-                # Generate via Ollama API
-                try:
-                    response = await self.client.post(
-                        f"{self.ollama_url}/api/generate",
-                        json={
-                            "model": self.model,
-                            "prompt": prompt,
-                            "stream": False,
-                            "options": {
-                                "temperature": 0.7,
-                                "top_p": 0.9,
-                            }
-                        }
-                    )
-                    
-                    response.raise_for_status()
-                    result = response.json()
-                    
-                    cover_letter = result.get("response", "").strip()
-                    
-                    if cover_letter and len(cover_letter) > 100:
-                        return cover_letter
-                    else:
-                        logger.warning("Ollama returned empty or too short response, using fallback")
-                except httpx.RequestError as e:
-                    logger.warning(f"Error connecting to Ollama: {e}, using fallback")
-                except httpx.HTTPStatusError as e:
-                    logger.warning(f"Ollama API error: {e.response.status_code}, using fallback")
-                except Exception as e:
-                    logger.warning(f"Unexpected error with Ollama: {e}, using fallback")
-            else:
+            # Skip LLM call if provider is ollama and service is unavailable
+            provider = (settings.llm_provider or "ollama").lower()
+            if provider == "ollama" and not await is_ollama_available():
                 logger.info("Ollama service is not available, using fallback template")
+            else:
+                user_content = self._build_prompt(job_listing, skill_profile, tone, length)
+                system_content = (
+                    "You are a professional cover letter writer. "
+                    "Write polished, personalized cover letters that match the requested tone and length."
+                )
+
+                cover_letter = await generate_via_llm(system_content, user_content)
+
+                if cover_letter and len(cover_letter) > 100:
+                    return cover_letter
+                if cover_letter:
+                    logger.warning("LLM returned too short response, using fallback")
             
             # Fallback: Generate template-based cover letter
             return self._generate_fallback_letter(job_listing, skill_profile, tone, length)
@@ -108,8 +85,9 @@ class CoverLetterGenerator:
         """
         job_title = job_listing.get("title", "the position")
         company = job_listing.get("company", "the company")
-        description = job_listing.get("description", "")[:500]  # First 500 chars
-        
+        raw_description = job_listing.get("description", "")[:500]  # First 500 chars
+        description = redact_pii(raw_description)
+
         # Extract key requirements
         key_requirements = self._extract_key_requirements(description)
         
@@ -201,19 +179,7 @@ Write the complete cover letter now:"""
                 requirements.append(f"Experience: {years_match.group(1)}+ years")
         
         return "\n".join(requirements) if requirements else "See job description"
-    
-    async def _check_ollama_available(self) -> bool:
-        """Check if Ollama service is available.
-        
-        Returns:
-            True if Ollama is available, False otherwise
-        """
-        try:
-            response = await self.client.get(f"{self.ollama_url}/api/tags", timeout=5.0)
-            return response.status_code == 200
-        except Exception:
-            return False
-    
+
     def _generate_fallback_letter(
         self,
         job_listing: Dict,
@@ -295,8 +261,8 @@ Write the complete cover letter now:"""
         ])
         
         return "\n".join(letter_parts)
-    
+
     async def close(self):
-        """Close the HTTP client."""
-        await self.client.aclose()
+        """Close resources. No-op for compatibility."""
+        pass
 

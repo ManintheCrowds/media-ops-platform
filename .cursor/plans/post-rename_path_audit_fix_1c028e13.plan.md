@@ -1,6 +1,9 @@
 ---
 name: Post-Rename Path Audit Fix
 overview: Audit found 50+ references to `CodeRepositories` or `D:\CodeRepositories` across 6 workspaces. This plan fixes broken paths by replacing them with `portfolio-harness` or `D:\portfolio-harness`.
+status: pending
+priority: 4
+phase: later
 todos: []
 isProject: false
 ---

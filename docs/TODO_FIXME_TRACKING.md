@@ -2,14 +2,14 @@
 
 This document tracks all TODO, FIXME, and HACK comments found in the codebase.
 
-**Last Updated:** 2025-01-27  
-**Total Items Found:** 5
+**Last Updated:** 2025-03-07  
+**Total Items Found:** 6
 
 ## Summary
 
 | Priority | Count | Status |
 |----------|-------|--------|
-| Low | 3 | Open |
+| Low | 4 | Open |
 | Medium | 2 | Open |
 | High | 0 | - |
 
@@ -65,10 +65,21 @@ This document tracks all TODO, FIXME, and HACK comments found in the codebase.
 - **Status:** Open
 - **Notes:** Python 2.x is EOL. If we don't need Python 2.x support, this can be refactored to use proper `nonlocal` keyword.
 
+### 6. Pip Dependency Conflict Warnings
+- **File:** `requirements.txt` (D:\software root)
+- **Type:** TODO
+- **Context:** Installing requirements alongside chromadb, daggr, gradio, mcp, ollama, theharvester, etc. causes pip dependency conflict warnings
+- **Description:** Pip reports conflicts (e.g. httpx, uvicorn, aiohttp version mismatches) but install completes. See [DEPENDENCY_CONFLICTS.md](DEPENDENCY_CONFLICTS.md) for proposed solutions.
+- **Priority:** Low
+- **Estimated Effort:** 30 min (venv setup + README doc)
+- **Status:** Open
+- **Notes:** Recommendation: use virtual environment for D:\software and document in README.
+
 ## Quick Wins (Can be fixed immediately)
 
 1. **Items 4 & 5** - Python 2.x hacks: If Python 2.x support is not required, these can be quickly refactored to use `nonlocal` keyword.
 2. **Item 3** - Documentation: Add clearer comments explaining the intentional design.
+3. **Item 6** - Dependency conflicts: Create venv and document activation in README (see [DEPENDENCY_CONFLICTS.md](DEPENDENCY_CONFLICTS.md)).
 
 ## Medium Priority (Require investigation)
 
