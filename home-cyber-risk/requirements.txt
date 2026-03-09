@@ -16,7 +16,7 @@ httpx==0.25.2
 aiosmtplib==3.0.1
 
 # Telegram (optional)
-python-telegram-bot==20.7
+python-telegram-bot==22.6
 
 # Logging
 structlog==24.1.0
