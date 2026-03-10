@@ -15,10 +15,10 @@ isProject: false
 | 1    | Deepen bitcoin_chaos_convergence_integration plan                            | **DONE**     | Plan has Research Insights, best practices, Agent-Native Audit summary; deepened 2026-03-09                                                                           |
 | 2    | Run agent-native-audit on portfolio-harness + local-proto                    | **DONE**     | v1: 21/64; v2: 39/64 ([AGENT_NATIVE_BITCOIN_CHAOS_AUDIT_2026-03-10_v2.md](D:\portfolio-harness.cursor\state\adhoc\AGENT_NATIVE_BITCOIN_CHAOS_AUDIT_2026-03-10_v2.md)) |
 | 3    | Merge audit findings into deepened plan                                      | **DONE**     | Plan includes A6, A7, B7, B8, C2 extended                                                                                                                             |
-| 4    | Run critic on merged plan                                                    | **NOT DONE** | No critic report found                                                                                                                                                |
+| 4    | Run critic on merged plan                                                    | **DONE**     | [AGENT_NATIVE_BITCOIN_CHAOS_CRITIC_PLAN_20260310.json](D:\portfolio-harness\.cursor\state\adhoc\AGENT_NATIVE_BITCOIN_CHAOS_CRITIC_PLAN_20260310.json) (pass, 0.84) |
 | 5    | Implement Phase A (A1–A5) + audit tasks (A6, A7) and Phase B (B1–B6, B7, B8) | **DONE**     | All artifacts exist; Agent-Native Remaining Gaps implemented                                                                                                          |
-| 6    | Run critic after each artifact                                               | **NOT DONE** | No per-artifact critic evidence                                                                                                                                       |
-| 7    | Re-run agent-native-audit after Phase B                                      | **PARTIAL**  | v2 run (39/64); v3 not run after Remaining Gaps (observation_log_append, org-intent.bitcoin-inspired)                                                                 |
+| 6    | Run critic after each artifact                                               | **DONE**     | Per-artifact critic JSONs in .cursor/state/adhoc/ (A1–A7, B2–B8); A3/A4 fixes applied                                                                                  |
+| 7    | Re-run agent-native-audit after Phase B                                      | **DONE**     | v3: 44/64 ([AGENT_NATIVE_BITCOIN_CHAOS_AUDIT_2026-03-10_v3.md](D:\portfolio-harness\.cursor\state\adhoc\AGENT_NATIVE_BITCOIN_CHAOS_AUDIT_2026-03-10_v3.md)); Tools 5→7, Action Parity 5→6 |
 
 
 ---
