@@ -64,3 +64,19 @@ cursor-metrics/
 cursor-quality-metrics/
 cursor-event-logs/
 
+# Personal gaming utilities (Darktide — keep private)
+darktide_common.ps1
+darktide_workflow.ps1
+darktide_rollback.ps1
+darktide_fix.ps1
+darktide_diagnostic.ps1
+darktide_validate.ps1
+darktide_ssl_timeout_debug.ps1
+fix_darktide_ssl_timeout.ps1
+fix_darktide_ssl_timeout_SAFE.ps1
+fix_darktide_ssl_timeout_auto.ps1
+fix_darktide_cert_revocation.ps1
+DARKTIDE_FIX_REVIEW.md
+DARKTIDE_WORKFLOW_README.md
+darktide_reports/
+
