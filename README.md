@@ -309,7 +309,7 @@ software/
 ├── requirements.txt            # Python dependencies
 ├── .env.example                # Environment template
 │
-├── platform/                   # Main integration platform
+├── app/                        # Main integration platform
 │   ├── main.py                 # FastAPI application
 │   ├── config.py               # Configuration
 │   ├── auth/                   # Authentication
@@ -357,14 +357,14 @@ alembic upgrade head
 
 5. Run the platform:
 ```bash
-uvicorn platform.main:app --reload
+uvicorn app.main:app --reload
 ```
 
 ### Adding New Services
 
 1. Create a service client in `services/your_service/`
 2. Add configuration in `services/your_service/config.py`
-3. Add gateway routes in `platform/api/gateway.py`
+3. Add gateway routes in `app/api/gateway.py`
 4. Update docker-compose.yml with the new service
 5. Update nginx.conf with routing rules
 
@@ -459,7 +459,7 @@ This project integrates multiple open-source services. Each service has its own 
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+PRs welcome. Code speaks.
 
 ## Documentation
 
@@ -497,5 +497,7 @@ For issues and questions:
 ## Acknowledgments
 
 This project integrates services from the [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted) list.
+
+*Built by a programmer who ships. See [portfolio-harness/docs/AUTHOR.md](../portfolio-harness/docs/AUTHOR.md) if viewing from sibling workspace.*
 
 
