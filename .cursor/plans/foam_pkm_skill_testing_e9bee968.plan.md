@@ -9,11 +9,11 @@ isProject: false
 
 ## Tech-lead: Placement
 
-**Test prompts doc:** [.cursor/skills/foam-pkm/TEST_PROMPTS.md](D:\portfolio-harness.cursor\skills\foam-pkm\TEST_PROMPTS.md)
+**Test prompts doc:** [.cursor/skills/foam-pkm/TEST_PROMPTS.md](D:/portfolio-harness/.cursor/skills/foam-pkm/TEST_PROMPTS.md)
 
 **Rationale:** Co-locate with the skill (like reference.md). Keeps foam-pkm self-contained. Alternative: `.cursor/docs/FOAM_PKM_TEST_PROMPTS.md` if you prefer docs-centralized (like MORAL_BOUNDARY_TESTS). Skill folder is simpler for a single-skill test set.
 
-**AI_TASK_EVALS registry:** Add foam-pkm row to [.cursor/docs/AI_TASK_EVALS.md](D:\portfolio-harness.cursor\docs\AI_TASK_EVALS.md) Registry table.
+**AI_TASK_EVALS registry:** Add foam-pkm row to [.cursor/docs/AI_TASK_EVALS.md](D:/portfolio-harness/.cursor/docs/AI_TASK_EVALS.md) Registry table.
 
 **Checksum:** Run `python .cursor/scripts/checksum_integrity.py --verify --strict` before committing (per COMMANDS_README).
 
@@ -21,7 +21,7 @@ isProject: false
 
 ## Test Approach
 
-Per [AGENT_NATIVE_CHECKLIST.md](D:\portfolio-harness.cursor\docs\AGENT_NATIVE_CHECKLIST.md): "Tested with natural language request." No pytest; manual paste-and-verify.
+Per [AGENT_NATIVE_CHECKLIST.md](D:/portfolio-harness/.cursor/docs/AGENT_NATIVE_CHECKLIST.md): "Tested with natural language request." No pytest; manual paste-and-verify.
 
 ### Test categories
 
@@ -54,7 +54,9 @@ Per [AGENT_NATIVE_CHECKLIST.md](D:\portfolio-harness.cursor\docs\AGENT_NATIVE_CH
 
 ## Implementation Steps
 
-### Step 1: Create TEST_PROMPTS.md
+**Status:** Steps 1–2 are implemented in portfolio-harness. Re-run when creating a new skill or cloning to another repo.
+
+### Step 1: Create TEST_PROMPTS.md (if not yet done)
 
 Path: `.cursor/skills/foam-pkm/TEST_PROMPTS.md`
 
@@ -64,9 +66,9 @@ Content:
 - Procedure: paste prompt in new chat, verify behavior, record pass/fail
 - When to run: after skill/rules changes; after model updates (optional)
 
-### Step 2: Add AI_TASK_EVALS registry entry
+### Step 2: Add AI_TASK_EVALS registry entry (if not yet done)
 
-In [AI_TASK_EVALS.md](D:\portfolio-harness.cursor\docs\AI_TASK_EVALS.md) Registry table:
+In [AI_TASK_EVALS.md](D:/portfolio-harness/.cursor/docs/AI_TASK_EVALS.md) Registry table:
 
 
 | Task               | Test cases / verification                                                                                                               | When to run                                                   | Model floor |
@@ -76,7 +78,11 @@ In [AI_TASK_EVALS.md](D:\portfolio-harness.cursor\docs\AI_TASK_EVALS.md) Registr
 
 ### Step 3: Run checksum_integrity
 
-Before commit: `python .cursor/scripts/checksum_integrity.py --verify --strict`
+Before commit, from portfolio-harness root:
+
+```powershell
+python .cursor/scripts/checksum_integrity.py --verify --strict
+```
 
 ### Step 4 (optional): Copy-prompts script
 

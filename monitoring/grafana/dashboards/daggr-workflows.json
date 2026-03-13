@@ -14,7 +14,7 @@
         "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
         "targets": [
           {
-            "expr": "increase(daggr_workflow_runs_total{project=~\"watchtower_main|campaign_kb\"}[5m])",
+            "expr": "increase(daggr_workflow_runs_total{project=~\"watchtower_main|campaign_kb|harness|workflow_ui\"}[5m])",
             "legendFormat": "{{project}} {{workflow}} {{status}}",
             "refId": "A"
           }
@@ -33,12 +33,12 @@
         "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
         "targets": [
           {
-            "expr": "histogram_quantile(0.5, sum(rate(daggr_workflow_duration_seconds_bucket{project=~\"watchtower_main|campaign_kb\"}[5m])) by (le, project, workflow))",
+            "expr": "histogram_quantile(0.5, sum(rate(daggr_workflow_duration_seconds_bucket{project=~\"watchtower_main|campaign_kb|harness|workflow_ui\"}[5m])) by (le, project, workflow))",
             "legendFormat": "p50 {{project}} {{workflow}}",
             "refId": "A"
           },
           {
-            "expr": "histogram_quantile(0.95, sum(rate(daggr_workflow_duration_seconds_bucket{project=~\"watchtower_main|campaign_kb\"}[5m])) by (le, project, workflow))",
+            "expr": "histogram_quantile(0.95, sum(rate(daggr_workflow_duration_seconds_bucket{project=~\"watchtower_main|campaign_kb|harness|workflow_ui\"}[5m])) by (le, project, workflow))",
             "legendFormat": "p95 {{project}} {{workflow}}",
             "refId": "B"
           }
@@ -57,7 +57,7 @@
         "gridPos": {"h": 6, "w": 24, "x": 0, "y": 8},
         "targets": [
           {
-            "expr": "daggr_workflow_runs_total{project=~\"watchtower_main|campaign_kb\"}",
+            "expr": "daggr_workflow_runs_total{project=~\"watchtower_main|campaign_kb|harness|workflow_ui\"}",
             "format": "table",
             "instant": true,
             "refId": "A"
