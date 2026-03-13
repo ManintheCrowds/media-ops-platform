@@ -72,22 +72,22 @@ The monitoring stack monitors all platform services:
 - **Jellyfin** (Port 8096) - Media streaming, library size, user activity
 - **Gitea** (Port 3000) - Repository operations, webhook delivery, user activity
 
-### DAGGR and App Pipeline (WatchTower, campaign_kb)
+### DAGGR and App Pipeline (WatchTower, campaign_kb, harness, workflow_ui)
 
-**Projects monitored:** WatchTower_main (Flask, port 5000), campaign_kb (FastAPI, port 8000). Both expose `/metrics` with DAGGR workflow metrics.
+**Projects monitored:** WatchTower_main (Flask, port 5000), campaign_kb (FastAPI, port 8000), harness (portfolio-harness Gradio, metrics port 9091), workflow_ui (Flask, port 5050). All expose `/metrics` with DAGGR workflow metrics (or basic app metrics).
 
 **Shared label convention:** All DAGGR metrics use:
-- `project` = `watchtower_main` | `campaign_kb`
-- `workflow` = workflow name (e.g. simple, rag, ingest, search, merge)
+- `project` = `watchtower_main` | `campaign_kb` | `harness` | `workflow_ui`
+- `workflow` = workflow name (e.g. simple, rag, ingest, scp, blue_hat_privacy)
 - `status` = `success` | `failure`
 
-**Metric names:** `daggr_workflow_runs_total` (Counter), `daggr_workflow_duration_seconds` (Histogram). Grafana can filter with `project=~"watchtower_main|campaign_kb"`.
+**Metric names:** `daggr_workflow_runs_total` (Counter), `daggr_workflow_duration_seconds` (Histogram), `daggr_workflow_errors_total` (Counter). Grafana can filter with `project=~"watchtower_main|campaign_kb|harness|workflow_ui"`.
 
-**How DAGGR integrates:** Workflow runs in Gradio/Daggr POST to WatchTower `POST /api/daggr/run-complete`; WatchTower records to Prometheus. campaign_kb can also POST run-complete with `project=campaign_kb` and exposes its own `/metrics` for direct scrape.
+**How DAGGR integrates:** Workflow runs in Gradio/Daggr POST to WatchTower `POST /api/daggr/run-complete`; WatchTower records to Prometheus. campaign_kb can also POST run-complete with `project=campaign_kb` and exposes its own `/metrics` for direct scrape. **Harness** (portfolio-harness) runs SCP and blue_hat workflows; metrics are served on port 9091 (separate from Gradio UI on 7860). **workflow_ui** exposes `/metrics` for scrape (basic app metrics).
 
 **How to add a new project:** Add a scrape job in `prometheus/prometheus.yml` with a unique `job_name` and label `project: '<name>'`; ensure the app exposes `/metrics` with the same metric names and label scheme.
 
-**How to verify:** Start WatchTower (and optionally campaign_kb), run a DAGGR workflow from Gradio, then in Grafana open the "DAGGR Workflow Metrics" dashboard and confirm `daggr_workflow_runs_total` or duration series appear. Scrape targets use `host.docker.internal:5000` and `host.docker.internal:8000` for host-run apps; adjust if running in Docker.
+**How to verify:** Start WatchTower (and optionally campaign_kb, harness SCP Gradio, workflow_ui), run a DAGGR workflow, then in Grafana open the "DAGGR Workflow Metrics" dashboard and confirm `daggr_workflow_runs_total` or duration series appear. Scrape targets use `host.docker.internal` for host-run apps; adjust if running in Docker.
 
 ### Service-Specific Dashboards
 

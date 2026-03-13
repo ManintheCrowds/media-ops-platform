@@ -77,6 +77,26 @@ scrape_configs:
     scrape_interval: 30s
     scrape_timeout: 10s
 
+  # Harness (portfolio-harness) - SCP, blue_hat workflows; metrics on port 9091
+  - job_name: 'harness'
+    static_configs:
+      - targets: ['host.docker.internal:9091']
+        labels:
+          project: 'harness'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Workflow UI (Arc_Forge) - Flask app; default port 5050
+  - job_name: 'workflow_ui'
+    static_configs:
+      - targets: ['host.docker.internal:5050']
+        labels:
+          project: 'workflow_ui'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
 # Alerting rules
 rule_files:
   - '/etc/prometheus/alert_rules.yml'
