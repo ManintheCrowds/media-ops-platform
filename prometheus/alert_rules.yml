@@ -258,3 +258,60 @@ groups:
         annotations:
           summary: "No active Cursor connections"
           description: "No active connections to Cursor endpoints for 10 minutes"
+
+  # DAGGR App Availability (WatchTower, campaign_kb, harness, workflow_ui)
+  - name: daggr_app_availability
+    interval: 30s
+    rules:
+      - alert: WatchTowerDown
+        expr: up{job="watchtower"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          project: watchtower_main
+        annotations:
+          summary: "WatchTower is down"
+          description: "WatchTower (port 5000) has been unreachable for 2 minutes"
+
+      - alert: CampaignKBDown
+        expr: up{job="campaign_kb"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          project: campaign_kb
+        annotations:
+          summary: "Campaign KB is down"
+          description: "Campaign KB (port 8000) has been unreachable for 2 minutes"
+
+      - alert: HarnessDown
+        expr: up{job="harness"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          project: harness
+        annotations:
+          summary: "Harness metrics endpoint is down"
+          description: "Harness metrics (port 9091) has been unreachable for 2 minutes"
+
+      - alert: WorkflowUIDown
+        expr: up{job="workflow_ui"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          project: workflow_ui
+        annotations:
+          summary: "Workflow UI is down"
+          description: "Workflow UI (port 5050) has been unreachable for 2 minutes"
+
+      - alert: DAGGRHighFailureRate
+        expr: |
+          sum(rate(daggr_workflow_runs_total{status="failure"}[15m])) by (project)
+          /
+          sum(rate(daggr_workflow_runs_total[15m])) by (project)
+          > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High DAGGR workflow failure rate for {{ $labels.project }}"
+          description: "Project {{ $labels.project }} has >50% workflow failures in the last 15 minutes"

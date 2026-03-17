@@ -97,6 +97,16 @@ scrape_configs:
     scrape_interval: 30s
     scrape_timeout: 10s
 
+  # Moltbook watchtower - placeholder; enable when Moltbook adds /metrics
+  # - job_name: 'moltbook_watchtower'
+  #   static_configs:
+  #     - targets: ['host.docker.internal:5051']
+  #       labels:
+  #         project: 'moltbook_watchtower'
+  #   metrics_path: '/metrics'
+  #   scrape_interval: 30s
+  #   scrape_timeout: 10s
+
 # Alerting rules
 rule_files:
   - '/etc/prometheus/alert_rules.yml'

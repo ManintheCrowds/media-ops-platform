@@ -36,7 +36,11 @@ Visualization and dashboards.
 - Service-specific dashboards
 - Infrastructure dashboards
 - Cursor Connection Monitoring
-- **DAGGR Workflow Metrics** – workflow runs and duration by project (WatchTower, campaign_kb)
+- **DAGGR Workflow Metrics** – overview of all projects
+- **WatchTower DAGGR Metrics** – WatchTower workflow runs and duration
+- **Campaign KB DAGGR Metrics** – Campaign KB workflow runs and duration
+- **Harness DAGGR Metrics** – Harness (SCP, blue_hat) workflow runs and duration
+- **Workflow UI DAGGR Metrics** – Workflow UI workflow runs and duration
 
 ### Alertmanager
 
@@ -87,7 +91,13 @@ The monitoring stack monitors all platform services:
 
 **How to add a new project:** Add a scrape job in `prometheus/prometheus.yml` with a unique `job_name` and label `project: '<name>'`; ensure the app exposes `/metrics` with the same metric names and label scheme.
 
+**Open questions resolved:** See [OPEN_QUESTIONS_RESOLVED.md](OPEN_QUESTIONS_RESOLVED.md) for first-class workflow list, Signal vs email, and Moltbook metrics.
+
 **How to verify:** Start WatchTower (and optionally campaign_kb, harness SCP Gradio, workflow_ui), run a DAGGR workflow, then in Grafana open the "DAGGR Workflow Metrics" dashboard and confirm `daggr_workflow_runs_total` or duration series appear. Scrape targets use `host.docker.internal` for host-run apps; adjust if running in Docker.
+
+**Frontier-ops seam review (Daggr/Grafana):** Human-agent seams: (1) Grafana dashboards = human visibility; agents use Daggr MCP for workflow schema, run_verification for smoke. (2) Recovery: Prometheus scrape failures → alert; workflow run-complete POST failures → logged to traceback file; Alertmanager routes to email. (3) Observability: DAGGR metrics (`daggr_workflow_runs_total`, `daggr_workflow_duration_seconds`) enable human triage of workflow health. (4) Verification: run_daggr_tests.ps1 and grafana-smoke runbook validate pipeline before delegation.
+
+**Agent-native access:** Daggr Hub (workflow_ui): agent can use Daggr MCP (`get_graph_schema`, `list_workflows`, `run_verification`, `run_playwright_smoke`) or cursor-ide-browser/playwright to navigate to Daggr Hub URL. Node panel: accessible via browser snapshot/click. Grafana: grafana-assistant MCP (if configured) or browser for dashboard inspection. Prometheus metrics: scraped; no direct agent query API; agent infers health via run_verification and alert routing.
 
 ### Service-Specific Dashboards
 
@@ -134,6 +144,47 @@ Located in `prometheus/alert_rules.yml`:
 - Database performance alerts
 - Pi device alerts
 - Cursor connection alerts
+
+## Smoke Test (Runbook)
+
+Use this runbook to verify the monitoring stack after startup or before deployment.
+
+### Prerequisites
+
+- Docker and Docker Compose
+- From D:\software (or project root with docker-compose.yml)
+
+### Steps
+
+1. **Start Prometheus and Grafana:**
+   ```bash
+   docker compose up -d prometheus grafana
+   ```
+
+2. **Verify Prometheus scrapes:**
+   - Open http://localhost:9090/targets
+   - Confirm targets show "UP" (or expected down for host.docker.internal targets if apps not running)
+   - Query: `curl -s http://localhost:9090/api/v1/query?query=up` — expect JSON with `status":"success"`
+
+3. **Verify Grafana loads:**
+   - Open http://localhost:3001 (or port from `GF_SERVER_HTTP_PORT` if set)
+   - Log in (admin/admin by default)
+   - Confirm Prometheus data source is configured: Configuration → Data sources → Prometheus (URL http://prometheus:9090)
+
+4. **Optional — DAGGR metrics:**
+   - Start WatchTower (port 5000) or campaign_kb (port 8000) on host
+   - Run a workflow, then in Grafana open "DAGGR Workflow Metrics" dashboard
+   - Confirm `daggr_workflow_runs_total` or duration series appear
+
+### Quick verification (CI or script)
+
+```powershell
+# From D:\software
+docker compose up -d prometheus grafana
+Start-Sleep -Seconds 15
+Invoke-WebRequest -Uri "http://localhost:9090/-/healthy" -UseBasicParsing | Select-Object StatusCode  # expect 200
+Invoke-WebRequest -Uri "http://localhost:3001/api/health" -UseBasicParsing | Select-Object StatusCode  # expect 200
+```
 
 ## Setup
 
