@@ -44,6 +44,13 @@ route:
       receiver: 'database-team'
       continue: true
 
+    # DAGGR app alerts (WatchTower, campaign_kb, harness, workflow_ui)
+    - match_re:
+        project: 'watchtower_main|campaign_kb|harness|workflow_ui'
+      receiver: 'default'
+      group_by: ['alertname', 'project']
+      continue: true
+
 # Inhibition rules allow to mute a set of alerts given that another alert is
 # firing.
 inhibit_rules:
