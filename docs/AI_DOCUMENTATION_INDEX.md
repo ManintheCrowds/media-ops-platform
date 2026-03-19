@@ -18,13 +18,13 @@
 → Start with [AI_TASK_TEMPLATES.md](AI_TASK_TEMPLATES.md) to decompose your task, then use [AI_VALIDATION_CHECKLIST.md](AI_VALIDATION_CHECKLIST.md) for safety checks.
 
 ### I need to validate safety
-→ Go directly to [AI_VALIDATION_CHECKLIST.md](AI_VALIDATION_CHECKLIST.md) for comprehensive pre-execution validation.
+→ Go directly to [AI_VALIDATION_CHECKLIST.md](AI_VALIDATION_CHECKLIST.md) for comprehensive pre-execution validation. See [AI_PRINCIPLES.md](AI_PRINCIPLES.md) §Known Failure Modes (inverted U-shaped performance, identify but advise wrong).
 
 ### I need a prompt template
 → Check [AI_PROMPT_LIBRARY.md](AI_PROMPT_LIBRARY.md) for reusable prompt templates.
 
 ### I need to run AI task evals
-→ See [AI_TASK_EVALS.md](AI_TASK_EVALS.md) for software-specific evals. For harness-wide evals (handoff, Daggr, calibration), see [portfolio-harness AI_TASK_EVALS](D:\portfolio-harness\.cursor\docs\AI_TASK_EVALS.md).
+→ See [AI_TASK_EVALS.md](AI_TASK_EVALS.md) for software-specific evals. For harness-wide evals (handoff, Daggr, calibration, identify-but-advise-wrong), see [portfolio-harness AI_TASK_EVALS](D:\portfolio-harness\.cursor\docs\AI_TASK_EVALS.md).
 
 ---
 

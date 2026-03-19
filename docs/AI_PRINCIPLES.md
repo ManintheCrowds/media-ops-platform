@@ -119,6 +119,14 @@ This document establishes the core principles, safety mechanisms, and operationa
 - [ ] Rollback procedure tested in staging
 - [ ] Human approval obtained
 
+### Known Failure Modes
+
+**Inverted U-shaped performance:** AI performs adequately on textbook cases but worst at clinical extremes, rare domains, or adversarial inputs. Validate agent behavior at edge cases; do not assume mid-range performance generalizes.
+
+**Identify but advise wrong:** AI may correctly identify risk in reasoning but still advise harmful action (e.g., respiratory distress → "schedule 24–48 hour appointment" instead of ED). Human gates required for high-stakes decisions; verify advised action, not just reasoning.
+
+**See Also**: [portfolio-harness AI_TASK_EVALS](D:\portfolio-harness\.cursor\docs\AI_TASK_EVALS.md) Identify-but-advise-wrong evals; [calibration_test_suite](D:\portfolio-harness\.cursor\scripts\calibration_test_suite.md) §5–6; [learnings doc](D:\portfolio-harness\docs\learnings\2026-03-18-video-nemoclaw-chatgpt-health.md).
+
 ---
 
 ## 2. Project Management & Multi-Agent Coordination (First Principles)
