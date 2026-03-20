@@ -422,6 +422,17 @@ tests/
 
 For more details, see [Development Guide](docs/DEVELOPMENT.md).
 
+### GitHub Actions parity
+
+Local commands match [`.github/workflows/tests.yml`](.github/workflows/tests.yml):
+
+| Job | Command / notes |
+|-----|-----------------|
+| Lint | `flake8 app services` (see workflow for flags); `black --check app services tests`; `mypy app --ignore-missing-imports` |
+| Unit | `pytest tests/unit -v --cov=app --cov=services --cov-report=xml --cov-report=term-missing -m "unit"` |
+| Integration | Start Postgres 15 with `platform` / `platform` / `platform_test`, then `DATABASE_URL=postgresql://platform:platform@localhost:5432/platform_test pytest tests/integration -v --cov=app --cov=services --cov-report=xml --cov-report=term-missing -m "integration"` |
+| E2E | `pytest tests/e2e -v -m "e2e"` |
+
 ## Troubleshooting
 
 ### Services Not Starting
