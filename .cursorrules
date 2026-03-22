@@ -73,6 +73,14 @@ When in doubt:
 
 See `docs/AI_PRINCIPLES.md` for detailed guidance on all principles.
 
+## Quality gates (P1) — when using OpenHarness or portfolio patterns
+
+If this repo is used alongside **OpenHarness** / **portfolio-harness** (or copies their rules):
+
+- **Verifiable rewards:** Treat **tests + lint + typecheck + build** (and UI tests when UI changes) as the bar for completing substantive code work—not model confidence alone.
+- **Dual gates:** For multi-file or high-stakes work, use **critic JSON** (quality) and **intent-alignment JSON** (fit to intent/constraints) as documented in OpenHarness `.cursor/rules/critic-loop-gate.mdc` and `intent-alignment-gate.mdc`.
+- **Handoffs:** Include a short **definition of done** (commands run, pass/fail) when the session changed code; see OpenHarness `docs/HANDOFF_FLOW.md`.
+
 ## See Also
 
 For comprehensive AI documentation, see:
