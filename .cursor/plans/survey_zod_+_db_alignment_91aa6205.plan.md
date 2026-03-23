@@ -94,7 +94,7 @@ This keeps the wire format as `**answers[]`** while making the **meaning** align
 - **Only after success**: call `**createAttendee`** + `**createSurveyResponse`** from `[db.ts](D:/portfolio-harness/OpenAtlas/src/lib/supabase/db.ts)` with:
   - attendee: `first_name`, `last_name`, `email`, `is_anonymous` (from body).
   - response: mapped fields from `answers`.
-- Remove inserts targeting `**responses**` entirely.
+- Remove inserts targeting `**responses`** entirely.
 - Map **Supabase errors** to appropriate status codes where reasonable (e.g. unique constraint → 409 or 400 with message); keep generic 500 for unexpected failures.
 - Optional small helper `**formatZodErrorFlat(error: ZodError)`** if reused — alignment routes already inline `flatten()`.
 
