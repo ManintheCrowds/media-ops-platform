@@ -26,6 +26,12 @@ wheels/
 # Environment
 .env
 .venv
+.env.*
+!.env.example
+!.cursor/brain-map.env.example
+
+# Local brain-map env (copy from .cursor/brain-map.env.example)
+.cursor/brain-map.env
 
 # IDE
 .vscode/
