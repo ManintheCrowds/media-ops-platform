@@ -1,0 +1,14 @@
+{
+  "dedupe": {
+    "words_before": 14407,
+    "words_after_dedupe": 4730,
+    "chars_after": 25557
+  },
+  "scp_meta": {
+    "blocked": false,
+    "tier": "hostile_ux",
+    "risk_score": 0.0,
+    "result_preview": "```\n=== TRUSTGRAPH (README summary) ===\nContext development platform; Workbench port 8888; Context Cores portable bundles; Cassandra Qdrant Pulsar; RAG DocumentRAG GraphRAG OntologyRAG; MCP integration.\n\n=== CYBERGYM ===\nAgent security eval; PoC server; large datasets; Apache-2.0.\n\n=== GSD ===\nSpec-driven discuss plan execute verify; .planning/ artifacts; MIT.\n\n=== LEARN-CLAUDE-CODE ===\nHarness teaching s01-s12; MIT.\n\n=== MONEYPRINTERV2 ===\nSocial automation; AGPL-3.0; educational disclaimer.\n\n=== MAESTRO ===\nYAML E2E mobile web; Apache-2.0.\n\n=== YOUTUBE sWc7mkhITIo (deduped excerpt, cap 50k chars) ===\nYou've heard all the hype around context graphs and you're probably wondering what are they? Well, you're looking at one. We built a context graph based on data from London area pubs, restaurants, event spaces, and here you can see how all of those are connected to each other and interrelated. But you might be thinking, wait a minute, I thought context graphs were all about things like decision traces and explanability. Well, there's that, too. We can also show the explanability when we ask a simple question. If we look at this data set and we ask where can I drink craft beer? What pub can I drink craft beer and now we can actually see the graph the subgraph and also the concepts the grounding concepts which actual relationships in the graph are being pulled to generate the response and being able to go through this sourcing information. So here we see that we've asked a very specific question that limited the data to return one simple answer. But you might think well why did we get this answer? And again if we look through at the explanability we can go through and see the actual source data where this came from. Now what's really interesting is when we can see this answer what if we ask this question in a slightly different way. What instead the first time we asked specifically where can I drink craft beer in a pub? So now that we've broadened the question, we still"
+  },
+  "combined_len": 26163
+}
