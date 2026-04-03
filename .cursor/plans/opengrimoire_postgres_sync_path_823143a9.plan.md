@@ -1,9 +1,9 @@
 ---
-name: OpenAtlas Postgres sync path
-overview: Freeze the DDL contract from existing OpenAtlas SQL migrations, stand up self-hosted Postgres (staging), resolve Supabase-specific auth/RLS in those migrations for vanilla Postgres, then add Electric or PowerSync and gradually move the Next.js app from direct Supabase client calls to local-first data access—with production cutover only after a working export path.
+name: OpenGrimoire Postgres sync path
+overview: Freeze the DDL contract from existing OpenGrimoire SQL migrations, stand up self-hosted Postgres (staging), resolve Supabase-specific auth/RLS in those migrations for vanilla Postgres, then add Electric or PowerSync and gradually move the Next.js app from direct Supabase client calls to local-first data access—with production cutover only after a working export path.
 todos:
   - id: audit-ddl
-    content: Audit OpenAtlas supabase/migrations for Supabase-only auth.* / authenticated; decide vanilla Postgres RLS vs app-layer auth
+    content: Audit OpenGrimoire supabase/migrations for Supabase-only auth.* / authenticated; decide vanilla Postgres RLS vs app-layer auth
     status: completed
   - id: vanilla-migrations
     content: Add vanilla-Postgres migration path (or patch set) that applies clean on self-hosted Postgres
@@ -12,10 +12,10 @@ todos:
     content: Provision staging Postgres; apply vanilla migrations; verify schema
     status: completed
   - id: pick-sync
-    content: Choose ElectricSQL vs PowerSync for OpenAtlas; deploy sync service to staging
+    content: Choose ElectricSQL vs PowerSync for OpenGrimoire; deploy sync service to staging
     status: completed
   - id: app-spike
-    content: Spike local-first read/write slice in OpenAtlas + replace Realtime path for that slice
+    content: Spike local-first read/write slice in OpenGrimoire + replace Realtime path for that slice
     status: completed
   - id: prod-cutover
     content: "When export available: migrate data, validate, cutover env; decommission or archive Supabase project"
@@ -23,21 +23,21 @@ todos:
 isProject: false
 ---
 
-# OpenAtlas: self-hosted Postgres + sync (schema freeze to staging app)
+# OpenGrimoire: self-hosted Postgres + sync (schema freeze to staging app)
 
 ## Current state (repo facts)
 
-- **Canonical DDL** lives under [OpenAtlas/supabase/migrations/](D:\portfolio-harness\OpenAtlas\supabase\migrations\), applied in timestamp order:
+- **Canonical DDL** lives under [OpenGrimoire/supabase/migrations/](D:\portfolio-harness\OpenGrimoire\supabase\migrations\), applied in timestamp order:
   - `20240320000000_initial_schema.sql` — enums, `attendees`, `survey_responses`, `peak_performance_definitions`, `moderation`, indexes, triggers, **RLS**
   - `20240320000001_fix_moderation_rls.sql`
   - `20250319130000_rename_years_at_medtronic_to_tenure_years.sql`
   - `20260319140000_alignment_context_items.sql`
   - `20260323120000_add_context_intent_snapshots.sql`
-- **App integration today:** `[src/lib/supabase/client.ts](D:\portfolio-harness\OpenAtlas\src\lib\supabase\client.ts)`, `[db.ts](D:\portfolio-harness\OpenAtlas\src\lib\supabase\db.ts)`, **Realtime** in `[useVisualizationData.ts](D:\portfolio-harness\OpenAtlas\src\components\DataVisualization\shared\useVisualizationData.ts)` (`supabase.channel`), `@supabase/supabase-js` + auth helpers in `[package.json](D:\portfolio-harness\OpenAtlas\package.json)`. **No TanStack DB / Electric client yet** — local-first would be additive.
+- **App integration today:** `[src/lib/supabase/client.ts](D:\portfolio-harness\OpenGrimoire\src\lib\supabase\client.ts)`, `[db.ts](D:\portfolio-harness\OpenGrimoire\src\lib\supabase\db.ts)`, **Realtime** in `[useVisualizationData.ts](D:\portfolio-harness\OpenGrimoire\src\components\DataVisualization\shared\useVisualizationData.ts)` (`supabase.channel`), `@supabase/supabase-js` + auth helpers in `[package.json](D:\portfolio-harness\OpenGrimoire\package.json)`. **No TanStack DB / Electric client yet** — local-first would be additive.
 
 ## Critical blocker: vanilla Postgres vs Supabase-only DDL
 
-`[20240320000000_initial_schema.sql](D:\portfolio-harness\OpenAtlas\supabase\migrations\20240320000000_initial_schema.sql)` uses **Supabase Auth**:
+`[20240320000000_initial_schema.sql](D:\portfolio-harness\OpenGrimoire\supabase\migrations\20240320000000_initial_schema.sql)` uses **Supabase Auth**:
 
 - `TO authenticated` role
 - `auth.uid()` and `auth.users` in policies (e.g. peak performance admin email check, moderation)
@@ -66,7 +66,7 @@ flowchart LR
   subgraph runtime [Staging runtime]
     PG[(Postgres)]
     SYNC[Electric or PowerSync]
-    APP[OpenAtlas Next.js]
+    APP[OpenGrimoire Next.js]
   end
   M --> V
   V --> PG
@@ -95,7 +95,7 @@ Use [D:\local-first\STACK_MATRIX.md](D:\local-first\STACK_MATRIX.md) as the proj
 
 | Factor                              | ElectricSQL                                                                              | PowerSync                                                |
 | ----------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| OpenAtlas today                     | Web-first Next.js; fits **query-driven sync** and future **TanStack DB**                 | Strong when **SQLite on device** is primary client store |
+| OpenGrimoire today                     | Web-first Next.js; fits **query-driven sync** and future **TanStack DB**                 | Strong when **SQLite on device** is primary client store |
 | Ops                                 | Electric service + Postgres replication requirements                                     | PowerSync service + Postgres connector                   |
 | **Suggested default for this repo** | **Electric** first — aligns with “reactive queries” path without mandating mobile SQLite | Choose if you standardize on **client SQLite** early     |
 
@@ -113,8 +113,8 @@ Pick one for **staging**; do not run both in production without a strong reason.
 1. **Env split:** `NEXT_PUBLIC`_* for Supabase prod vs staging URLs for Postgres-backed API/sync (exact shape depends on Electric/PowerSync client).
 2. **Replace over time:**
   - **Reads:** move from `supabase.from(...).select` to **local query** (PGlite/SQLite/Electric shapes) where synced.
-  - **Writes:** optimistic local write + sync vs direct insert (survey flow: `[db.ts](D:\portfolio-harness\OpenAtlas\src\lib\supabase\db.ts)`).
-  - **Realtime:** `[useVisualizationData.ts](D:\portfolio-harness\OpenAtlas\src\components\DataVisualization\shared\useVisualizationData.ts)` today uses **Supabase Realtime**; local-first replacement is **sync updates** or a small WebSocket to your app server — plan an explicit substitute.
+  - **Writes:** optimistic local write + sync vs direct insert (survey flow: `[db.ts](D:\portfolio-harness\OpenGrimoire\src\lib\supabase\db.ts)`).
+  - **Realtime:** `[useVisualizationData.ts](D:\portfolio-harness\OpenGrimoire\src\components\DataVisualization\shared\useVisualizationData.ts)` today uses **Supabase Realtime**; local-first replacement is **sync updates** or a small WebSocket to your app server — plan an explicit substitute.
 3. **Verify:** extend existing `npm run verify` / Playwright against **staging** when env vars point there.
 
 ## Phase 6 — Data migration when export works
@@ -139,7 +139,7 @@ Pick one for **staging**; do not run both in production without a strong reason.
 1. Audit migrations for Supabase-only objects; design vanilla Postgres RLS/role strategy.
 2. Add vanilla migration variant and apply to staging Postgres.
 3. Choose Electric or PowerSync; deploy sync service against staging Postgres.
-4. Spike one read path + one write path in OpenAtlas using sync client; retire direct fetch for that slice.
+4. Spike one read path + one write path in OpenGrimoire using sync client; retire direct fetch for that slice.
 5. Replace Realtime subscription in visualization with sync-driven refresh strategy.
 6. Document env vars and runbook; align with [docs/VERIFICATION_CI_ALIGNMENT.md](D:\portfolio-harness\docs\VERIFICATION_CI_ALIGNMENT.md) if CI should hit staging.
 

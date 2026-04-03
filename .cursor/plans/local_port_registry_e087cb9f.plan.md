@@ -9,7 +9,7 @@ isProject: false
 
 ## Problem
 
-- **Demo script:** Opens browser to `localhost:3000` but OpenAtlas may run on 3001, 3002 when 3000 is in use (Next.js auto-increments).
+- **Demo script:** Opens browser to `localhost:3000` but OpenGrimoire may run on 3001, 3002 when 3000 is in use (Next.js auto-increments).
 - **Agent parity:** MCP_CAPABILITY_MAP says "Navigate to `http://localhost:3000/context-atlas`" — agent cannot reliably navigate if port is wrong.
 - **No single source of truth:** Ports are hardcoded in scripts (start_openrag.ps1: 3000, demo_brain_map.ps1: 3000, Ollama: 11434). When services conflict or auto-increment, nothing is updated.
 
@@ -34,7 +34,7 @@ isProject: false
 ```json
 {
   "services": {
-    "openatlas": {
+    "opengrimoire": {
       "port": 3002,
       "baseUrl": "http://localhost:3002",
       "source": "demo_brain_map.ps1",
@@ -44,7 +44,7 @@ isProject: false
     "ollama": { "port": 11434, "baseUrl": "http://localhost:11434", "source": "fixed", "updated": "..." }
   },
   "defaults": {
-    "openatlas": 3000,
+    "opengrimoire": 3000,
     "openrag": 3000,
     "ollama": 11434
   }
@@ -59,24 +59,24 @@ isProject: false
 
 | Service       | Writer               | When                                                                              |
 | ------------- | -------------------- | --------------------------------------------------------------------------------- |
-| **OpenAtlas** | `demo_brain_map.ps1` | After starting npm run dev, parse stdout for `localhost:(\d+)`, write to registry |
+| **OpenGrimoire** | `demo_brain_map.ps1` | After starting npm run dev, parse stdout for `localhost:(\d+)`, write to registry |
 | **OpenRAG**   | `start_openrag.ps1`  | Already uses OPENRAG_URL; could write port to registry when starting              |
 | **Ollama**    | Static / manual      | Fixed 11434; add to defaults; optional: probe and write if reachable              |
 
 
-**OpenAtlas capture:** Run `npm run dev` in a background job, wait 8s, `Receive-Job` to get output, regex `localhost:(\d+)`, write to ports.json. Then open browser with that URL.
+**OpenGrimoire capture:** Run `npm run dev` in a background job, wait 8s, `Receive-Job` to get output, regex `localhost:(\d+)`, write to ports.json. Then open browser with that URL.
 
 ### 3. Agent access
 
 
 | Agent action          | How                                                                                                                                                 |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Navigate to Brain Map | `read_file` `.cursor/state/ports.json` → get `services.openatlas.baseUrl` or `defaults.openatlas` → `browser_navigate` to `{baseUrl}/context-atlas` |
+| Navigate to Brain Map | `read_file` `.cursor/state/ports.json` → get `services.opengrimoire.baseUrl` or `defaults.opengrimoire` → `browser_navigate` to `{baseUrl}/context-atlas` |
 | Navigate to OpenRAG   | Same pattern                                                                                                                                        |
 | Know what's running   | Read `ports.json`; `services` = runtime; `defaults` = conventional fallback                                                                         |
 
 
-**Capability map update:** "Before navigating to OpenAtlas, read `.cursor/state/ports.json`; use `services.openatlas.baseUrl` if present, else `http://localhost:{defaults.openatlas}`."
+**Capability map update:** "Before navigating to OpenGrimoire, read `.cursor/state/ports.json`; use `services.opengrimoire.baseUrl` if present, else `http://localhost:{defaults.opengrimoire}`."
 
 ### 4. Placement (tech-lead)
 
@@ -90,12 +90,12 @@ isProject: false
 
 ### 5. Implementation order
 
-1. **Log issue** — Add known-issues entry: demo script opens 3000 but OpenAtlas may be on 3001/3002; solution: port registry.
+1. **Log issue** — Add known-issues entry: demo script opens 3000 but OpenGrimoire may be on 3001/3002; solution: port registry.
 2. **Create PORT_REGISTRY.md** — Schema, defaults, agent usage, browser-web skill note.
 3. **Create ports.json** — Initial file with `defaults` only (no runtime entries yet).
 4. **Update demo_brain_map.ps1** — Use Start-Job to capture npm output; parse port; write to registry; open browser with discovered URL.
-5. **Update MCP_CAPABILITY_MAP** — OpenAtlas row: "Read ports.json for baseUrl; default 3000."
-6. **Update browser-web SKILL** — Add note: "For local dev (OpenAtlas, OpenRAG), check .cursor/state/ports.json for actual port before navigate."
+5. **Update MCP_CAPABILITY_MAP** — OpenGrimoire row: "Read ports.json for baseUrl; default 3000."
+6. **Update browser-web SKILL** — Add note: "For local dev (OpenGrimoire, OpenRAG), check .cursor/state/ports.json for actual port before navigate."
 
 ### 6. Access control
 
@@ -118,7 +118,7 @@ isProject: false
 | `.cursor/docs/PORT_REGISTRY.md`      | New — schema, usage                          |
 | `.cursor/state/ports.json`           | New — defaults template                      |
 | `.cursor/scripts/demo_brain_map.ps1` | Capture port, write registry, use it for URL |
-| `.cursor/docs/MCP_CAPABILITY_MAP.md` | OpenAtlas row: check ports.json              |
+| `.cursor/docs/MCP_CAPABILITY_MAP.md` | OpenGrimoire row: check ports.json              |
 | `skills/browser-web/SKILL.md`        | Note: local dev → check ports.json           |
 
 

@@ -1,9 +1,9 @@
 ---
-name: OpenAtlas privacy and alignment
-overview: Run a structured “public-surface and secrets” audit on [OpenAtlas](D:/portfolio-harness/OpenAtlas) including deployment/env documentation and client logging, then define product scope for using the app and Supabase-backed survey data as the channel for alignment/context questions, with a scoped agent-native architecture review and reuse analysis before implementation.
+name: OpenGrimoire privacy and alignment
+overview: Run a structured “public-surface and secrets” audit on [OpenGrimoire](D:/portfolio-harness/OpenGrimoire) including deployment/env documentation and client logging, then define product scope for using the app and Supabase-backed survey data as the channel for alignment/context questions, with a scoped agent-native architecture review and reuse analysis before implementation.
 todos:
   - id: audit-scan
-    content: Run full grep/audit pass on OpenAtlas (src, public, supabase, docs, .env.example, CI) per Phase 1 table; document findings
+    content: Run full grep/audit pass on OpenGrimoire (src, public, supabase, docs, .env.example, CI) per Phase 1 table; document findings
     status: completed
   - id: fix-leaks
     content: Redact DEPLOYMENT/docs examples; gate or remove console payload logs (useVisualizationData); document NEXT_PUBLIC_BRAIN_MAP_SECRET risk
@@ -15,20 +15,20 @@ todos:
     content: Scan survey + supabase + harness context patterns; write reuse/adapt/new recommendation
     status: completed
   - id: agent-native-doc
-    content: Score OpenAtlas against 8 agent-native principles; top 10 recommendations
+    content: Score OpenGrimoire against 8 agent-native principles; top 10 recommendations
     status: completed
 isProject: false
 ---
 
-# OpenAtlas: public-data audit, alignment channel, agent-native review
+# OpenGrimoire: public-data audit, alignment channel, agent-native review
 
 ## Context (from read-only scan)
 
-- **[DEPLOYMENT.md](D:/portfolio-harness/OpenAtlas/DEPLOYMENT.md)** contains example lines for `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` with JWT-shaped placeholders. Even truncated, this pattern encourages copying real material into tracked docs; treat as **high-priority redaction** (placeholders only, never project-specific values).
-- **[README.md](D:/portfolio-harness/OpenAtlas/README.md)** documents `NEXT_PUBLIC_BRAIN_MAP_SECRET` for a client header. Anything under `NEXT_PUBLIC_`* is **bundled to the browser**—this is an **architectural exposure** (not a “secret” in the server sense). The audit should flag it and recommend server-only verification or a short-lived token pattern.
-- **Schema history:** `years_at_medtronic` appears only in [supabase/migrations](D:/portfolio-harness/OpenAtlas/supabase/migrations) (initial + rename to `tenure_years`). Acceptable as migration archaeology; optional follow-up is renaming the migration file for cosmetic consistency (low priority, can break reproducibility if anyone relies on filenames).
-- **Client console PII:** [useVisualizationData.ts](D:/portfolio-harness/OpenAtlas/src/components/DataVisualization/shared/useVisualizationData.ts) logs `sampleData: validResponses.slice(0, 2)` after loading `survey_responses` with `attendee:attendees(*)`. That can leak **real survey text and attendee fields** to DevTools and any log sink—treat as **critical for “shouldn’t be public”** (remove or gate behind `NEXT_PUBLIC_DEBUG_`* with zero production logging of row payloads).
-- **[client.ts](D:/portfolio-harness/OpenAtlas/src/lib/supabase/client.ts)** already gates Supabase init logging behind `NEXT_PUBLIC_DEBUG_SUPABASE` + `development` and avoids logging key material—good baseline to extend to visualization logging.
+- **[DEPLOYMENT.md](D:/portfolio-harness/OpenGrimoire/DEPLOYMENT.md)** contains example lines for `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` with JWT-shaped placeholders. Even truncated, this pattern encourages copying real material into tracked docs; treat as **high-priority redaction** (placeholders only, never project-specific values).
+- **[README.md](D:/portfolio-harness/OpenGrimoire/README.md)** documents `NEXT_PUBLIC_BRAIN_MAP_SECRET` for a client header. Anything under `NEXT_PUBLIC_`* is **bundled to the browser**—this is an **architectural exposure** (not a “secret” in the server sense). The audit should flag it and recommend server-only verification or a short-lived token pattern.
+- **Schema history:** `years_at_medtronic` appears only in [supabase/migrations](D:/portfolio-harness/OpenGrimoire/supabase/migrations) (initial + rename to `tenure_years`). Acceptable as migration archaeology; optional follow-up is renaming the migration file for cosmetic consistency (low priority, can break reproducibility if anyone relies on filenames).
+- **Client console PII:** [useVisualizationData.ts](D:/portfolio-harness/OpenGrimoire/src/components/DataVisualization/shared/useVisualizationData.ts) logs `sampleData: validResponses.slice(0, 2)` after loading `survey_responses` with `attendee:attendees(*)`. That can leak **real survey text and attendee fields** to DevTools and any log sink—treat as **critical for “shouldn’t be public”** (remove or gate behind `NEXT_PUBLIC_DEBUG_`* with zero production logging of row payloads).
+- **[client.ts](D:/portfolio-harness/OpenGrimoire/src/lib/supabase/client.ts)** already gates Supabase init logging behind `NEXT_PUBLIC_DEBUG_SUPABASE` + `development` and avoids logging key material—good baseline to extend to visualization logging.
 
 ```mermaid
 flowchart LR
@@ -58,16 +58,16 @@ flowchart LR
 
 | Area                                                 | Checks                                                                                                                                                                                                                                                                                                                                                  |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Tracked secrets**                                  | Grep for `eyJ`, `sk-`, `service_role`, private keys; verify [.gitignore](D:/portfolio-harness/OpenAtlas/.gitignore) covers `.env`*, local overrides; confirm no `.env` committed.                                                                                                                                                                       |
-| **Docs / examples**                                  | [DEPLOYMENT.md](D:/portfolio-harness/OpenAtlas/DEPLOYMENT.md), [docs/USAGE_GUIDE.md](D:/portfolio-harness/OpenAtlas/docs/USAGE_GUIDE.md), [docs/DEVELOPER_GUIDE.md](D:/portfolio-harness/OpenAtlas/docs/DEVELOPER_GUIDE.md): replace any JWT-shaped examples with `<anon-key>` / `<service-role-key>` and link to Supabase dashboard copy instructions. |
+| **Tracked secrets**                                  | Grep for `eyJ`, `sk-`, `service_role`, private keys; verify [.gitignore](D:/portfolio-harness/OpenGrimoire/.gitignore) covers `.env`*, local overrides; confirm no `.env` committed.                                                                                                                                                                       |
+| **Docs / examples**                                  | [DEPLOYMENT.md](D:/portfolio-harness/OpenGrimoire/DEPLOYMENT.md), [docs/USAGE_GUIDE.md](D:/portfolio-harness/OpenGrimoire/docs/USAGE_GUIDE.md), [docs/DEVELOPER_GUIDE.md](D:/portfolio-harness/OpenGrimoire/docs/DEVELOPER_GUIDE.md): replace any JWT-shaped examples with `<anon-key>` / `<service-role-key>` and link to Supabase dashboard copy instructions. |
 | *NEXT_PUBLIC_ review**                               | List every `NEXT_PUBLIC`_ usage; classify **intentionally public** (Supabase URL/anon) vs **should be server-only** (brain map “secret”). Document threat model: anon key + RLS = still need tight RLS and no service role in client.                                                                                                                   |
-| **Logging**                                          | Audit all `console.`* in `src/` (not only [useVisualizationData.ts](D:/portfolio-harness/OpenAtlas/src/components/DataVisualization/shared/useVisualizationData.ts)); strip or gate payload logs; ensure build/CI never echoes env values (Next already improved for Supabase client).                                                                  |
-| **Static / public assets**                           | Scan [public/](D:/portfolio-harness/OpenAtlas/public) and visualization copy for org-specific branding (already partially addressed; re-verify `/visualization`).                                                                                                                                                                                       |
+| **Logging**                                          | Audit all `console.`* in `src/` (not only [useVisualizationData.ts](D:/portfolio-harness/OpenGrimoire/src/components/DataVisualization/shared/useVisualizationData.ts)); strip or gate payload logs; ensure build/CI never echoes env values (Next already improved for Supabase client).                                                                  |
+| **Static / public assets**                           | Scan [public/](D:/portfolio-harness/OpenGrimoire/public) and visualization copy for org-specific branding (already partially addressed; re-verify `/visualization`).                                                                                                                                                                                       |
 | **Migrations / seeds**                               | Review SQL for embedded emails, names, or production-like data; ensure seeds are synthetic.                                                                                                                                                                                                                                                             |
-| **CI** (if present under OpenAtlas or monorepo root) | Workflow files: `secrets.`* usage only; no hardcoded tokens.                                                                                                                                                                                                                                                                                            |
+| **CI** (if present under OpenGrimoire or monorepo root) | Workflow files: `secrets.`* usage only; no hardcoded tokens.                                                                                                                                                                                                                                                                                            |
 
 
-**Deliverable:** `docs/plans/YYYY-MM-DD-openatlas-privacy-audit.md` (or `docs/security/PUBLIC_SURFACE_AUDIT.md`) with findings table: severity, file, issue, fix, verification step.
+**Deliverable:** `docs/plans/YYYY-MM-DD-opengrimoire-privacy-audit.md` (or `docs/security/PUBLIC_SURFACE_AUDIT.md`) with findings table: severity, file, issue, fix, verification step.
 
 **Verification (after edits):** `rg` for sensitive patterns (excluding `.next`); `npm run build`; manual smoke: open visualization with DevTools and confirm no row dumps.
 
@@ -75,7 +75,7 @@ flowchart LR
 
 ## Phase 2 — Product scope: “alignment and context questions” via app + data source
 
-**Problem statement (draft):** Use OpenAtlas and its Supabase-backed survey (and related entities) as the **structured input** for alignment/context prompts (for humans and/or agents), not only as charts.
+**Problem statement (draft):** Use OpenGrimoire and its Supabase-backed survey (and related entities) as the **structured input** for alignment/context prompts (for humans and/or agents), not only as charts.
 
 **Numbered requirements (to refine with you in one follow-up message):**
 
@@ -98,20 +98,20 @@ flowchart LR
 
 **Scan targets (narrow):**
 
-- Existing survey types and hooks: [useVisualizationData.ts](D:/portfolio-harness/OpenAtlas/src/components/DataVisualization/shared/useVisualizationData.ts), related types under `src/types` or visualization lib.
-- Any existing “prompt” or “context” files under OpenAtlas or [portfolio-harness](D:/portfolio-harness) (brain map, handoff, AGENTS).
-- Supabase client patterns in [src/lib/supabase](D:/portfolio-harness/OpenAtlas/src/lib/supabase).
+- Existing survey types and hooks: [useVisualizationData.ts](D:/portfolio-harness/OpenGrimoire/src/components/DataVisualization/shared/useVisualizationData.ts), related types under `src/types` or visualization lib.
+- Any existing “prompt” or “context” files under OpenGrimoire or [portfolio-harness](D:/portfolio-harness) (brain map, handoff, AGENTS).
+- Supabase client patterns in [src/lib/supabase](D:/portfolio-harness/OpenGrimoire/src/lib/supabase).
 
 **Report (required):** “Reuse / adapt / new” with one paragraph each—avoid duplicating a second survey pipeline if the first can carry metadata or a JSONB `context` field.
 
 ---
 
-## Phase 4 — Agent-native architecture audit (scoped to OpenAtlas)
+## Phase 4 — Agent-native architecture audit (scoped to OpenGrimoire)
 
-Run the **eight principles** from your command as a **single-repo audit** (OpenAtlas only), not the whole multi-root workspace:
+Run the **eight principles** from your command as a **single-repo audit** (OpenGrimoire only), not the whole multi-root workspace:
 
 
-| Principle              | OpenAtlas focus                                                                   |
+| Principle              | OpenGrimoire focus                                                                   |
 | ---------------------- | --------------------------------------------------------------------------------- |
 | Action parity          | Map UI actions (load survey, filters, exports) vs any future agent tools.         |
 | Tools as primitives    | N/A until MCP/API exists; note “future tools should be CRUD primitives.”          |
@@ -123,7 +123,7 @@ Run the **eight principles** from your command as a **single-repo audit** (OpenA
 | Prompt-native features | Prefer storing alignment text in DB/prompt templates vs hardcoding in components. |
 
 
-**Deliverable:** Markdown section or `docs/plans/YYYY-MM-DD-openatlas-agent-native-audit.md` with **X/Y scores** per principle and top 10 recommendations (as in your command template).
+**Deliverable:** Markdown section or `docs/plans/YYYY-MM-DD-opengrimoire-agent-native-audit.md` with **X/Y scores** per principle and top 10 recommendations (as in your command template).
 
 ---
 

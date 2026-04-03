@@ -40,7 +40,7 @@ isProject: false
 3. If empty state: verify dropzone and file input; optionally load JSON via file input
 4. Stop HTTP server after audit
 
-### Phase 3: Med-Vis / OpenAtlas Audit (if portfolio-harness present)
+### Phase 3: Med-Vis / OpenGrimoire Audit (if portfolio-harness present)
 
 1. Run parser from portfolio-harness: `python .cursor/scripts/build_brain_map.py` (output to Med-Vis/public)
 2. Start Med-Vis dev server: `cd Med-Vis; npm run dev`

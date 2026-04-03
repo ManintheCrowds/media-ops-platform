@@ -27,11 +27,11 @@ Primary repo: **portfolio-harness** (Cursor harness, scripts, skills, docs). Int
 - **WatchTower_main** — Flask API, Gradio/Daggr, discovery (partial MCP coverage per CM-3)
 - **campaign_kb** (Arc_Forge path in map) — ingest, search, merge; some ingest routes **Missing** in parity audit
 - **workflow_ui** — Arc_Forge workflow UI; mixed Done/Partial per [action_parity_audit_cm3](D:/portfolio-harness/.cursor/state/adhoc/action_parity_audit_cm3_2026-03-16.md)
-- **OpenAtlas / Brain Map** — dev server, alignment API CLI
+- **OpenGrimoire / Brain Map** — dev server, alignment API CLI
 - **Obsidian / foam-pkm** — vault MCP, shared workspace note in MCP map (“No agent sandbox”)
 - **Cross-repo** — local-proto (TOOL_SAFEGUARDS, Playwright config), scp (when referenced), sibling clones as listed in workspace rules
 
-**Out of scope for a single pass:** Full codebase review of every line in OpenAtlas, WatchTower, and campaign_kb application code—unless scoped to **agent-facing** surfaces (APIs, MCP tools, scripts the agent runs).
+**Out of scope for a single pass:** Full codebase review of every line in OpenGrimoire, WatchTower, and campaign_kb application code—unless scoped to **agent-facing** surfaces (APIs, MCP tools, scripts the agent runs).
 
 ---
 
@@ -77,7 +77,7 @@ The `/agent-native-audit` command describes 8 principles and 8 parallel explorer
 
 1. **Baseline:** Start from [.cursor/state/adhoc/action_parity_audit_cm3_2026-03-16.md](D:/portfolio-harness/.cursor/state/adhoc/action_parity_audit_cm3_2026-03-16.md) (already lists Missing/Partial/Done per surface).
 2. **Refresh selectively:** For each **Missing** or **Partial** row that is still security- or ops-relevant (e.g. WatchTower discovery endpoints, campaign_kb ingest routes), verify whether [MCP_CAPABILITY_MAP](D:/portfolio-harness/.cursor/docs/MCP_CAPABILITY_MAP.md) or Daggr MCP now covers it—**delta** since 2026-03-16.
-3. **Principle scoring (lightweight):** Score each of the 8 principles **for the harness + MCP layer** using evidence from MCP map + parity doc (not full frontend enumeration unless user narrows to one app). Document explicitly what was **not** exhaustively enumerated (e.g. OpenAtlas React buttons).
+3. **Principle scoring (lightweight):** Score each of the 8 principles **for the harness + MCP layer** using evidence from MCP map + parity doc (not full frontend enumeration unless user narrows to one app). Document explicitly what was **not** exhaustively enumerated (e.g. OpenGrimoire React buttons).
 4. **Tools as primitives:** Spot-check: Daggr/SCP tools described as pipelines vs read/list primitives per [.cursor/docs/AGENT_NATIVE_CHECKLIST.md](D:/portfolio-harness/.cursor/docs/AGENT_NATIVE_CHECKLIST.md).
 
 **Deliverable slice:** Updated-style summary table (principle → score → evidence pointer → top gaps), plus **parity delta** subsection.
