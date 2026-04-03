@@ -1,28 +1,28 @@
 ---
 name: Brain map coverage and git hygiene
-overview: "Operationalize multi-root and vault inputs for `build_brain_map.py`, standardize output to `brain-map-graph.local.json` for personal merges, and clean OpenAtlas git noise from tracked build artifacts. Optional: small runbook snippet in-repo."
+overview: "Operationalize multi-root and vault inputs for `build_brain_map.py`, standardize output to `brain-map-graph.local.json` for personal merges, and clean OpenGrimoire git noise from tracked build artifacts. Optional: small runbook snippet in-repo."
 todos:
   - id: env-bridge
     content: Set CURSOR_STATE_DIRS (+ optional labels) and BRAIN_MAP_VAULT_ROOTS for openharness/software/docs; verify with one build
     status: completed
   - id: rebuild-local
-    content: Run build_brain_map.py; confirm OpenAtlas/public/brain-map-graph.local.json updates Context Atlas
+    content: Run build_brain_map.py; confirm OpenGrimoire/public/brain-map-graph.local.json updates Context Atlas
     status: completed
   - id: git-untrack
-    content: "In OpenAtlas submodule: git rm --cached tracked .next/tsbuildinfo if present; commit ignore hygiene only if needed"
+    content: "In OpenGrimoire submodule: git rm --cached tracked .next/tsbuildinfo if present; commit ignore hygiene only if needed"
     status: completed
   - id: optional-readme
-    content: "Optional: add short brain-map rebuild blurb to OpenAtlas README or CONTRIBUTING"
+    content: "Optional: add short brain-map rebuild blurb to OpenGrimoire README or CONTRIBUTING"
     status: completed
 isProject: false
 ---
 
-# Brain map coverage + OpenAtlas git hygiene
+# Brain map coverage + OpenGrimoire git hygiene
 
 ## Why this matters
 
-- **Context Atlas** reads graph JSON from `[OpenAtlas/public/](D:/portfolio-harness/OpenAtlas/public/)` via `[src/app/api/brain-map/graph/route.ts](D:/portfolio-harness/OpenAtlas/src/app/api/brain-map/graph/route.ts)` (prefers `brain-map-graph.local.json`, else `brain-map-graph.json`). Coverage grows only when the **builder** ingests more roots and you **rebuild** the JSON.
-- `[build_brain_map.py](D:/portfolio-harness/.cursor/scripts/build_brain_map.py)` already documents `CURSOR_STATE_DIRS`, `BRAIN_MAP_VAULT_ROOTS`, and `BRAIN_MAP_OUTPUT`. With vault roots set and `BRAIN_MAP_OUTPUT` unset, default output is `**OpenAtlas/public/brain-map-graph.local.json`** (gitignored per `[OpenAtlas/.gitignore](D:/portfolio-harness/OpenAtlas/.gitignore)`).
+- **Context Atlas** reads graph JSON from `[OpenGrimoire/public/](D:/portfolio-harness/OpenGrimoire/public/)` via `[src/app/api/brain-map/graph/route.ts](D:/portfolio-harness/OpenGrimoire/src/app/api/brain-map/graph/route.ts)` (prefers `brain-map-graph.local.json`, else `brain-map-graph.json`). Coverage grows only when the **builder** ingests more roots and you **rebuild** the JSON.
+- `[build_brain_map.py](D:/portfolio-harness/.cursor/scripts/build_brain_map.py)` already documents `CURSOR_STATE_DIRS`, `BRAIN_MAP_VAULT_ROOTS`, and `BRAIN_MAP_OUTPUT`. With vault roots set and `BRAIN_MAP_OUTPUT` unset, default output is `**OpenGrimoire/public/brain-map-graph.local.json`** (gitignored per `[OpenGrimoire/.gitignore](D:/portfolio-harness/OpenGrimoire/.gitignore)`).
 
 ```mermaid
 flowchart LR
@@ -65,8 +65,8 @@ python .cursor/scripts/build_brain_map.py
 
 **Output choice:**
 
-- Prefer writing `**OpenAtlas/public/brain-map-graph.local.json`** for personal merges (default when vault roots are set and `BRAIN_MAP_OUTPUT` unset), or set `BRAIN_MAP_OUTPUT` explicitly.
-- Leave committed `[public/brain-map-graph.json](D:/portfolio-harness/OpenAtlas/public/brain-map-graph.json)` as the **shared default** unless you intentionally update it for the team.
+- Prefer writing `**OpenGrimoire/public/brain-map-graph.local.json`** for personal merges (default when vault roots are set and `BRAIN_MAP_OUTPUT` unset), or set `BRAIN_MAP_OUTPUT` explicitly.
+- Leave committed `[public/brain-map-graph.json](D:/portfolio-harness/OpenGrimoire/public/brain-map-graph.json)` as the **shared default** unless you intentionally update it for the team.
 
 ## 2. Tie docs into edges (no code)
 
@@ -76,22 +76,22 @@ python .cursor/scripts/build_brain_map.py
 
 - Keep short **intent** in Supabase `alignment_context_items`; it is not a replacement for doc trees.
 
-## 4. Git hygiene in OpenAtlas (fix dirty `git status`)
+## 4. Git hygiene in OpenGrimoire (fix dirty `git status`)
 
-`[OpenAtlas/.gitignore](D:/portfolio-harness/OpenAtlas/.gitignore)` already lists `.next`, `*.tsbuildinfo`, and `public/brain-map-graph.local.json`. If `git status` still shows **modified** files under `.next/` or `*.tsbuildinfo`, those paths are almost certainly **tracked** in history.
+`[OpenGrimoire/.gitignore](D:/portfolio-harness/OpenGrimoire/.gitignore)` already lists `.next`, `*.tsbuildinfo`, and `public/brain-map-graph.local.json`. If `git status` still shows **modified** files under `.next/` or `*.tsbuildinfo`, those paths are almost certainly **tracked** in history.
 
-**Fix (run inside OpenAtlas submodule):**
+**Fix (run inside OpenGrimoire submodule):**
 
 1. Confirm: `git ls-files .next` — if any files list, remove from index: `git rm -r --cached .next` (does not delete working tree).
 2. Same for `tsbuildinfo` if listed: `git ls-files '*.tsbuildinfo'` then `git rm --cached <file>` if needed.
 3. **Do not** commit `brain-map-graph.local.json` (already ignored).
 4. For `**public/brain-map-graph.json`**: only commit when you intentionally ship an updated default graph; otherwise revert local changes or regenerate from a known baseline.
 
-**Optional repo improvement:** add a one-line note to `[OpenAtlas/README.md](D:/portfolio-harness/OpenAtlas/README.md)` or `[CONTRIBUTING.md](D:/portfolio-harness/OpenAtlas/CONTRIBUTING.md)`: “Personal graph: `brain-map-graph.local.json`; run `build_brain_map.py` with `CURSOR_STATE_DIRS` / `BRAIN_MAP_VAULT_ROOTS`.”
+**Optional repo improvement:** add a one-line note to `[OpenGrimoire/README.md](D:/portfolio-harness/OpenGrimoire/README.md)` or `[CONTRIBUTING.md](D:/portfolio-harness/OpenGrimoire/CONTRIBUTING.md)`: “Personal graph: `brain-map-graph.local.json`; run `build_brain_map.py` with `CURSOR_STATE_DIRS` / `BRAIN_MAP_VAULT_ROOTS`.”
 
 ## 5. Future “doc KB” (out of scope)
 
-- Full crawl of `openharness/docs` with RAG/chunking inside OpenAtlas is **new product work**; this plan is coverage + hygiene only.
+- Full crawl of `openharness/docs` with RAG/chunking inside OpenGrimoire is **new product work**; this plan is coverage + hygiene only.
 
 ## Risk
 

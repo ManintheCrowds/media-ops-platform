@@ -3,7 +3,7 @@ name: Context DB v1 + Electric local
 overview: Produce a cross-repo intent document for the first database state (vanilla Postgres schema + context/intent semantics), run the documented local Electric staging smoke test, then plan follow-up work to stop depending on Supabase for reads/writes so visualization and APIs use the same "context database" as Electric.
 todos:
   - id: doc-v1-intent
-    content: Add OpenAtlas/docs/DATABASE_V1_INTENT.md (cross-repo intent + v1 tables + first empty/seed state)
+    content: Add OpenGrimoire/docs/DATABASE_V1_INTENT.md (cross-repo intent + v1 tables + first empty/seed state)
     status: completed
   - id: smoke-electric-local
     content: Run docker staging + apply-vanilla-migrations + Electric + .env.local flags; verify logs and viz behavior
@@ -18,12 +18,12 @@ isProject: false
 
 ## Current architecture (facts)
 
-- **Schema contract** is already split: Supabase-target migrations under [OpenAtlas/supabase/migrations/](D:/portfolio-harness/OpenAtlas/supabase/migrations/) and **vanilla** Postgres under [OpenAtlas/supabase/migrations/vanilla/](D:/portfolio-harness/OpenAtlas/supabase/migrations/vanilla/) (see [SELF_HOSTED_POSTGRES_SCHEMA.md](D:/portfolio-harness/OpenAtlas/docs/SELF_HOSTED_POSTGRES_SCHEMA.md)).
+- **Schema contract** is already split: Supabase-target migrations under [OpenGrimoire/supabase/migrations/](D:/portfolio-harness/OpenGrimoire/supabase/migrations/) and **vanilla** Postgres under [OpenGrimoire/supabase/migrations/vanilla/](D:/portfolio-harness/OpenGrimoire/supabase/migrations/vanilla/) (see [SELF_HOSTED_POSTGRES_SCHEMA.md](D:/portfolio-harness/OpenGrimoire/docs/SELF_HOSTED_POSTGRES_SCHEMA.md)).
 - **“Context” in product terms** maps to:
-  - `survey_responses.context_snapshot` / `intent_snapshot` / `alignment_schema_version` ([CONTEXT_INTENT_IA.md](D:/portfolio-harness/OpenAtlas/docs/CONTEXT_INTENT_IA.md)).
-  - `alignment_context_items` for operator notes ([vanilla migration 004](D:/portfolio-harness/OpenAtlas/supabase/migrations/vanilla/004_alignment_context_items.sql), [alignment-context/db.ts](D:/portfolio-harness/OpenAtlas/src/lib/alignment-context/db.ts)).
-- **App still uses Supabase** for survey POST and visualization reads: [survey/route.ts](D:/portfolio-harness/OpenAtlas/src/app/api/survey/route.ts) calls `createAttendee` / `createSurveyResponse` from [supabase/db.ts](D:/portfolio-harness/OpenAtlas/src/lib/supabase/db.ts); visualization uses `supabase.from('survey_responses')...` in [useVisualizationData.ts](D:/portfolio-harness/OpenAtlas/src/components/DataVisualization/shared/useVisualizationData.ts).
-- **Electric** only signals **when** to refetch; [electricVizRefresh.ts](D:/portfolio-harness/OpenAtlas/src/lib/sync/electricVizRefresh.ts) explicitly notes data still loads via Supabase until replaced.
+  - `survey_responses.context_snapshot` / `intent_snapshot` / `alignment_schema_version` ([CONTEXT_INTENT_IA.md](D:/portfolio-harness/OpenGrimoire/docs/CONTEXT_INTENT_IA.md)).
+  - `alignment_context_items` for operator notes ([vanilla migration 004](D:/portfolio-harness/OpenGrimoire/supabase/migrations/vanilla/004_alignment_context_items.sql), [alignment-context/db.ts](D:/portfolio-harness/OpenGrimoire/src/lib/alignment-context/db.ts)).
+- **App still uses Supabase** for survey POST and visualization reads: [survey/route.ts](D:/portfolio-harness/OpenGrimoire/src/app/api/survey/route.ts) calls `createAttendee` / `createSurveyResponse` from [supabase/db.ts](D:/portfolio-harness/OpenGrimoire/src/lib/supabase/db.ts); visualization uses `supabase.from('survey_responses')...` in [useVisualizationData.ts](D:/portfolio-harness/OpenGrimoire/src/components/DataVisualization/shared/useVisualizationData.ts).
+- **Electric** only signals **when** to refetch; [electricVizRefresh.ts](D:/portfolio-harness/OpenGrimoire/src/lib/sync/electricVizRefresh.ts) explicitly notes data still loads via Supabase until replaced.
 
 ```mermaid
 flowchart LR
@@ -41,25 +41,25 @@ flowchart LR
 
 ## Phase 1 — Analyze codebases and freeze “v1 intent” (documentation)
 
-**Scope (recommended):** portfolio-harness **OpenAtlas** + cross-links already referenced in docs (e.g. [INTENT_ENGINEERING.md](D:/openharness/docs/INTENT_ENGINEERING.md) if present), plus [local-first STACK_MATRIX](D:/local-first/STACK_MATRIX.md) for sync choice. Optional: skim [D:/software](D:/software) `.cursor/plans` only for OpenAtlas-related plans if you want workspace-wide alignment—avoid a full-repo scan unless you explicitly need it.
+**Scope (recommended):** portfolio-harness **OpenGrimoire** + cross-links already referenced in docs (e.g. [INTENT_ENGINEERING.md](D:/openharness/docs/INTENT_ENGINEERING.md) if present), plus [local-first STACK_MATRIX](D:/local-first/STACK_MATRIX.md) for sync choice. Optional: skim [D:/software](D:/software) `.cursor/plans` only for OpenGrimoire-related plans if you want workspace-wide alignment—avoid a full-repo scan unless you explicitly need it.
 
-**Deliverable:** one new doc, e.g. `OpenAtlas/docs/DATABASE_V1_INTENT.md`, containing:
+**Deliverable:** one new doc, e.g. `OpenGrimoire/docs/DATABASE_V1_INTENT.md`, containing:
 
 1. **Purpose statement** — operator alignment context + human context/intent snapshots (what the DB is *for*, not just tables).
-2. **Entity list** — tables from vanilla migrations in order: `attendees`, `survey_responses` (with `tenure_years`, JSONB snapshots), `peak_performance_definitions`, `moderation`, `alignment_context_items`, `openatlas_admin_users`; note RLS vs `openatlas_authenticated` / `openatlas.user_id` ([SELF_HOSTED_POSTGRES_SCHEMA.md](D:/portfolio-harness/OpenAtlas/docs/SELF_HOSTED_POSTGRES_SCHEMA.md)).
-3. **First-state semantics** — what “empty but valid” means: no rows vs seed rows for `peak_performance_definitions` (already inserted in migration), optional seed for admin UUIDs in `openatlas_admin_users`.
+2. **Entity list** — tables from vanilla migrations in order: `attendees`, `survey_responses` (with `tenure_years`, JSONB snapshots), `peak_performance_definitions`, `moderation`, `alignment_context_items`, `opengrimoire_admin_users`; note RLS vs `opengrimoire_authenticated` / `opengrimoire.user_id` ([SELF_HOSTED_POSTGRES_SCHEMA.md](D:/portfolio-harness/OpenGrimoire/docs/SELF_HOSTED_POSTGRES_SCHEMA.md)).
+3. **First-state semantics** — what “empty but valid” means: no rows vs seed rows for `peak_performance_definitions` (already inserted in migration), optional seed for admin UUIDs in `opengrimoire_admin_users`.
 4. **Cross-reference** — link to CONTEXT_INTENT_IA, PRODUCTION_CUTOVER_RUNBOOK when migrating from Supabase.
 
 No code change required for this phase if you only want the analysis artifact.
 
 ## Phase 2 — Local Electric-driven viz refresh (exact commands)
 
-Run from [OpenAtlas/](D:/portfolio-harness/OpenAtlas):
+Run from [OpenGrimoire/](D:/portfolio-harness/OpenGrimoire):
 
 1. `docker compose -f docker-compose.staging.yml up -d`
 2. `.\scripts\apply-vanilla-migrations.ps1` (or `.sh` on Unix)
-3. **Verify Electric:** `docker compose -f docker-compose.staging.yml up -d electric` and `docker logs` for the electric container (expects `ELECTRIC_INSECURE` in [docker-compose.staging.yml](D:/portfolio-harness/OpenAtlas/docker-compose.staging.yml)).
-4. In `.env.local`: `NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://127.0.0.1:3030`, `NEXT_PUBLIC_OPENATLAS_VIZ_USE_ELECTRIC=1` (see [docs/env.staging.example](D:/portfolio-harness/OpenAtlas/docs/env.staging.example), [SELF_HOSTED_STAGING.md](D:/portfolio-harness/OpenAtlas/docs/SELF_HOSTED_STAGING.md)).
+3. **Verify Electric:** `docker compose -f docker-compose.staging.yml up -d electric` and `docker logs` for the electric container (expects `ELECTRIC_INSECURE` in [docker-compose.staging.yml](D:/portfolio-harness/OpenGrimoire/docker-compose.staging.yml)).
+4. In `.env.local`: `NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://127.0.0.1:3030`, `NEXT_PUBLIC_OPENGRIMOIRE_VIZ_USE_ELECTRIC=1` (see [docs/env.staging.example](D:/portfolio-harness/OpenGrimoire/docs/env.staging.example), [SELF_HOSTED_STAGING.md](D:/portfolio-harness/OpenGrimoire/docs/SELF_HOSTED_STAGING.md)).
 5. `npm run dev` and open the visualization route; confirm **Electric subscription** (no Supabase Realtime path when `shouldUseElectricVizRealtime()` is true).
 
 **Expectation:** refresh path uses Electric; **row content** still depends on Supabase unless you also point Supabase env at a project that holds the same data or complete Phase 3.
@@ -68,11 +68,11 @@ Run from [OpenAtlas/](D:/portfolio-harness/OpenAtlas):
 
 To align visualization (and eventually survey POST) with **staging Postgres only**:
 
-- **Option A:** Add server-side routes (or extend existing API) that use `pg` / `postgres.js` with `OPENATLAS_STAGING_DATABASE_URL` and replace `supabase.from` in `useVisualizationData` with `fetch('/api/...')` or a small client wrapper.
+- **Option A:** Add server-side routes (or extend existing API) that use `pg` / `postgres.js` with `OPENGRIMOIRE_STAGING_DATABASE_URL` and replace `supabase.from` in `useVisualizationData` with `fetch('/api/...')` or a small client wrapper.
 - **Option B:** Consume **Electric shape payloads** in the client for display (fewer round trips; more refactor).
 - **Option C:** Deploy Supabase-compatible **PostgREST** against vanilla Postgres (larger ops surface).
 
-**Auth:** vanilla RLS uses `openatlas_authenticated` and GUCs; service role or server-side connection must be documented for API routes.
+**Auth:** vanilla RLS uses `opengrimoire_authenticated` and GUCs; service role or server-side connection must be documented for API routes.
 
 ## Phase 4 — Optional seed for “first state” narrative
 

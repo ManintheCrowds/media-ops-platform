@@ -1,6 +1,6 @@
 ---
 name: Linux services stack synthesis
-overview: Document cost-accessible memory pressure relief (swap/zram) aligned to your GTX 1060 6GB + Ubuntu GPU host; add Linux systemd service templates and remote-access notes; optional vLLM/llama.cpp and Python venv patterns for MCP; and a single research/synthesis doc mapping portfolio-harness, openharness, OpenAtlas, local-proto, and LangChainChatBot into one autonomous-life-assist architecture narrative—with links to decision-log and existing scope docs.
+overview: Document cost-accessible memory pressure relief (swap/zram) aligned to your GTX 1060 6GB + Ubuntu GPU host; add Linux systemd service templates and remote-access notes; optional vLLM/llama.cpp and Python venv patterns for MCP; and a single research/synthesis doc mapping portfolio-harness, openharness, OpenGrimoire, local-proto, and LangChainChatBot into one autonomous-life-assist architecture narrative—with links to decision-log and existing scope docs.
 todos:
   - id: mem-swap-doc
     content: Add LINUX_MEMORY_AND_SWAP.md; banner HARDWARE.md for Ubuntu primary
@@ -89,7 +89,7 @@ Suggested structure:
 - **local-proto:** MCP, SCP, vault, orchestrator handoff, pre-install verification, intent checksum.
 - **portfolio-harness:** Org-intent, `.cursor` skills, LangChainChatBot as **optional RAG/app** under harness—not the messaging shell; link [LangChainChatBot/README](D:/portfolio-harness/LangChainChatBot/README.md) if present.
 - **openharness:** Planning/verification/critic patterns; brain-map / handoff—**governance**, not runtime on GPU.
-- **OpenAtlas:** App + DB contract; self-hosted paths per decision-log—not required on the Alienware unless you run that workload there.
+- **OpenGrimoire:** App + DB contract; self-hosted paths per decision-log—not required on the Alienware unless you run that workload there.
 - **Flows:** Cursor (sync dev) vs OpenClaw (async channel) vs orchestrator (handoff file)—resolve overlap in prose (“when to use which”).
 
 Append **one line** to [decision-log.md](D:/portfolio-harness/.cursor/state/decision-log.md) when the synthesis doc lands.
@@ -140,5 +140,5 @@ flowchart LR
 
 - Purchasing specific RAM SKUs or opening the chassis.
 - Production Kubernetes or multi-node inference.
-- Changing OpenAtlas/Postgres topology beyond documentation links.
+- Changing OpenGrimoire/Postgres topology beyond documentation links.
 

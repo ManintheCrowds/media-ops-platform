@@ -59,7 +59,7 @@ isProject: false
 | **Scope + acceptance**         | `local-proto/docs/scope_nas_assistant.md` (new) or `.cursor/state/scope_nas_assistant.md`       | **Product-scope** artifact: requirements + Given/When/Then for “deployed assistant” vs “dev harness only.”                                                                  |
 | **Venice playbook**            | `portfolio-harness/docs/brainstorms/venice_optional_playbook.md` (new, optional)                | **External** integration; links to upstream API docs, DIEM semantics, **model ladder** pattern; points to Bednar’s `venice-model-switcher` as reference, not vendored code. |
 | **Multimodal local loop**      | `local-proto/docs/MULTIMODAL_LOCAL_LOOP.md` (new)                                               | Whisper / TTS / voice chat: **out of openharness core**; **in local-proto** as operational runbook (binds to eGPU host + optional NAS).                                     |
-| **Shared human–agent FS**      | Section in `scope_nas_assistant.md` + optional `MULTIMODAL` or `NAS_MOUNTS.md`                  | Operational pattern (rclone, mount paths); **not** OpenAtlas until you scope UI sync—note in scope: “OpenAtlas integration = future.”                                       |
+| **Shared human–agent FS**      | Section in `scope_nas_assistant.md` + optional `MULTIMODAL` or `NAS_MOUNTS.md`                  | Operational pattern (rclone, mount paths); **not** OpenGrimoire until you scope UI sync—note in scope: “OpenGrimoire integration = future.”                                       |
 | **Mesh / ultra-low bandwidth** | Single subsection under `scope_nas_assistant.md` **or** “Out of scope” until product-scope gate | Avoids building MeshCore docs without a requirement.                                                                                                                        |
 
 
@@ -122,6 +122,6 @@ flowchart LR
 ## Out of scope (unless scope doc adds them)
 
 - Vendoring OpenClaw, SimpleX, or Venice code in-repo.
-- OpenAtlas **live** sync to NAS mounts (document as future).
+- OpenGrimoire **live** sync to NAS mounts (document as future).
 - MeshCore implementation (requirements only).
 

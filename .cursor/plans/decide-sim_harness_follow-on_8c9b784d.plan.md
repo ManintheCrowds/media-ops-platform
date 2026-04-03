@@ -1,6 +1,6 @@
 ---
 name: DECIDE-SIM harness follow-on
-overview: Document DECIDE-SIM + brainstorm links in OpenHarness; add a Promptfoo vs DECIDE-SIM gap analysis; standardize metrics viewing on existing static-JSON / promptfoo-report patterns; defer automation (skill + CLI + MCP) to a tracked backlog item. Execution stays outside OpenAtlas with optional phase-2 OpenAtlas UI.
+overview: Document DECIDE-SIM + brainstorm links in OpenHarness; add a Promptfoo vs DECIDE-SIM gap analysis; standardize metrics viewing on existing static-JSON / promptfoo-report patterns; defer automation (skill + CLI + MCP) to a tracked backlog item. Execution stays outside OpenGrimoire with optional phase-2 OpenGrimoire UI.
 todos:
   - id: openharness-links
     content: Add External evals / DECIDE-SIM pointers to openharness HARNESS_ARCHITECTURE.md (+ optional CHEATSHEET line); keep portable paths
@@ -9,7 +9,7 @@ todos:
     content: Create software/docs/research/promptfoo_vs_DECIDE_SIM_gap_analysis.md; link from research README + update brainstorm
     status: completed
   - id: metrics-viewer-doc
-    content: Document phase-1 JSON/MD + promptfoo HTML + phase-2 OpenAtlas static JSON in gap analysis (and brief brainstorm touch)
+    content: Document phase-1 JSON/MD + promptfoo HTML + phase-2 OpenGrimoire static JSON in gap analysis (and brief brainstorm touch)
     status: completed
   - id: automation-backlog
     content: Add goals.json active_focus or software/.cursor/plans stub for skill+CLI+MCP automation (deferred scope)
@@ -21,8 +21,8 @@ isProject: false
 
 ## Context (already decided)
 
-- Run **DECIDE-SIM** outside OpenAtlas; document hygiene in **research** and optionally **local-proto**.
-- Treat **OpenAtlas UI** for metrics as **phase 2** only if run comparison becomes habitual ([brainstorm](D:/portfolio-harness/docs/brainstorms/2026-03-20-decide-sim-stack-integration-brainstorm.md)).
+- Run **DECIDE-SIM** outside OpenGrimoire; document hygiene in **research** and optionally **local-proto**.
+- Treat **OpenGrimoire UI** for metrics as **phase 2** only if run comparison becomes habitual ([brainstorm](D:/portfolio-harness/docs/brainstorms/2026-03-20-decide-sim-stack-integration-brainstorm.md)).
 
 ## 1. OpenHarness references (portable docs)
 
@@ -35,7 +35,7 @@ OpenHarness has no app server; it should **link** to canonical notes rather than
   - Software research note: [arxiv_2509.12190_DECIDE_SIM.md](D:/software/docs/research/arxiv_2509.12190_DECIDE_SIM.md) (same: link pattern that works in your multi-root workspace, or “sibling repo `software`”).
 - Optionally one line in [openharness/docs/CHEATSHEET.md](D:/openharness/docs/CHEATSHEET.md) under Components or a new “Evals / external tools” bullet: “See HARNESS_ARCHITECTURE — external sims stay out of core; consume summaries + provenance.”
 
-**Convention:** Align with existing OpenAtlas doc pattern: [OPENATLAS_SYSTEMS_INVENTORY.md](D:/portfolio-harness/OpenAtlas/docs/OPENATLAS_SYSTEMS_INVENTORY.md) already explains OpenHarness vs OpenAtlas; OpenHarness should mirror **one sentence** that DECIDE-SIM is **implementation-side**, not core harness code.
+**Convention:** Align with existing OpenGrimoire doc pattern: [OPENGRIMOIRE_SYSTEMS_INVENTORY.md](D:/portfolio-harness/OpenGrimoire/docs/OPENGRIMOIRE_SYSTEMS_INVENTORY.md) already explains OpenHarness vs OpenGrimoire; OpenHarness should mirror **one sentence** that DECIDE-SIM is **implementation-side**, not core harness code.
 
 ## 2. Gap analysis: Promptfoo vs DECIDE-SIM
 
@@ -63,9 +63,9 @@ OpenHarness has no app server; it should **link** to canonical notes rather than
 
 **Choice (evidence-based):**
 
-- **Same pattern as elsewhere:** static **JSON + viewer** (brain-map: [build_brain_map.py](D:/portfolio-harness/.cursor/scripts/build_brain_map.py) → `public/*.json` → OpenAtlas). For eval metrics, phase 1 = **commit or gitignore a small `eval-run-summary.json`** (or DECIDE-SIM analysis output) + **human-readable markdown table** in research notes.
-- **Promptfoo:** when adopted, use its **built-in HTML report** for prompt-regression runs; it is the natural viewer for that subsystem—no need to rebuild in OpenAtlas for promptfoo-specific results.
-- **Phase 2 (OpenAtlas):** only if you need side-by-side comparison in the operator UI—add a route that reads **pre-computed** JSON (mirror brain-map contract), **no** execution from Next.js.
+- **Same pattern as elsewhere:** static **JSON + viewer** (brain-map: [build_brain_map.py](D:/portfolio-harness/.cursor/scripts/build_brain_map.py) → `public/*.json` → OpenGrimoire). For eval metrics, phase 1 = **commit or gitignore a small `eval-run-summary.json`** (or DECIDE-SIM analysis output) + **human-readable markdown table** in research notes.
+- **Promptfoo:** when adopted, use its **built-in HTML report** for prompt-regression runs; it is the natural viewer for that subsystem—no need to rebuild in OpenGrimoire for promptfoo-specific results.
+- **Phase 2 :** only if you need side-by-side comparison in the operator UI—add a route that reads **pre-computed** JSON (mirror brain-map contract), **no** execution from Next.js.
 
 Document this choice explicitly in the gap analysis doc’s “Recommendations” section and optionally one paragraph in the brainstorm file.
 
@@ -81,7 +81,7 @@ flowchart LR
     PFWeb[Promptfoo_HTML_report]
   end
   subgraph phase2 [Phase_2_optional]
-    OA[OpenAtlas_static_JSON_route]
+    OA[OpenGrimoire_static_JSON_route]
   end
   DS --> Sum
   PF --> PFWeb

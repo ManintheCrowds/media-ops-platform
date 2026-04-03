@@ -46,11 +46,11 @@ Avoid building a **second** prompt runner inside DECIDE-SIM or a **second** sim 
 **Phase 1 (default):**
 
 - **DECIDE-SIM:** Keep analysis output as **JSON** (upstream) + optional **commit or gitignored** `eval-run-summary.json`; document human-readable tables in `docs/research` notes. Review via **git diff** on markdown/JSON.
-- **Promptfoo (if adopted):** Use the **built-in HTML report** for prompt-regression runs—no need to duplicate that UI in OpenAtlas.
+- **Promptfoo (if adopted):** Use the **built-in HTML report** for prompt-regression runs—no need to duplicate that UI in OpenGrimoire.
 
 **Phase 2 (optional):**
 
-- **OpenAtlas:** Add a route or static file contract that serves **pre-computed** JSON only (same spirit as brain-map: `build_brain_map.py` → `public/*.json` → viewer). **No** execution or API keys in Next.js.
+- **OpenGrimoire:** Add a route or static file contract that serves **pre-computed** JSON only (same spirit as brain-map: `build_brain_map.py` → `public/*.json` → viewer). **No** execution or API keys in Next.js.
 
 ```mermaid
 flowchart LR
@@ -64,7 +64,7 @@ flowchart LR
     PFWeb[Promptfoo_HTML_report]
   end
   subgraph phase2 [Phase_2_optional]
-    OA[OpenAtlas_static_JSON_route]
+    OA[OpenGrimoire_static_JSON_route]
   end
   DS --> Sum
   PF --> PFWeb
@@ -77,8 +77,8 @@ flowchart LR
 ## Recommendations
 
 1. Treat **Promptfoo** as the viewer story for **prompt** evals; treat **DECIDE-SIM** artifacts as **research / policy** inputs with provenance.
-2. Keep **OpenHarness** pointing at runbooks and gap docs; keep **heavy execution** outside OpenAtlas ([brainstorm rationale](../../../portfolio-harness/docs/brainstorms/2026-03-20-decide-sim-stack-integration-brainstorm.md)).
-3. Revisit unified JSON or OpenAtlas viewer **after** two recurring use cases for comparing runs (per brainstorm).
+2. Keep **OpenHarness** pointing at runbooks and gap docs; keep **heavy execution** outside OpenGrimoire ([brainstorm rationale](../../../portfolio-harness/docs/brainstorms/2026-03-20-decide-sim-stack-integration-brainstorm.md)).
+3. Revisit unified JSON or OpenGrimoire viewer **after** two recurring use cases for comparing runs (per brainstorm).
 
 ---
 

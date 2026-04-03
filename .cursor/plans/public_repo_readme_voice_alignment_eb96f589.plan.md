@@ -1,6 +1,6 @@
 ---
 name: Public repo README voice alignment
-overview: "Align READMEs (and optional GitHub short descriptions) for LangChainChatBot, OpenAtlas, PrusaXL_Monitor, moltbook_watchtower, and Arc_Forge with OpenHarness voice: concept-led title, technical tagline, framework/taxonomy where relevant, Key Concepts table, and consistent structure. OpenHarness remains the reference; no change to portfolio-harness README unless you request it."
+overview: "Align READMEs (and optional GitHub short descriptions) for LangChainChatBot, OpenGrimoire, PrusaXL_Monitor, moltbook_watchtower, and Arc_Forge with OpenHarness voice: concept-led title, technical tagline, framework/taxonomy where relevant, Key Concepts table, and consistent structure. OpenHarness remains the reference; no change to portfolio-harness README unless you request it."
 todos: []
 isProject: false
 ---
@@ -36,15 +36,15 @@ Reference: [OpenHarness README](D:\openharness\README.md) — "Harness — Conte
 
 ---
 
-### 2. OpenAtlas
+### 2. OpenGrimoire
 
-**Location:** [portfolio-harness/OpenAtlas/README.md](D:\portfolio-harness\OpenAtlas\README.md)
+**Location:** [portfolio-harness/OpenGrimoire/README.md](D:\portfolio-harness\OpenGrimoire\README.md)
 
 **Current:** Good technical content; first line is a bit long and doesn’t lead with a crisp "X — Y" and tagline.
 
 **Proposed:**
 
-- **Title:** "OpenAtlas — Operator context graph and brain-map visualization."
+- **Title:** "OpenGrimoire — Operator context graph and brain-map visualization."
 - **Tagline:** One sentence: Next.js app for co-access across `.cursor/state` handoffs and daily notes; D3/Three.js; static JSON graph, no Supabase required. Part of portfolio-harness **Build** (see Guard–Guide–Build).
 - **Add:** **Key Concepts** table (e.g. context graph, brain-map, handoff-derived nodes, static JSON contract).
 - **Keep:** Context graph section, routes table, quick start, scripts, agent/API docs links; trim or tighten the first paragraph so the new title + tagline carry the identity.
@@ -111,7 +111,7 @@ Reference: [OpenHarness README](D:\openharness\README.md) — "Harness — Conte
 ## Implementation order
 
 1. **LangChainChatBot** — Add concept-led title, tagline, Key Concepts table; keep body.
-2. **OpenAtlas** — Add title, tagline, Key Concepts; tighten first paragraph.
+2. **OpenGrimoire** — Add title, tagline, Key Concepts; tighten first paragraph.
 3. **PrusaXL_Monitor** — Rewrite lead, add Key Concepts; keep quick start and structure.
 4. **moltbook_watchtower** — Add tagline and optional Key Concepts; keep existing sections.
 5. **Arc_Forge** — Add tagline and optional Key Concepts; keep existing sections.

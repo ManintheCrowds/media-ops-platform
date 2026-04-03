@@ -1,6 +1,6 @@
 ---
 name: OpenDataLoader integration gaps
-overview: Close the harness gaps you listed by extending LangChainChatBot PDF ingest (provenance, optional JSON/citations, hybrid/OCR, sanitize), optionally upgrading Arc_Forge campaign_kb from pdfplumber to a configurable OpenDataLoader path, and documenting the OpenAtlas future hook—without reimplementing the upstream parser.
+overview: Close the harness gaps you listed by extending LangChainChatBot PDF ingest (provenance, optional JSON/citations, hybrid/OCR, sanitize), optionally upgrading Arc_Forge campaign_kb from pdfplumber to a configurable OpenDataLoader path, and documenting the OpenGrimoire future hook—without reimplementing the upstream parser.
 todos:
   - id: verify-langchain-loader
     content: "Spike: inspect langchain_opendataloader_pdf OpenDataLoaderPDFLoader __init__ and JSON output metadata shape"
@@ -17,8 +17,8 @@ todos:
   - id: phase-b-campaign-kb
     content: "Arc_Forge campaign_kb: config flag, refactor extract_pdf_sections, ODL backend + Document.metadata_json"
     status: completed
-  - id: phase-c-openatlas-doc
-    content: "OpenAtlas: short future-ingest note linking to harness SCP/provenance"
+  - id: phase-c-opengrimoire-doc
+    content: "OpenGrimoire: short future-ingest note linking to harness SCP/provenance"
     status: completed
 isProject: false
 ---
@@ -87,9 +87,9 @@ Upstream APIs (for reference): `opendataloader_pdf.convert(...)` supports `sanit
 
 ---
 
-## Phase C — OpenAtlas (docs only)
+## Phase C — OpenGrimoire (docs only)
 
-- Add a short subsection to an existing architecture doc (e.g. [OpenAtlas/docs/BRAIN_MAP_SCHEMA.md](D:/portfolio-harness/OpenAtlas/docs/BRAIN_MAP_SCHEMA.md) or a new `docs/ingest/UNTRUSTED_TEXT.md`) stating: future PDF → graph ingest should use the same **SCP + provenance** pattern as [OPENDATALOADER_PDF.md](D:/portfolio-harness/docs/integrations/OPENDATALOADER_PDF.md); no product code until scope exists.
+- Add a short subsection to an existing architecture doc (e.g. [OpenGrimoire/docs/BRAIN_MAP_SCHEMA.md](D:/portfolio-harness/OpenGrimoire/docs/BRAIN_MAP_SCHEMA.md) or a new `docs/ingest/UNTRUSTED_TEXT.md`) stating: future PDF → graph ingest should use the same **SCP + provenance** pattern as [OPENDATALOADER_PDF.md](D:/portfolio-harness/docs/integrations/OPENDATALOADER_PDF.md); no product code until scope exists.
 
 ---
 

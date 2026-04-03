@@ -35,7 +35,7 @@ isProject: false
 
 **In scope**
 
-- User-facing and doc framing: "OpenAtlas" (operator context + co-access graph), not event/medical surveys.
+- User-facing and doc framing: "OpenGrimoire" (operator context + co-access graph), not event/medical surveys.
 - Metadata: root layout title/description, home hero, Brain Map panel headings/tooltip copy, [README.md](D:/portfolio-harness/Med-Vis/README.md).
 - **Optional** route aliases for clearer URLs while keeping old paths working (redirects or duplicate `page.tsx` that re-exports).
 - Authoritative **schema documentation** for graph JSON + **optional** TypeScript interface extensions (extra fields ignored by current D3 code).

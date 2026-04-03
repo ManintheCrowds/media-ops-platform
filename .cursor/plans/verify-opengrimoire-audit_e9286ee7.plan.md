@@ -1,6 +1,6 @@
 ---
-name: verify-openatlas-audit
-overview: Verify which reported audit findings are now fixed in OpenAtlas and identify remaining gaps with concrete follow-up steps.
+name: verify-opengrimoire-audit
+overview: Verify which reported audit findings are now fixed in OpenGrimoire and identify remaining gaps with concrete follow-up steps.
 todos:
   - id: verify-survey
     content: Verify survey validation and limits are implemented in API + schema.
@@ -20,11 +20,11 @@ todos:
 isProject: false
 ---
 
-# OpenAtlas Audit Verification Plan
+# OpenGrimoire Audit Verification Plan
 
 ## Goal
 
-Confirm completion status of the reported critic/security/agent-native findings in `D:/portfolio-harness/OpenAtlas` using static code review only (no code changes).
+Confirm completion status of the reported critic/security/agent-native findings in `D:/portfolio-harness/OpenGrimoire` using static code review only (no code changes).
 
 ## Verification Scope
 
@@ -36,14 +36,14 @@ Confirm completion status of the reported critic/security/agent-native findings 
 
 ## Files Reviewed
 
-- [D:/portfolio-harness/OpenAtlas/src/app/api/survey/route.ts](D:/portfolio-harness/OpenAtlas/src/app/api/survey/route.ts)
-- [D:/portfolio-harness/OpenAtlas/src/lib/survey/schemas.ts](D:/portfolio-harness/OpenAtlas/src/lib/survey/schemas.ts)
-- [D:/portfolio-harness/OpenAtlas/src/lib/alignment-context/api-auth.ts](D:/portfolio-harness/OpenAtlas/src/lib/alignment-context/api-auth.ts)
-- [D:/portfolio-harness/OpenAtlas/src/lib/alignment-context/admin-auth.ts](D:/portfolio-harness/OpenAtlas/src/lib/alignment-context/admin-auth.ts)
-- [D:/portfolio-harness/OpenAtlas/src/app/api/brain-map/graph/route.ts](D:/portfolio-harness/OpenAtlas/src/app/api/brain-map/graph/route.ts)
-- [D:/portfolio-harness/OpenAtlas/src/app/api/capabilities/route.ts](D:/portfolio-harness/OpenAtlas/src/app/api/capabilities/route.ts)
-- [D:/portfolio-harness/OpenAtlas/src/app/api/admin/alignment-context/route.ts](D:/portfolio-harness/OpenAtlas/src/app/api/admin/alignment-context/route.ts)
-- [D:/portfolio-harness/OpenAtlas/src/app/api/admin/alignment-context/[id]/route.ts](D:/portfolio-harness/OpenAtlas/src/app/api/admin/alignment-context/[id]/route.ts)
+- [D:/portfolio-harness/OpenGrimoire/src/app/api/survey/route.ts](D:/portfolio-harness/OpenGrimoire/src/app/api/survey/route.ts)
+- [D:/portfolio-harness/OpenGrimoire/src/lib/survey/schemas.ts](D:/portfolio-harness/OpenGrimoire/src/lib/survey/schemas.ts)
+- [D:/portfolio-harness/OpenGrimoire/src/lib/alignment-context/api-auth.ts](D:/portfolio-harness/OpenGrimoire/src/lib/alignment-context/api-auth.ts)
+- [D:/portfolio-harness/OpenGrimoire/src/lib/alignment-context/admin-auth.ts](D:/portfolio-harness/OpenGrimoire/src/lib/alignment-context/admin-auth.ts)
+- [D:/portfolio-harness/OpenGrimoire/src/app/api/brain-map/graph/route.ts](D:/portfolio-harness/OpenGrimoire/src/app/api/brain-map/graph/route.ts)
+- [D:/portfolio-harness/OpenGrimoire/src/app/api/capabilities/route.ts](D:/portfolio-harness/OpenGrimoire/src/app/api/capabilities/route.ts)
+- [D:/portfolio-harness/OpenGrimoire/src/app/api/admin/alignment-context/route.ts](D:/portfolio-harness/OpenGrimoire/src/app/api/admin/alignment-context/route.ts)
+- [D:/portfolio-harness/OpenGrimoire/src/app/api/admin/alignment-context/[id]/route.ts](D:/portfolio-harness/OpenGrimoire/src/app/api/admin/alignment-context/[id]/route.ts)
 
 ## Completion Criteria
 

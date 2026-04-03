@@ -68,7 +68,7 @@ Add after Pass C (before “Why this matters for prompting”) a `## Pass D — 
 
 A **short table** with columns such as: **Capability**, **In scope (Y/N/TBD)**, **Notes** — seeded from what you already reference:
 
-- OpenAtlas alignment context + brain map ([MCP_CAPABILITY_MAP.md](D:/portfolio-harness/.cursor/docs/MCP_CAPABILITY_MAP.md), OpenAtlas rows).
+- OpenGrimoire alignment context + brain map ([MCP_CAPABILITY_MAP.md](D:/portfolio-harness/.cursor/docs/MCP_CAPABILITY_MAP.md), OpenGrimoire rows).
 - SCP / provenance when Bitcoin-sourced or untrusted content (per portfolio Bitcoin agent capabilities — pointer only).
 - **Placeholder rows** for: browser automation, git, project-specific MCPs — mark **TBD** until you curate a minimal set per repo.
 
@@ -81,7 +81,7 @@ Point to [CASHU_L402_REFERENCE.md](D:/portfolio-harness/docs/CASHU_L402_REFERENC
 List **explicit open design questions** (no answers required in this edit):
 
 - **Who pays:** human operator vs org budget vs per-project wallet; prepaid vs pay-per-request.
-- **Which endpoints:** which HTTP surfaces (OpenAtlas API, future agent proxy, third-party tools) are payment-gated vs free tier.
+- **Which endpoints:** which HTTP surfaces (OpenGrimoire API, future agent proxy, third-party tools) are payment-gated vs free tier.
 - **Preimage / retry flow:** how the client obtains invoice, pays, and retries with `Authorization: L402 <macaroon>:<preimage>`; macaroon caveats and rotation.
 - **Metering unit:** per request, per token, per session — align with observability later.
 
@@ -176,16 +176,16 @@ One **mermaid** block under Pass D: `Client` → `402 challenge` → `Lightning 
 | **Risk register**              | Map **preimage expiry**, **retry / attention** economics, **bad tool output after payment** to **escalation**, **disclaimers**, or **sync gates** — not Lightning mechanics alone. |
 
 
-### 6.6 Dual source of truth (git vs OpenAtlas vs `.cursor/state`)
+### 6.6 Dual source of truth (git vs OpenGrimoire vs `.cursor/state`)
 
 
 | Layer                         | Canonical role                                                                                                                                              |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Git (org-intent JSON)**     | **Audit** truth: versioned, taggable; material changes optionally **signed tags**.                                                                          |
-| **OpenAtlas alignment items** | **Runtime** labor context: what the agent should load **this week** (Pass C).                                                                               |
+| **OpenGrimoire alignment items** | **Runtime** labor context: what the agent should load **this week** (Pass C).                                                                               |
 | `**.cursor/state`**           | **Session / ephemeral**: preferences, handoffs — **not** long-term mission truth; document explicitly so agents do not treat it as org-intent.              |
 | **Bridge**                    | **Export** (alignment → markdown/JSON in repo) on a **schedule or milestone** for audit trail; **import** that overwrites mission only with **human_gate**. |
-| **OpenAtlas A/B/C**           | If design doc chose **B** (DB live): state **what B implies for drift** (e.g. DB is operational source; git is **audit snapshot**).                         |
+| **OpenGrimoire A/B/C**           | If design doc chose **B** (DB live): state **what B implies for drift** (e.g. DB is operational source; git is **audit snapshot**).                         |
 
 
 ### 6.7 Privacy and logs
@@ -229,5 +229,5 @@ One **mermaid** block under Pass D: `Client` → `402 challenge` → `Lightning 
 ## Follow-on verification
 
 - After edits: link check for any new paths; org-intent JSON still validates against `org-intent.v1.json` if `values` / `hard_boundaries` change.
-- Optional: run OpenAtlas survey / wizard E2E only if UI code changes.
+- Optional: run OpenGrimoire survey / wizard E2E only if UI code changes.
 

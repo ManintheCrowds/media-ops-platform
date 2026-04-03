@@ -22,7 +22,7 @@ Canonical copy of the **repo landscape reflection** material: alignment matrix, 
 
 ## What
 
-Structured comparison of TrustGraph, CyberGym, GSD, learn-claude-code, MoneyPrinterV2, and Maestro against OpenAtlas / OpenHarness / local-proto intent, plus SCP-then-archive workflow for third-party text and YouTube transcripts.
+Structured comparison of TrustGraph, CyberGym, GSD, learn-claude-code, MoneyPrinterV2, and Maestro against OpenGrimoire / OpenHarness / local-proto intent, plus SCP-then-archive workflow for third-party text and YouTube transcripts.
 
 ## Why
 
@@ -34,7 +34,7 @@ Structured comparison of TrustGraph, CyberGym, GSD, learn-claude-code, MoneyPrin
 
 ## Constraints (from original plan session)
 
-- Third-party README excerpts and transcripts are **untrusted** at the harness boundary: use `scp_run_pipeline(content, sink='llm_context')` or the chain in `D:/portfolio-harness/OpenAtlas/docs/agent/SCP_LLM_INGESTION_CHECKLIST.md` before LLM ingest or durable archive.
+- Third-party README excerpts and transcripts are **untrusted** at the harness boundary: use `scp_run_pipeline(content, sink='llm_context')` or the chain in `D:/portfolio-harness/OpenGrimoire/docs/agent/SCP_LLM_INGESTION_CHECKLIST.md` before LLM ingest or durable archive.
 - **Operational note:** If MCP SCP/caption tools fail, run the same pipeline locally (`D:/scp/src`, `D:/local-proto/scripts/ai_trends_mcp.py`, `D:/software/docs/research/dedupe_landscape_transcript.py`).
 
 ---
@@ -43,13 +43,13 @@ Structured comparison of TrustGraph, CyberGym, GSD, learn-claude-code, MoneyPrin
 
 | Source | Core idea | Fits your intent | Contrast / risk |
 |--------|-----------|------------------|-----------------|
-| [TrustGraph](https://github.com/trustgraph-ai/trustgraph) | Full “context platform”: multi-model store (Cassandra, Qdrant, Pulsar, RAG flows), **Workbench** UI (~8888), **Context Cores** (versioned portable bundles), MCP | Strong conceptual overlap with **context + retrieval + agents**. Ideas to **assimilate**: Context Core = pin/version/rollback for “what agents know”; workbench **surface areas** (vector search, graph viz, flows, runtime prompts, MCP tools panel) map to improving **OpenAtlas GUI philosophy** (operator clarity, staged knowledge, inspectable graphs). | Not a drop-in: OpenAtlas is **API/contract-first** (`OpenAtlas/docs/agent/INTEGRATION_PATHS.md`); TrustGraph is an **entire infra product**. Prefer **patterns and UX**, not fork-the-stack, unless you explicitly want Cassandra/Qdrant/Pulsar. |
+| [TrustGraph](https://github.com/trustgraph-ai/trustgraph) | Full “context platform”: multi-model store (Cassandra, Qdrant, Pulsar, RAG flows), **Workbench** UI (~8888), **Context Cores** (versioned portable bundles), MCP | Strong conceptual overlap with **context + retrieval + agents**. Ideas to **assimilate**: Context Core = pin/version/rollback for “what agents know”; workbench **surface areas** (vector search, graph viz, flows, runtime prompts, MCP tools panel) map to improving **OpenGrimoire GUI philosophy** (operator clarity, staged knowledge, inspectable graphs). | Not a drop-in: OpenGrimoire is **API/contract-first** (`OpenGrimoire/docs/agent/INTEGRATION_PATHS.md`); TrustGraph is an **entire infra product**. Prefer **patterns and UX**, not fork-the-stack, unless you explicitly want Cassandra/Qdrant/Pulsar. |
 | YouTube (`watch?v=sWc7mkhITIo`) | *(Plan text: unknown without transcript.)* | *(Plan text: likely TrustGraph/marketing or UX — tie to Workbench inspiration after transcript.)* | *(Plan text: fetch captions, SCP, vault note.)* |
-| [CyberGym](https://github.com/sunblaze-ucb/cybergym) | Large-scale **agent security eval** (real vulns, PoC server, Docker) | Aligns with **verifiable agent capability** and **security** posture; complements **promptfoo**-style LLM evals (see also `D:/software/.cursor/plans/decide-sim_harness_follow-on_8c9b784d.plan.md` pointing at OpenAtlas static JSON / reports) | **Heavy assets** (~240GB dataset, large server data); integration = **optional CI lane** or **referenced benchmark**, not full data in-repo |
+| [CyberGym](https://github.com/sunblaze-ucb/cybergym) | Large-scale **agent security eval** (real vulns, PoC server, Docker) | Aligns with **verifiable agent capability** and **security** posture; complements **promptfoo**-style LLM evals (see also `D:/software/.cursor/plans/decide-sim_harness_follow-on_8c9b784d.plan.md` pointing at OpenGrimoire static JSON / reports) | **Heavy assets** (~240GB dataset, large server data); integration = **optional CI lane** or **referenced benchmark**, not full data in-repo |
 | [get-shit-done](https://github.com/gsd-build/get-shit-done) | **Spec-driven** loop: discuss → plan → execute (waves) → verify; `.planning/` artifacts; XML tasks; multi-runtime installer | **Philosophy matches** OpenHarness: verifiable work, phases, atomic commits, context hygiene — comparable to portfolio `HANDOFF_FLOW`, **planning** / **qa-verifier** skills, critic + intent gates | GSD is **Claude Code–centric commands**; OpenHarness is **repo rules + skills + CI alignment**. A **skill** should **bridge** (when to use GSD vs native planning), not duplicate 40k lines |
 | [learn-claude-code](https://github.com/shareAI-lab/learn-claude-code) | Pedagogical **harness** (loop, tools, subagents, skills, tasks, teams) | Aligns with `openharness/.cursor/skills/agent-native-architecture/SKILL.md` and “harness not intelligence” narrative | Reference implementation for **teaching**; optional **thin skill** that points to sessions s01–s12 + your existing patterns |
-| [MoneyPrinterV2](https://github.com/FujiwaraChoki/MoneyPrinterV2) | Social/automation tooling (Twitter, Shorts, affiliate, outreach) | **Low alignment** with OpenAtlas/OpenHarness **unless** you explicitly build growth automation | **AGPL-3.0** — license contagion if copied; ToS/automation ethics; treat as **out-of-stack comparison** only |
-| [Maestro](https://github.com/mobile-dev-inc/Maestro) | YAML **mobile/web E2E**, resilient flows | **Already reflected** in OpenAtlas: Playwright = CI truth; Maestro = optional YAML smoke — `INTEGRATION_PATHS.md`, `ARCHITECTURE_REST_CONTRACT.md` | No change required unless you want **more** Maestro coverage; keep **Playwright** as gate |
+| [MoneyPrinterV2](https://github.com/FujiwaraChoki/MoneyPrinterV2) | Social/automation tooling (Twitter, Shorts, affiliate, outreach) | **Low alignment** with OpenGrimoire/OpenHarness **unless** you explicitly build growth automation | **AGPL-3.0** — license contagion if copied; ToS/automation ethics; treat as **out-of-stack comparison** only |
+| [Maestro](https://github.com/mobile-dev-inc/Maestro) | YAML **mobile/web E2E**, resilient flows | **Already reflected** in OpenGrimoire: Playwright = CI truth; Maestro = optional YAML smoke — `INTEGRATION_PATHS.md`, `ARCHITECTURE_REST_CONTRACT.md` | No change required unless you want **more** Maestro coverage; keep **Playwright** as gate |
 
 ### Post-transcript update (YouTube row)
 
@@ -61,7 +61,7 @@ After captions were fetched and deduped, the video content is consistent with a 
 
 ```mermaid
 flowchart LR
-  subgraph openAtlas [OpenAtlas]
+  subgraph openGrimoire [OpenGrimoire]
     REST[REST_API_CLI]
     Brain[Brain_map_viewer]
     Align[Alignment_context]
@@ -75,26 +75,26 @@ flowchart LR
     PF[promptfoo_reports]
     CG[CyberGym_optional]
   end
-  trustGraph -.->|"UX_and_portable_context_ideas"| openAtlas
-  eval -->|"metrics_and_security_bench"| openAtlas
+  trustGraph -.->|"UX_and_portable_context_ideas"| openGrimoire
+  eval -->|"metrics_and_security_bench"| openGrimoire
 ```
 
 ---
 
 ## Recommended assimilation (what to actually do) — full text from plan
 
-1. **TrustGraph → OpenAtlas GUI**
+1. **TrustGraph → OpenGrimoire GUI**
    - Borrow **information architecture**: one place for search, graph/relationships, library/staging, flows, prompts/schemas — without adopting their full backend.
    - Treat **Context Core** as a product metaphor: versioned, portable bundles tied to your **alignment context** / brain-map story (fits human-gated autonomy in consuming repos’ `.cursorrules`).
 2. **CyberGym + promptfoo**
-   - **promptfoo:** continue the trajectory in your existing plan (static JSON / HTML reports, optional OpenAtlas UI).
-   - **CyberGym:** define a **narrow** integration: e.g. document as **security eval reference**, run subset tasks in isolated CI, or link from OpenAtlas “agent capabilities” docs — **not** full dataset vendoring.
+   - **promptfoo:** continue the trajectory in your existing plan (static JSON / HTML reports, optional OpenGrimoire UI).
+   - **CyberGym:** define a **narrow** integration: e.g. document as **security eval reference**, run subset tasks in isolated CI, or link from OpenGrimoire “agent capabilities” docs — **not** full dataset vendoring.
 3. **GSD + learn-claude-code → skills (openharness + local-proto)**
    - Add **gsd-workflow** (or `spec-driven-planning`) skill: when to use GSD commands vs `/workflows:plan` / OpenHarness planning skill; pointer to install (`npx get-shit-done-cc`); alignment with **atomic commits**, **verification**, **critic JSON**.
    - Add **learn-claude-code-harness** (thin): links to shareAI-lab repo + mapping table (s01–s12 → skills: secure-contain-protect, planning, agent-native-architecture).
    - **local-proto:** mirror or symlink skill stubs under `local-proto` only if that repo has `.cursor/skills`; otherwise document cross-repo pointer — implemented as `D:/local-proto/.cursor/skills/README.md`.
 4. **MoneyPrinterV2**
-   - **Brief only**: contrast with your stacks (no social monetization core in OpenAtlas); **do not** merge code without explicit product decision and license review.
+   - **Brief only**: contrast with your stacks (no social monetization core in OpenGrimoire); **do not** merge code without explicit product decision and license review.
 5. **Maestro**
    - **Brief**: confirm current docs remain source of truth; expand Maestro flows only where Playwright does not cover mobile.
 
@@ -113,8 +113,8 @@ flowchart LR
 
 | Priority | Path |
 |----------|------|
-| High | **GUI roadmap** for OpenAtlas inspired by TrustGraph Workbench (panels, staging, inspectable graph, runtime prompts) — design doc first, no backend swap. |
-| High | **Eval stack**: unify promptfoo + (optional) CyberGym references in OpenAtlas/harness docs and CI story; align with existing promptfoo/DECIDE-SIM plan. |
+| High | **GUI roadmap** for OpenGrimoire inspired by TrustGraph Workbench (panels, staging, inspectable graph, runtime prompts) — design doc first, no backend swap. |
+| High | **Eval stack**: unify promptfoo + (optional) CyberGym references in OpenGrimoire/harness docs and CI story; align with existing promptfoo/DECIDE-SIM plan. |
 | Medium | **Skills**: `gsd-workflow` + `learn-claude-code-harness` in openharness; wire local-proto pointer if you add `.cursor` there. |
 | Medium | **YouTube**: transcript + SCP + one “design insight” bullet in vault. |
 | Low / caution | MoneyPrinterV2: **no integration** unless scope explicitly expands; AGPL and product mismatch. |
@@ -173,8 +173,8 @@ flowchart LR
 
 | Artifact | Path |
 |----------|------|
-| OpenAtlas GUI principles | `D:/portfolio-harness/OpenAtlas/docs/GUI_WORKBENCH_PRINCIPLES.md` |
-| Eval: promptfoo + CyberGym + CI | `D:/portfolio-harness/OpenAtlas/docs/EVAL_PROMPTFOO_CYBERGYM.md` |
+| OpenGrimoire GUI principles | `D:/portfolio-harness/OpenGrimoire/docs/GUI_WORKBENCH_PRINCIPLES.md` |
+| Eval: promptfoo + CyberGym + CI | `D:/portfolio-harness/OpenGrimoire/docs/EVAL_PROMPTFOO_CYBERGYM.md` |
 | Skill: GSD | `D:/openharness/.cursor/skills/gsd-workflow/SKILL.md` |
 | Skill: learn-claude-code | `D:/openharness/.cursor/skills/learn-claude-code-harness/SKILL.md` |
 | local-proto pointer | `D:/local-proto/.cursor/skills/README.md` |
@@ -188,4 +188,4 @@ flowchart LR
 - Plan (reference): `D:/software/.cursor/plans/repo_landscape_reflection_0a147e4f.plan.md`
 - DECIDE-SIM / promptfoo follow-on (referenced in matrix): `D:/software/.cursor/plans/decide-sim_harness_follow-on_8c9b784d.plan.md`
 - HANDOFF_FLOW (portfolio): `D:/portfolio-harness/.cursor/HANDOFF_FLOW.md`
-- INTEGRATION_PATHS: `D:/portfolio-harness/OpenAtlas/docs/agent/INTEGRATION_PATHS.md`
+- INTEGRATION_PATHS: `D:/portfolio-harness/OpenGrimoire/docs/agent/INTEGRATION_PATHS.md`
