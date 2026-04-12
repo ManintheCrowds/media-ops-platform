@@ -1,6 +1,8 @@
 # Dev migration bundle (`export_dev_migration_bundle.ps1`)
 
-Exports **non-GitHub** artifacts from eight default repos (ignored-but-present files, `.gitignore` snapshots, reports) plus a **filtered** Cursor profile (`%APPDATA%\Cursor`, `%USERPROFILE%\.cursor`) for moving to a second development PC via USB.
+Exports **non-GitHub** artifacts from default `D:\` repo roots (ignored-but-present files, `.gitignore` snapshots, reports) plus a **filtered** Cursor profile (`%APPDATA%\Cursor`, `%USERPROFILE%\.cursor`) for moving to a second development PC via USB.
+
+**Thumb-drive orchestration:** run `Invoke-ThumbDriveSeed.ps1` (see `THUMB_DRIVE_SEED_CHECKLIST.md`) to create `SEED_INDEX.txt`, the dev bundle, and an AES-256 Cursor zip in one folder.
 
 ## Prerequisites
 
@@ -40,14 +42,15 @@ Set-Location D:\software\scripts
 .\export_dev_migration_bundle.ps1
 ```
 
-The script prints the list of repository roots at the start. You should see **eight** lines under `Migration bundle: 8 repository root(s)`. If you see **1**, you passed **`-RepoRoots`** with a single path (often left over from a dry-run). Fix:
+The script prints the list of repository roots at the start. You should see **eight** lines by default, or **ten** with **`-UseDefaultTen`**, under `Migration bundle: N repository / tree root(s)`. If you see **1**, you passed **`-RepoRoots`** with a single path (often left over from a dry-run). Fix:
 
 - Run **without** `-RepoRoots`, or
-- Pass **`-UseDefaultEight`** to force the default eight paths.
+- Pass **`-UseDefaultEight`** or **`-UseDefaultTen`** to force the default path lists.
 
 Optional:
 
 - **`-UseDefaultEight`** – use the built-in list of eight `D:\...` roots (overrides a narrow `-RepoRoots`).
+- **`-UseDefaultTen`** – same eight roots plus `D:\Research` and `D:\ACE-first` (useful for workstation seed; non-git trees still get size/config/docker reports).
 - **`-ConfirmSingleRepo`** – suppress the warning when you intentionally export **one** repo only.
 - **`-OutputDir 'D:\migration_export_custom'`** – override staging folder (default: `D:\migration_export_<timestamp>`).
 - **`-SkipZip`** – stage files only; create the zip manually (e.g. 7-Zip with AES).
@@ -61,7 +64,7 @@ Chromium/Electron locks cookie and network DB files while **Cursor is running**.
 
 ### Troubleshooting: zip only contains one repo (e.g. moltbook-watchtower)
 
-You almost certainly ran with **`-RepoRoots @('D:\moltbook-watchtower')`** (or one path). That is **by design**: only those roots are staged. Run a **full export** without `-RepoRoots`, or with **`-UseDefaultEight`**, then check `bundle\repos\` for eight folders before copying the zip to USB.
+You almost certainly ran with **`-RepoRoots @('D:\moltbook-watchtower')`** (or one path). That is **by design**: only those roots are staged. Run a **full export** without `-RepoRoots`, or with **`-UseDefaultEight`** / **`-UseDefaultTen`**, then check `bundle\repos\` for the expected folder count before copying to USB.
 
 Output layout:
 

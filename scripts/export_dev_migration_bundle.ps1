@@ -1,6 +1,6 @@
 # PURPOSE: Stage non-GitHub dev artifacts (ignored files, Cursor profile subset, reports) for USB migration.
 # REQUIRES: Git in PATH; optional Docker for compose introspection; optional rg (ripgrep) for CONFIG_HINTS.
-# MODIFICATION NOTES: See scripts/MIGRATION_BUNDLE_README.md for dry-run and restore workflow.
+# MODIFICATION NOTES: See scripts/MIGRATION_BUNDLE_README.md and THUMB_DRIVE_SEED_CHECKLIST.md; Invoke-ThumbDriveSeed.ps1 chains Cursor AES export.
 
 [CmdletBinding()]
 param(
@@ -15,6 +15,7 @@ param(
         'D:\VibeLedger'
     ),
     [switch]$UseDefaultEight,
+    [switch]$UseDefaultTen,
     [switch]$ConfirmSingleRepo,
     [string]$OutputDir = '',
     [string[]]$ExcludeDirPatterns = @(
@@ -117,7 +118,18 @@ $DefaultMigrationRepoRoots = @(
     'D:\prusa_XL_soft',
     'D:\VibeLedger'
 )
-if ($UseDefaultEight) {
+# Workstation-specific knowledge trees (often not git repos at root; export still runs size/config/docker scans).
+$DefaultMigrationRepoRootsTen = $DefaultMigrationRepoRoots + @(
+    'D:\Research',
+    'D:\ACE-first'
+)
+if ($UseDefaultEight -and $UseDefaultTen) {
+    Write-Warning 'Both -UseDefaultEight and -UseDefaultTen were set; using -UseDefaultTen (10 roots).'
+}
+if ($UseDefaultTen) {
+    $RepoRoots = $DefaultMigrationRepoRootsTen
+}
+elseif ($UseDefaultEight) {
     $RepoRoots = $DefaultMigrationRepoRoots
 }
 
@@ -132,23 +144,26 @@ $reposStage = Join-Path $stageRoot 'repos'
 $profileStage = Join-Path $stageRoot 'machine_profile'
 
 Write-Host ''
-Write-Host "Migration bundle: $($RepoRoots.Count) repository root(s) will be processed." -ForegroundColor Cyan
+Write-Host "Migration bundle: $($RepoRoots.Count) repository / tree root(s) will be processed." -ForegroundColor Cyan
 foreach ($r in $RepoRoots) {
     Write-Host "  - $r" -ForegroundColor Gray
 }
 Write-Host ''
 if ($RepoRoots.Count -eq 1) {
     if ($DryRun) {
-        Write-Host 'Note: Single-repo dry-run is fine for testing. For a full USB bundle of all 8 repos, run without -RepoRoots or use -UseDefaultEight.' -ForegroundColor DarkYellow
+        Write-Host 'Note: Single-repo dry-run is fine for testing. For the default multi-root USB bundle, run without -RepoRoots, or use -UseDefaultEight (8) / -UseDefaultTen (10).' -ForegroundColor DarkYellow
         Write-Host ''
     }
     elseif (-not $ConfirmSingleRepo) {
         Write-Warning @'
 Only ONE repository root is configured. If you used -RepoRoots @('D:\moltbook-watchtower') from the README dry-run example, that exports moltbook-watchtower only.
 
-For all eight default repos, run either:
+For all default git repos (8), run either:
   .\export_dev_migration_bundle.ps1
   .\export_dev_migration_bundle.ps1 -UseDefaultEight
+
+For the extended list (adds D:\Research and D:\ACE-first for reports / optional future git):
+  .\export_dev_migration_bundle.ps1 -UseDefaultTen
 
 To export a single repo intentionally, add -ConfirmSingleRepo to silence this warning.
 '@
