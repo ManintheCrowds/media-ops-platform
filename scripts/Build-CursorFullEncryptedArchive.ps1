@@ -159,7 +159,9 @@ $localCursor = Join-Path $env:LOCALAPPDATA 'Cursor'
 $roamingExclude = [System.Collections.Generic.List[string]]::new()
 @(
     'Cache', 'CachedData', 'GPUCache', 'Code Cache', 'logs', 'blob_storage',
-    'Crashpad', 'Service Worker', 'DawnGraphiteCache', 'DawnWebGPUCache'
+    'Crashpad', 'Service Worker', 'DawnGraphiteCache', 'DawnWebGPUCache',
+    # Chromium Network (Cookies, etc.): locked while Cursor runs; not used for settings/MCP restore.
+    'Network'
 ) | ForEach-Object { [void]$roamingExclude.Add($_) }
 
 if (-not $IncludeUserHistory) { [void]$roamingExclude.Add('History') }
@@ -265,16 +267,8 @@ $leaf = Split-Path -LiteralPath $stageRoot -Leaf
 Push-Location -LiteralPath $parent
 try {
     Write-Host "Creating encrypted zip with 7-Zip: $zipPath" -ForegroundColor Cyan
-    $sevenArgs = @(
-        'a',
-        '-tzip',
-        '-mx=9',
-        '-mem=AES256',
-        "-p$pass",
-        $zipPath,
-        $leaf
-    )
-    & $seven @sevenArgs | Out-Host
+    # Pass each 7-Zip token as its own argument (no splat) to avoid ParameterBindingException on some hosts.
+    & $seven 'a' '-tzip' '-mx=9' '-mem=AES256' "-p$pass" $zipPath $leaf | Out-Host
     if ($LASTEXITCODE -ne 0) {
         throw "7-Zip failed with exit code $LASTEXITCODE"
     }

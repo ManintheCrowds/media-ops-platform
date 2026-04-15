@@ -2,6 +2,8 @@
 
 Use this with `Invoke-ThumbDriveSeed.ps1`, `export_dev_migration_bundle.ps1`, and `Build-CursorFullEncryptedArchive.ps1` under `D:\software\scripts\`. Treat every bundle as **confidential** until encrypted (7-Zip AES-256 or BitLocker USB).
 
+**Manual copy-only path (no scripts):** [MANUAL_WORKSTATION_MIGRATION_PATHS.md](MANUAL_WORKSTATION_MIGRATION_PATHS.md).
+
 ## What GitHub already carries (clone on the new machine)
 
 After `git clone`, you get most **policy and prose** without USB:

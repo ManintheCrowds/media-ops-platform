@@ -4,6 +4,8 @@
 
 [CmdletBinding()]
 param(
+    # Declared before [string[]]$RepoRoots so stray positionals (e.g. mistaken splat) bind here, not as repo paths.
+    [string]$OutputDir = '',
     [string[]]$RepoRoots = @(
         'D:\software',
         'D:\portfolio-harness',
@@ -17,12 +19,12 @@ param(
     [switch]$UseDefaultEight,
     [switch]$UseDefaultTen,
     [switch]$ConfirmSingleRepo,
-    [string]$OutputDir = '',
     [string[]]$ExcludeDirPatterns = @(
         'node_modules', '.pnpm-store', 'venv', '.venv', 'ENV', '__pycache__', '.pytest_cache',
         '.pytest-tmp', '.tox', 'dist', 'build', '.next', 'target', '.gradle', '.git'
     ),
-    [bool]$IncludeAppDataCursor = $true,
+    # Use a switch (not [bool]) so Windows PowerShell 5.1 does not throw AmbiguousParameterSet with [CmdletBinding].
+    [switch]$SkipMachineCursorProfile,
     [switch]$IncludeCursorState,
     [switch]$DryRun,
     [switch]$SkipZip,
@@ -228,6 +230,15 @@ function Copy-TreeFiltered {
             }
         }
     }
+}
+
+function Resolve-SevenZipForMigrationBundle {
+    $cmd = Get-Command '7z' -ErrorAction SilentlyContinue
+    if ($cmd -and $cmd.Source) { return $cmd.Source }
+    foreach ($def in @('C:\Program Files\7-Zip\7z.exe', 'C:\Program Files (x86)\7-Zip\7z.exe')) {
+        if (Test-Path -LiteralPath $def) { return $def }
+    }
+    return $null
 }
 
 function Get-DockerComposeServiceList {
@@ -485,19 +496,22 @@ foreach ($repo in $RepoRoots) {
 }
 
 # Machine profile: Cursor
-if ($IncludeAppDataCursor) {
+if (-not $SkipMachineCursorProfile) {
     $appDataCursor = $env:APPDATA + '\Cursor'
     $userCursor = Join-Path $env:USERPROFILE '.cursor'
 
     if (-not $DryRun) {
         Write-AgentDebugLog -HypothesisId 'H3' -Location 'machine_profile:block' -Message 'profile_copy_start' -Data @{
-            IncludeAppDataCursor = [bool]$IncludeAppDataCursor
+            SkipMachineCursorProfile = $SkipMachineCursorProfile.IsPresent
             appDataCursor        = $appDataCursor
             userCursor           = $userCursor
             profileStage         = $profileStage
         }
         New-Item -ItemType Directory -Path $profileStage -Force | Out-Null
-        $cursorExclude = @('Cache', 'CachedData', 'GPUCache', 'Code Cache', 'logs', 'blob_storage', 'Crashpad', 'Service Worker')
+        $cursorExclude = @(
+            'Cache', 'CachedData', 'GPUCache', 'Code Cache', 'logs', 'blob_storage', 'Crashpad', 'Service Worker',
+            'Network' # Cookies / transport DB — locked while Cursor runs; omit from USB profile
+        )
         if (Test-Path $appDataCursor) {
             $destApp = Join-Path $profileStage 'AppData_Cursor'
             foreach ($child in (Get-ChildItem -LiteralPath $appDataCursor -Force -ErrorAction SilentlyContinue)) {
@@ -592,7 +606,7 @@ MACHINE_PROFILE_SKIPPED.txt - Cursor profile files skipped because they were loc
 CURSOR PROFILE (in bundle\machine_profile)
 ------------------------------------------
 Filtered copy of %APPDATA%\Cursor and %USERPROFILE%\.cursor (caches excluded).
-Some files may be skipped if locked while Cursor is running (e.g. Network\Cookies) — see reports\MACHINE_PROFILE_SKIPPED.txt.
+The Chromium Network folder (cookies) is excluded by default. Other paths may still be skipped if locked — see reports\MACHINE_PROFILE_SKIPPED.txt.
 On new PC: merge carefully into the same locations, or diff settings.json first.
 
 "@
@@ -610,13 +624,44 @@ $zipName = "dev-migration_$ts.zip"
 $zipPath = Join-Path $OutputDir $zipName
 
 if (-not $DryRun -and -not $SkipZip) {
-    if (Get-Command Compress-Archive -ErrorAction SilentlyContinue) {
-        if (Test-Path $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
-        Compress-Archive -LiteralPath $stageRoot -DestinationPath $zipPath -Force
+    if (Test-Path -LiteralPath $zipPath) { Remove-Item -LiteralPath $zipPath -Force }
+    $seven = Resolve-SevenZipForMigrationBundle
+    if ($seven) {
+        $parent = Split-Path -LiteralPath $stageRoot -Parent
+        $leaf = Split-Path -LiteralPath $stageRoot -Leaf
+        Push-Location -LiteralPath $parent
+        try {
+            Write-Host "Creating bundle zip with 7-Zip: $zipPath" -ForegroundColor Cyan
+            & $seven @('a', '-tzip', '-mx=5', $zipPath, $leaf) | Out-Host
+            if ($LASTEXITCODE -ne 0) {
+                throw "7-Zip failed with exit code $LASTEXITCODE"
+            }
+        }
+        finally {
+            Pop-Location
+        }
         Write-Host "Wrote $zipPath" -ForegroundColor Green
     }
+    elseif (Get-Command Compress-Archive -ErrorAction SilentlyContinue) {
+        Write-Host '7-Zip not found; using Compress-Archive (large bundles may hit .NET size limits).' -ForegroundColor DarkYellow
+        try {
+            Compress-Archive -LiteralPath $stageRoot -DestinationPath $zipPath -Force
+            Write-Host "Wrote $zipPath" -ForegroundColor Green
+        }
+        catch {
+            if ($_.Exception.Message -match 'Stream was too long') {
+                Write-Warning @"
+Compress-Archive failed: bundle exceeds what .NET ZipFile can handle.
+Fix: install 7-Zip from https://www.7-zip.org/ and re-run, OR run with -SkipZip then:
+  7z a -tzip `"$zipPath`" `"$stageRoot`"
+The staged folder was left on disk (not deleted).
+"@
+            }
+            throw
+        }
+    }
     else {
-        Write-Warning 'Compress-Archive not available; skip zip.'
+        Write-Warning 'Neither 7-Zip nor Compress-Archive available; skip zip.'
     }
 }
 elseif ($DryRun) {

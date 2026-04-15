@@ -55,7 +55,7 @@ Optional:
 - **`-OutputDir 'D:\migration_export_custom'`** – override staging folder (default: `D:\migration_export_<timestamp>`).
 - **`-SkipZip`** – stage files only; create the zip manually (e.g. 7-Zip with AES).
 - **`-IncludeCursorState`** – also copy `.cursor\state` into each repo’s bundle (larger; handoff/context files).
-- **`-IncludeAppDataCursor:$false`** – skip machine-level Cursor profile.
+- **`-SkipMachineCursorProfile`** – skip machine-level Cursor profile (`%APPDATA%\Cursor` + `%USERPROFILE%\.cursor` staging in `machine_profile`).
 - **`-DebugMigrationLog`** – append NDJSON debug lines to `D:\software\debug-91f5e8.log` (optional; not needed for normal exports).
 
 ### Troubleshooting: Copy-Item failed on `AppData\Roaming\Cursor\Network\Cookies` (file in use)

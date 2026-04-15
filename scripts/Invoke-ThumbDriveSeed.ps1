@@ -80,25 +80,30 @@ if ($DryRun) {
 
 New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
 
-$exportArgs = @{ OutputDir = $OutputDir }
+# Never array-splat into export_dev_migration_bundle.ps1: the first parameter is [string[]]$RepoRoots,
+# so values like '-OutputDir' bind positionally as a fake repo name. Pass -OutputDir explicitly; splat
+# only optional switches (hashtable keys are always bound by name).
+$exportOptional = @{}
 if ($SkipDevZip) {
-    $exportArgs['SkipZip'] = $true
+    $exportOptional['SkipZip'] = $true
 }
 if ($UseDefaultTen) {
-    $exportArgs['UseDefaultTen'] = $true
+    $exportOptional['UseDefaultTen'] = $true
 }
 
 Write-Host 'Running export_dev_migration_bundle.ps1 ...' -ForegroundColor Cyan
-& $export @exportArgs
+& $export -OutputDir $OutputDir @exportOptional
 
-$cursorArgs = @{
-    OutputDir = $OutputDir
+$cursorOptional = @{}
+if ($IncludeCodex) {
+    $cursorOptional['IncludeCodex'] = $true
 }
-if ($IncludeCodex) { $cursorArgs['IncludeCodex'] = $true }
-if ($CursorStageOnly) { $cursorArgs['StageOnly'] = $true }
+if ($CursorStageOnly) {
+    $cursorOptional['StageOnly'] = $true
+}
 
 Write-Host 'Running Build-CursorFullEncryptedArchive.ps1 ...' -ForegroundColor Cyan
-& $cursor @cursorArgs
+& $cursor -OutputDir $OutputDir @cursorOptional
 
 [void]$indexLines.Add('')
 [void]$indexLines.Add('PASS-THROUGH FLAGS')
