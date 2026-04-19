@@ -85,4 +85,6 @@ fix_darktide_cert_revocation.ps1
 DARKTIDE_FIX_REVIEW.md
 DARKTIDE_WORKFLOW_README.md
 darktide_reports/
+**/*darktide*report*/
+**/*Darktide*Report*/
 

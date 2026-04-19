@@ -1,6 +1,6 @@
 # Pending Tasks (software repo)
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-17
 
 ---
 
@@ -20,7 +20,7 @@ From critic review of Darktide removal + README changes:
 
 | ID | Status | Task | Fix |
 |----|--------|------|-----|
-| CR1 | pending | Author link 404 in standalone clone | Replace `../portfolio-harness/docs/AUTHOR.md` with absolute URL or document workspace assumption |
-| CR2 | pending | Confirm .gitignore covers all Darktide outputs | Add patterns for report dirs (e.g. `*darktide*report*`) if such outputs exist |
+| CR1 | done | Author link 404 in standalone clone | **Fixed 2026-04-17:** [README.md](../../README.md) now links to portable [docs/AUTHOR.md](../../docs/AUTHOR.md) (standalone vs sibling harness). |
+| CR2 | done | Confirm .gitignore covers all Darktide outputs | **Fixed 2026-04-17:** Added `**/*darktide*report*/` and `**/*Darktide*Report*/` alongside existing `darktide_reports/` and script globs in [.gitignore](../../.gitignore). |
 
 **Critic verdict:** Pass. Changes are safe and focused.

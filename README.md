@@ -509,6 +509,6 @@ For issues and questions:
 
 This project integrates services from the [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted) list.
 
-*Built by a programmer who ships. See [portfolio-harness/docs/AUTHOR.md](../portfolio-harness/docs/AUTHOR.md) if viewing from sibling workspace.*
+*Built by a programmer who ships. Author/voice and standalone-clone notes: [docs/AUTHOR.md](docs/AUTHOR.md).*
 
 
