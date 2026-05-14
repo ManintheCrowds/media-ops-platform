@@ -103,17 +103,17 @@
 
 | ID | Type | Tag | Candidate one-liner | Acceptance (one sentence) | Routed to |
 |----|------|-----|----------------------|---------------------------|-----------|
-| M1 | DOCS | M | Create a local-first stack evaluation checklist | A markdown checklist exists with the dimensions from M1 plus example pass/fail questions for data, inference, networking, agent, and developer-loop layers. | deferred |
+| M1 | DOCS | M | Create a local-first stack evaluation checklist | A markdown checklist exists with the dimensions from M1 plus example pass/fail questions for data, inference, networking, agent, and developer-loop layers. | follow-up: [local_first_followup_report_2026_05_14.md](local_first_followup_report_2026_05_14.md) |
 | M2 | CODE/RESEARCH | M | Spike a local-first AI inference router for document extraction | A local script processes a small sample with deterministic extraction first, emits confidence/routing decisions, and requires explicit opt-in before any cloud call. | deferred |
-| M3 | CONFIG/DOCS | M | Evaluate Audrey-style local agent memory preflight | A dry-run note documents install surface, data isolation, secret redaction policy, and one safe preflight demo result before any persistent use. | deferred |
+| M3 | CONFIG/DOCS | M | Evaluate Audrey-style local agent memory preflight | A dry-run note documents install surface, data isolation, secret redaction policy, and one safe preflight demo result before any persistent use. | follow-up: per-user scope in [local_first_followup_report_2026_05_14.md](local_first_followup_report_2026_05_14.md) |
 
 ## Open questions
 
-- Which current project has enough offline/sensitive/high-latency pain to justify a local-first data pilot?
-- Do we need a dedicated `docs/local-first/` handbook, or should local-first notes continue as `docs/research/` meditations until a concrete implementation exists?
-- What local storage encryption and key recovery pattern fits our users without turning support into a decryption bypass?
-- For agent memory, should local MCP data be per-project, per-user, or both?
-- If future agents should use Firecrawl for research, configure Firecrawl authentication in the cloud environment rather than relying on ad hoc installs.
+- Which current project has enough offline/sensitive/high-latency pain to justify a local-first data pilot? **Follow-up:** [local_first_followup_report_2026_05_14.md](local_first_followup_report_2026_05_14.md) recommends `pi-client` + `education-service` first, `home-cyber-risk` second.
+- Do we need a dedicated `docs/local-first/` handbook, or should local-first notes continue as `docs/research/` meditations until a concrete implementation exists? **Follow-up:** keep research in `docs/research/`; do not create `docs/local-first/` until a concrete pilot/implementation exists. `local-proto` is external tooling/MCP SSOT, not in-repo product handbook.
+- What local storage encryption and key recovery pattern fits our users without turning support into a decryption bypass? **Follow-up:** [local_storage_encryption_key_recovery_2026_05_14.md](local_storage_encryption_key_recovery_2026_05_14.md).
+- For agent memory, should local MCP data be per-project, per-user, or both? **Decision:** per user, with project/workspace as metadata filters.
+- If future agents should use Firecrawl for research, configure Firecrawl authentication in the cloud environment rather than relying on ad hoc installs. **Follow-up:** [../agent-tooling-firecrawl.md](../agent-tooling-firecrawl.md).
 
 ---
 
