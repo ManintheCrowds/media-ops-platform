@@ -48,6 +48,9 @@ wheels/
 *.log
 logs/
 
+# Web research scratch output
+.firecrawl/
+
 # Docker
 .dockerignore
 
