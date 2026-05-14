@@ -98,6 +98,7 @@ Why this fits the local-first direction:
 
 ## Follow-up artifacts
 
+- Local-first pilot audit: [local_first_pilot_audit_2026_05_14.md](local_first_pilot_audit_2026_05_14.md)
 - Key-recovery research project: [local_storage_encryption_key_recovery_2026_05_14.md](local_storage_encryption_key_recovery_2026_05_14.md)
 - Firecrawl cloud agent setup guide: [../agent-tooling-firecrawl.md](../agent-tooling-firecrawl.md)
 
@@ -105,7 +106,7 @@ Why this fits the local-first direction:
 
 | ID | Type | Candidate | Acceptance | Routed to |
 |---|---|---|---|---|
-| LF-P1 | DOCS | Write Pi client local-first pilot brief | Brief covers local tables, sync lifecycle, trust boundary, conflict policy, encrypted local storage, and rollback. | deferred |
+| LF-P1 | DOCS | Write Pi client local-first pilot brief | Brief covers local tables, sync lifecycle, trust boundary, conflict policy, encrypted local storage, and rollback. | audit complete; pilot brief still deferred: [local_first_pilot_audit_2026_05_14.md](local_first_pilot_audit_2026_05_14.md) |
 | LF-P2 | CODE/RESEARCH | Prototype Pi local state SQLite schema | Prototype can list cached content and pending sync events offline using sample package metadata. | deferred |
 | LF-P3 | DOCS | Promote a `docs/local-first/` handbook only after pilot brief exists | New handbook contains stable decisions/checklists, while source research remains linked in `docs/research/`. | deferred |
 
