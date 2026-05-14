@@ -8,6 +8,7 @@ Short, sourced write-ups (papers, tools, benchmarks) with **meditation** section
 - **Local-first AI trend scan:** [local_first_news_2026_05_14_ai_trends.md](local_first_news_2026_05_14_ai_trends.md) — sourced synthesis from Local-First News 2026-05-14 covering local AI, sync engines, edge networking, agent memory, and local-first apps.
 - **Local-first follow-up report:** [local_first_followup_report_2026_05_14.md](local_first_followup_report_2026_05_14.md) — resolves pilot fit, repo placement, per-user agent memory scope, and Firecrawl setup routing.
 - **Local-first pilot audit:** [local_first_pilot_audit_2026_05_14.md](local_first_pilot_audit_2026_05_14.md) — implementation-readiness audit for `pi-client` + `education-service` and `home-cyber-risk`.
+- **AI trends high-leverage task proposal:** [ai_trends_high_leverage_tasks_2026_05_14.md](ai_trends_high_leverage_tasks_2026_05_14.md) — proposed task sequence with an Obsidian pending-tasks migration flag.
 - **Local storage encryption/key recovery:** [local_storage_encryption_key_recovery_2026_05_14.md](local_storage_encryption_key_recovery_2026_05_14.md) — recovery-key, trusted-contact, org-recovery, and passkey/WebAuthn PRF research for local-first stores.
 
 Keep copyrighted full PDFs off public git; link to arXiv/DOI and hash extracted text when used in pipelines.

@@ -211,6 +211,8 @@ Do not promise:
 
 ## Recommended next work order
 
+For the promoted task proposal and Obsidian migration flag, see [ai_trends_high_leverage_tasks_2026_05_14.md](ai_trends_high_leverage_tasks_2026_05_14.md).
+
 1. **Pi pilot brief:** Write a narrow implementation brief for read-only package sync and offline content listing.
 2. **Pi contract tests:** Add tests that lock package download and `sync/complete` behavior before implementation changes.
 3. **Pi trust boundary:** Define device-scoped auth and org authorization requirements.

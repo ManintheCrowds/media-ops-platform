@@ -98,6 +98,7 @@ Why this fits the local-first direction:
 
 ## Follow-up artifacts
 
+- High-leverage task proposal with Obsidian migration flag: [ai_trends_high_leverage_tasks_2026_05_14.md](ai_trends_high_leverage_tasks_2026_05_14.md)
 - Local-first pilot audit: [local_first_pilot_audit_2026_05_14.md](local_first_pilot_audit_2026_05_14.md)
 - Key-recovery research project: [local_storage_encryption_key_recovery_2026_05_14.md](local_storage_encryption_key_recovery_2026_05_14.md)
 - Firecrawl cloud agent setup guide: [../agent-tooling-firecrawl.md](../agent-tooling-firecrawl.md)
