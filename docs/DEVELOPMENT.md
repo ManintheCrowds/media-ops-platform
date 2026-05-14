@@ -121,6 +121,10 @@ mypy app
 bandit -r app services
 ```
 
+### Agent research tooling
+
+For Firecrawl CLI setup in Cursor Cloud Agent environments, see [agent-tooling-firecrawl.md](agent-tooling-firecrawl.md). Configure authentication through cloud environment secrets rather than checked-in `.env` files.
+
 ### Database Migrations
 
 **Important**: The `/api/auth/init-db` endpoint is deprecated and should not be used in production. Use Alembic migrations instead.

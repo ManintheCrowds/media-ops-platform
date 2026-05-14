@@ -26,6 +26,9 @@
 ### I need to run AI task evals
 → See [AI_TASK_EVALS.md](AI_TASK_EVALS.md) for software-specific evals. For harness-wide evals (handoff, Daggr, calibration, identify-but-advise-wrong), see [portfolio-harness AI_TASK_EVALS](D:\portfolio-harness\.cursor\docs\AI_TASK_EVALS.md).
 
+### I need to configure agent research tooling
+→ See [agent-tooling-firecrawl.md](agent-tooling-firecrawl.md) for Firecrawl CLI installation, cloud-agent authentication, and scratch-output handling.
+
 ---
 
 ## Document Overview
@@ -40,6 +43,7 @@
 | **[coding_standards_matrix.md](coding_standards_matrix.md)** | Standards and reference lookup | Before generating code | AI agents | 2-5 min |
 | **[AI_PROMPT_LIBRARY.md](AI_PROMPT_LIBRARY.md)** | Reusable prompt templates for AI interactions | Standardizing AI interactions, consistent prompts | AI agents, prompt engineers | 10-15 min |
 | **[AI_TASK_EVALS.md](AI_TASK_EVALS.md)** | AI task eval registry and spot-check procedures | Verifying retrieve-before-generate, matrix links, audit output | AI agents, reviewers | 5 min |
+| **[agent-tooling-firecrawl.md](agent-tooling-firecrawl.md)** | Firecrawl setup for Cursor Cloud Agents | Configuring authenticated web research tooling | AI agents, environment maintainers | 5 min |
 
 ---
 
