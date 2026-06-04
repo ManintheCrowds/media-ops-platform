@@ -4,7 +4,7 @@ services:
     container_name: job-automation-db
     environment:
       - POSTGRES_USER=jobautomation
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_PASSWORD=${JOB_AUTOMATION_POSTGRES_PASSWORD:-changeme}
       - POSTGRES_DB=jobautomation
     volumes:
       - jobautomation_db_data:/var/lib/postgresql/data

@@ -16,7 +16,7 @@ services:
     container_name: platform-postgres
     environment:
       POSTGRES_USER: platform
-      POSTGRES_PASSWORD: platform
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       POSTGRES_DB: platform
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -36,7 +36,7 @@ services:
       dockerfile: Dockerfile
     container_name: platform-api
     environment:
-      DATABASE_URL: postgresql://platform:platform@10.0.40.10:5432/platform
+      DATABASE_URL: postgresql://platform:${POSTGRES_PASSWORD:-changeme}@10.0.40.10:5432/platform
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me-in-production-jwt}
       DEBUG: ${DEBUG:-False}
@@ -120,7 +120,7 @@ services:
     container_name: platform-gitea-db
     environment:
       - POSTGRES_USER=gitea
-      - POSTGRES_PASSWORD=gitea
+      - POSTGRES_PASSWORD=${GITEA_POSTGRES_PASSWORD:-changeme}
       - POSTGRES_DB=gitea
     volumes:
       - gitea_db_data:/var/lib/postgresql/data
@@ -236,7 +236,7 @@ services:
     container_name: platform-education-db
     environment:
       - POSTGRES_USER=education
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_PASSWORD=${EDUCATION_POSTGRES_PASSWORD:-changeme}
       - POSTGRES_DB=education
     volumes:
       - education_db_data:/var/lib/postgresql/data
@@ -277,7 +277,7 @@ services:
       dockerfile: Dockerfile
     container_name: platform-security
     environment:
-      - DATABASE_URL=postgresql://platform:platform@10.0.40.10:5432/platform
+      - DATABASE_URL=postgresql://platform:${POSTGRES_PASSWORD:-changeme}@10.0.40.10:5432/platform
       - REDIS_URL=redis://10.0.30.80:6379
       - PROMETHEUS_URL=http://10.0.10.10:9090
       - SECURITY_SERVICE_PORT=8001

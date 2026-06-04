@@ -29,9 +29,9 @@ docker exec -it platform-grafana bash
 # Access SQLite database (Grafana uses SQLite by default)
 sqlite3 /var/lib/grafana/grafana.db
 
-# Reset password (default is "admin")
-UPDATE user SET password = '59acf7b1d040017c0e5e797fddf5e6e8b15c13c7c179f9b3c8e5c8e5c8e5c8e5c8e5' WHERE login = 'admin';
-# This hash is for password "admin"
+# Reset password (default is "admin") — example bcrypt hash only, not a live credential
+UPDATE user SET password = '<grafana-bcrypt-hash-for-admin>' WHERE login = 'admin';
+# Generate with: grafana-cli admin reset-admin-password admin (preferred) or official Grafana hash docs
 
 # Exit SQLite
 .exit

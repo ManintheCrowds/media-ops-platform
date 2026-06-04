@@ -5,7 +5,7 @@ services:
     build: .
     container_name: platform-education
     environment:
-      - DATABASE_URL=postgresql://education:password@education-db:5432/education
+      - DATABASE_URL=postgresql://education:${EDUCATION_POSTGRES_PASSWORD:-changeme}@education-db:5432/education
       - PLATFORM_URL=http://platform:8000
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     ports:
@@ -23,7 +23,7 @@ services:
     container_name: platform-education-db
     environment:
       - POSTGRES_USER=education
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_PASSWORD=${EDUCATION_POSTGRES_PASSWORD:-changeme}
       - POSTGRES_DB=education
     volumes:
       - education_db_data:/var/lib/postgresql/data

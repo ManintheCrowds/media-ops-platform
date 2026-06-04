@@ -7,7 +7,7 @@ services:
     container_name: platform-postgres
     environment:
       POSTGRES_USER: platform
-      POSTGRES_PASSWORD: platform
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       POSTGRES_DB: platform
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -43,7 +43,7 @@ services:
       dockerfile: Dockerfile
     container_name: platform-api
     environment:
-      DATABASE_URL: postgresql://platform:platform@postgres:5432/platform
+      DATABASE_URL: postgresql://platform:${POSTGRES_PASSWORD:-changeme}@postgres:5432/platform
       # REQUIRED: Application secret key (must be at least 32 characters)
       # Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
       SECRET_KEY: ${SECRET_KEY}
@@ -196,7 +196,7 @@ services:
     container_name: platform-gitea-db
     environment:
       - POSTGRES_USER=gitea
-      - POSTGRES_PASSWORD=gitea
+      - POSTGRES_PASSWORD=${GITEA_POSTGRES_PASSWORD:-changeme}
       - POSTGRES_DB=gitea
     volumes:
       - gitea_db_data:/var/lib/postgresql/data
@@ -360,7 +360,7 @@ services:
     container_name: platform-education-db
     environment:
       - POSTGRES_USER=education
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_PASSWORD=${EDUCATION_POSTGRES_PASSWORD:-changeme}
       - POSTGRES_DB=education
     volumes:
       - education_db_data:/var/lib/postgresql/data
@@ -401,7 +401,7 @@ services:
       dockerfile: Dockerfile
     container_name: platform-security
     environment:
-      - DATABASE_URL=postgresql://platform:platform@postgres:5432/platform
+      - DATABASE_URL=postgresql://platform:${POSTGRES_PASSWORD:-changeme}@postgres:5432/platform
       - REDIS_URL=redis://redis:6379
       - PROMETHEUS_URL=http://prometheus:9090
       - SECURITY_SERVICE_PORT=8001
@@ -425,7 +425,7 @@ services:
       dockerfile: Dockerfile
     container_name: platform-job-automation
     environment:
-      - DATABASE_URL=postgresql://jobautomation:password@job-automation-db:5432/jobautomation
+      - DATABASE_URL=postgresql://jobautomation:${JOB_AUTOMATION_POSTGRES_PASSWORD:-changeme}@job-automation-db:5432/jobautomation
       - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
       - PLATFORM_URL=http://platform:8000
     volumes:
@@ -449,7 +449,7 @@ services:
     container_name: platform-job-automation-db
     environment:
       - POSTGRES_USER=jobautomation
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_PASSWORD=${JOB_AUTOMATION_POSTGRES_PASSWORD:-changeme}
       - POSTGRES_DB=jobautomation
     volumes:
       - jobautomation_db_data:/var/lib/postgresql/data
