@@ -11,7 +11,7 @@ Professional portfolio website for Xanadu Media showcasing services, case studie
 - `pricing-calculator.html` - Interactive project pricing calculator
 - `case-studies/` - Individual case study pages
   - `self-hosted-platform.html` - Self-hosted platform integration case study
-  - `archivist.html` - Archivist government transcription case study
+  - `caption-pipeline.html` - CaptionPipeline long-form video caption case study
 - `css/` - Stylesheets
   - `main.css` - Main styles
   - `responsive.css` - Responsive design styles

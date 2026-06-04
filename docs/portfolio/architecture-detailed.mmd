@@ -1,19 +1,18 @@
-%% Archivist - Detailed System Architecture
-%% Source: README.md detailed architecture mermaid diagram
+%% CaptionPipeline - Detailed System Architecture
 graph TB
     subgraph "Content Sources"
-        A1[Flex-1: Birchwood]
-        A2[Flex-2: Dellwood/Grant/Willernie]
-        A3[Flex-3: Lake Elmo]
-        A4[Flex-4: Mahtomedi]
-        A5[Flex-5: Spare Storage 1]
-        A6[Flex-6: Spare Storage 2]
-        A7[Flex-7: Oakdale]
-        A8[Flex-8: White Bear Lake]
-        A9[Flex-9: White Bear Township]
+        A1[Feed-1 Storage Mount]
+        A2[Feed-2 Storage Mount]
+        A3[Feed-3 Storage Mount]
+        A4[Feed-4 Storage Mount]
+        A5[Feed-5 Storage Mount]
+        A6[Feed-6 Storage Mount]
+        A7[Feed-7 Storage Mount]
+        A8[Feed-8 Storage Mount]
+        A9[Feed-9 Storage Mount]
     end
     
-    subgraph "Archivist Core System"
+    subgraph "CaptionPipeline Core"
         B1[File Management Service]
         B2[Transcription Engine]
         B3[Caption Generation]
@@ -23,17 +22,17 @@ graph TB
     
     subgraph "Processing Pipeline"
         C1[Video File Detection]
-        C2[WhisperX AI Processing]
-        C3[SCC Format Output]
+        C2[WhisperX Processing]
+        C3[SCC-Format Output]
         C4[Quality Validation]
-        C5[Storage & Organization]
+        C5[Storage and Organization]
     end
     
-    subgraph "Output & Integration"
+    subgraph "Output and Integration"
         D1[Closed Caption Files]
         D2[Searchable Transcripts]
-        D3[Cablecast VOD Platform]
-        D4[Public Access Portal]
+        D3[VOD Platform]
+        D4[Access Portal]
         D5[Archive Storage]
     end
     
@@ -46,17 +45,15 @@ graph TB
     A7 --> B1
     A8 --> B1
     A9 --> B1
-    
-    B1 --> C1
+    B1 --> B5
+    B5 --> C1
     C1 --> C2
     C2 --> C3
     C3 --> C4
-    C4 --> C5
-    
-    C5 --> D1
-    C5 --> D2
-    D1 --> D3
-    D2 --> D4
-    D3 --> D5
-    D4 --> D5
-
+    C4 --> B3
+    B3 --> B4
+    B4 --> D1
+    B4 --> D2
+    B4 --> D3
+    D3 --> D4
+    B4 --> D5

@@ -1,6 +1,6 @@
-# Archivist Portfolio Export Kit
+# CaptionPipeline Portfolio Export Kit
 
-Complete guide for showcasing Archivist in a developer portfolio with ready-made architecture sources, metrics, and narrative.
+Complete guide for showcasing CaptionPipeline in a developer portfolio with ready-made architecture sources, metrics, and narrative.
 
 ## Quick Start
 
@@ -12,9 +12,9 @@ Complete guide for showcasing Archivist in a developer portfolio with ready-made
 
 > **Time Estimate**: 15-30 minutes for diagram export and content review
 
-## What Archivist Is
+## What CaptionPipeline Is
 
-An end-to-end system that ingests government meeting videos from nine city storage locations, runs WhisperX transcription, generates broadcast-ready SCC captions, validates quality, publishes to VOD/search, and archives everything—backed by health checks and monitoring.
+An end-to-end system that ingests long-form video from nine production storage mounts, runs WhisperX transcription, generates broadcast-ready SCC captions, validates quality, publishes to VOD/search, and archives everything—backed by health checks and monitoring.
 
 ## Impact to Showcase
 
@@ -26,18 +26,18 @@ An end-to-end system that ingests government meeting videos from nine city stora
 - <1% error rate with comprehensive error handling
 - 100% uptime since deployment
 - Throughput peaks over 100 files/day with approximately 20 files/day average
-- Nine municipalities operational across the region
+- Nine production feeds operational
 
 ## Problem → Solution → Impact Narrative
 
 ### The Problem
-Government meeting videos were hard to search and inaccessible for citizens with hearing needs. Manual captioning didn't scale across nine cities, creating significant barriers to civic engagement and transparency.
+Large video libraries were hard to search and lacked consistent captions. Manual captioning did not scale across nine production feeds.
 
 ### The Solution
-Archivist automates the complete workflow from video ingest to publication: **ingest → WhisperX transcription → SCC caption generation → publication to VOD/search** with comprehensive monitoring and alerting.
+CaptionPipeline automates the complete workflow from video ingest to publication: **ingest → WhisperX transcription → SCC caption generation → publication to VOD/search** with comprehensive monitoring and alerting.
 
 ### The Impact
-The system has achieved significant operational success with measurable impact across all metrics, making government proceedings accessible to citizens, staff, journalists, and advocates while reducing manual labor costs and ensuring consistent quality.
+The system has achieved significant operational success with measurable impact across all metrics, improving searchability and caption coverage for operators and audiences while reducing manual labor and ensuring consistent quality.
 
 ## Stack Highlights
 
@@ -148,7 +148,7 @@ These provide excellent material for "lessons learned" or "next steps" sections,
 ### Content Issues
 
 **Problem**: Metrics are outdated
-- **Solution**: Update numbers in `portfolio/case-studies/archivist.html` and `PORTFOLIO_EXPORT.md`
+- **Solution**: Update numbers in `portfolio/case-studies/caption-pipeline.html` and `PORTFOLIO_EXPORT.md`
 
 **Problem**: Links are broken
 - **Solution**: Verify all relative paths are correct, check that target pages exist
@@ -173,7 +173,7 @@ Before deploying the portfolio:
 ### LinkedIn Post
 
 ```
-🚀 Just launched Archivist: An automated government meeting transcription system serving 9 municipalities
+🚀 Just launched CaptionPipeline: Automated long-form video captioning across 9 production feeds
 
 Key achievements:
 ✅ 256+ caption files processed
@@ -187,7 +187,7 @@ Built with WhisperX, Flask, FastAPI, and comprehensive monitoring. Full case stu
 ### Twitter/X Post
 
 ```
-Archivist: Automated transcription system for 9 cities
+CaptionPipeline: Automated transcription system for 9 cities
 • 256+ files processed
 • 93.5% success rate  
 • 100% uptime
@@ -199,7 +199,7 @@ Case study: [link] #AI #GovernmentTech #OpenSource
 ### GitHub/GitLab Description
 
 ```
-Automated government meeting transcription system processing 256+ caption files across 9 cities with 93.5%+ success rate and 100% uptime. Built with WhisperX, Flask, FastAPI, Celery, and comprehensive monitoring.
+Automated long-form video caption pipeline processing 256+ caption files across 9 production feeds with 93.5%+ success rate and 100% uptime. Built with WhisperX, Flask, FastAPI, Celery, and comprehensive monitoring.
 ```
 
 ## Additional Resources

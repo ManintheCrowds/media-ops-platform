@@ -79,7 +79,7 @@ Use this checklist when preparing or maintaining a repository for public/portfol
 | Check | Command / action | Notes |
 |-------|-------------------|--------|
 | One diagram or screenshot | README or `docs/` contains at least one Mermaid diagram or screenshot (UI/dashboard/flow) | Per [README](README.md) and template. |
-| Problem / solution / impact | README or case study states problem, solution, and impact (with numbers if possible) | See Archivist export kit in this folder. |
+| Problem / solution / impact | README or case study states problem, solution, and impact (with numbers if possible) | See CaptionPipeline export kit in this folder. |
 | Tech stack explicit | README lists main technologies (e.g. FastAPI, PostgreSQL, Docker) | One line or short list near top. |
 
 **Key files:** `README.md`, `docs/`, `portfolio/` (for static site assets).

@@ -8,7 +8,7 @@
 
 - **Problem:** [What gap or pain this addresses.]
 - **Solution:** [2–3 sentences on approach and main tech.]
-- **Impact:** [Numbers or outcomes if you have them — e.g. "9 cities, 330+ hours processed, <1% error rate".]
+- **Impact:** [Numbers or outcomes if you have them — e.g. "9 production feeds, 330+ hours processed, <1% error rate".]
 
 ## [Diagram or screenshot]
 

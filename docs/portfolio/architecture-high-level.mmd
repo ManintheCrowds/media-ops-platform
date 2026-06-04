@@ -1,24 +1,23 @@
-%% Archivist - High-Level System Flow
-%% Source: README.md high-level architecture mermaid diagram
+%% CaptionPipeline - High-Level System Flow
 graph TB
     subgraph "Input Sources"
-        A[Government Meeting Videos]
-        B[Flex Server Storage]
-        C[City Council Recordings]
+        A[Long-form Video Libraries]
+        B[Network Storage Mounts]
+        C[Scheduled Recordings]
     end
     
-    subgraph "Archivist Processing"
-        D[Video Upload & Queue]
+    subgraph "CaptionPipeline Processing"
+        D[Video Upload and Queue]
         E[WhisperX Transcription]
-        F[SCC Caption Generation]
+        F[SCC-Format Caption Generation]
         G[Content Publishing]
     end
     
-    subgraph "Output & Access"
+    subgraph "Output and Access"
         H[Closed Caption Files]
         I[Searchable Transcripts]
         J[VOD Platform Integration]
-        K[Public Accessibility]
+        K[Published Accessibility]
     end
     
     A --> D
@@ -31,4 +30,3 @@ graph TB
     G --> I
     G --> J
     J --> K
-

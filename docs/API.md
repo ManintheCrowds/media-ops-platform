@@ -1,8 +1,8 @@
-# API documentation — software
+# API documentation — media-ops-platform
 
-## Archivist / transcription services
+## CaptionPipeline / transcription services
 
-Archivist runs as containerized workers (ingest → WhisperX → SCC captions → publish). Operational runbooks live under `docs/` and `portfolio/`; no single public OpenAPI for the full municipal pipeline in this tree.
+CaptionPipeline runs as containerized workers (ingest → WhisperX → broadcast SCC-format captions → publish). Operational runbooks live under `docs/` and `portfolio/`; no single public OpenAPI documents the full pipeline in this tree.
 
 ## Self-hosted platform API
 
@@ -21,7 +21,7 @@ docker compose up -d
 # Platform API typically on port 8000 — confirm in docker-compose.yml / README
 ```
 
-For route-level detail, open **Swagger UI** at `/docs` after `docker compose up` or read `platform-api/` source modules.
+For route-level detail, open **Swagger UI** at `/docs` after `docker compose up` or read platform API source under `app/` and `services/`.
 
 ## Security
 

@@ -91,3 +91,12 @@ darktide_reports/
 **/*darktide*report*/
 **/*Darktide*Report*/
 
+# Operator-only / non-portfolio (public release)
+plans/
+.cursor/plans/
+.cursor/state/
+O8L1T34TUS_SCP_COGNITO_HAZARD/
+OBLITERATUS-src/
+stealth/
+home-cyber-risk/config/identifiers.yml
+

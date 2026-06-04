@@ -1,12 +1,12 @@
-# Archivist Portfolio Export Kit
+# CaptionPipeline portfolio export kit
 
-Use this kit to showcase Archivist in a developer portfolio with ready-made architecture sources, metrics, and screenshot guidance.
+Use this kit to showcase CaptionPipeline in a developer portfolio with ready-made architecture sources, metrics, and screenshot guidance.
 
 ## What to Say (Problem → Solution → Impact)
 
-- **Problem:** Government meeting videos were hard to search and inaccessible for citizens with hearing needs; manual captioning didn't scale across nine cities.
-- **Solution:** Archivist automates ingest → WhisperX transcription → SCC caption generation → publication to VOD/search with monitoring and alerting.
-- **Impact (Dec 2025 snapshot):** 256+ caption files, 330+ content hours, ~85 min average processing time, 93.5%+ success rate, <1% errors, 100% uptime, serving 9 cities; peaks of 121 files/day (18.29 avg).
+- **Problem:** Large video libraries were hard to search and lacked consistent captions; manual captioning did not scale across multiple production feeds.
+- **Solution:** CaptionPipeline automates ingest → WhisperX transcription → broadcast SCC-format captions → publication to VOD/search with monitoring and alerting.
+- **Impact (Dec 2025 snapshot):** 256+ caption files, 330+ content hours, ~85 min average processing time, 93.5%+ success rate, &lt;1% errors, 100% uptime across 9 production feeds; peaks of 121 files/day (18.29 avg).
 
 ## Assets to Include
 
@@ -17,33 +17,26 @@ Use this kit to showcase Archivist in a developer portfolio with ready-made arch
 
 #### Export to PNG/SVG
 
-Export diagrams locally with Mermaid CLI:
-
 ```bash
 npm install -g @mermaid-js/mermaid-cli
 mmdc -i architecture-high-level.mmd -o ../../portfolio/assets/diagrams/architecture-high-level.png --backgroundColor white
 mmdc -i architecture-detailed.mmd -o ../../portfolio/assets/diagrams/architecture-detailed.png --backgroundColor white
 ```
 
-> Note: Automatic export may be blocked in some environments by upstream registry/HTTP 403 restrictions. Run the commands above in a network-allowed environment.
-
 ### 2. Monitoring/Reliability Screenshot
 
-- Capture Grafana at `http://localhost:9092` once the stack is running (e.g., Cities dashboard or home dashboard showing uptime and error rate)
-- Save as `portfolio/assets/diagrams/grafana-reliability.png` (capture from a live instance)
+- Capture Grafana when the stack is running (uptime and error-rate panels)
+- Save as `portfolio/assets/diagrams/grafana-reliability.png`
 
-### 3. Talking Points for Portfolio Page
+### 3. Talking Points
 
-- **Stack:** Flask + FastAPI APIs; Celery + Redis; PostgreSQL; WhisperX; SCC captioning; Prometheus + Grafana; Cablecast/VIOLITE/HELO integrations
-- **Workflow:** Detect videos across 9 storage mounts → transcribe (WhisperX) → generate SCC → quality check → publish → archive → monitor health
-- **Operational scope:** Nine municipalities served, 100% uptime since deployment, error rate <1%
-- **Throughput highlights:** 18.29 files/day avg; 121 files/day peak; 330+ hours processed
+- **Stack:** Flask + FastAPI APIs; Celery + Redis; PostgreSQL; WhisperX; SCC-format captions; Prometheus + Grafana; VOD/broadcast integrations
+- **Workflow:** Detect videos across storage mounts → transcribe (WhisperX) → generate captions → quality check → publish → archive → monitor health
+- **Operational scope:** Nine production feeds, 100% uptime since deployment (portfolio snapshot), error rate &lt;1%
+- **Throughput:** 18.29 files/day avg; 121 files/day peak; 330+ hours processed
 
-## How to Use
+## Related docs
 
-- Embed the exported PNG/SVG diagrams on your portfolio site alongside the metrics above
-- Mention the Grafana reliability screenshot to demonstrate observability and uptime focus
-- Link back to the repository README sections for deeper context on architecture and performance
-
-## For Other Projects- **[PORTFOLIO_README_TEMPLATE.md](PORTFOLIO_README_TEMPLATE.md)** — Reusable README structure (hero, problem/solution/impact, features, tech stack, quick start, docs, testing, license) and a portfolio-readiness checklist for any repo.
-- **[PUBLIC_REPO_AUDIT_CHECKLIST.md](PUBLIC_REPO_AUDIT_CHECKLIST.md)** — Single audit checklist (security, hygiene, runnability, consistency, trust, narrative) with concrete commands and file names to run across portfolio-harness, software, Arc_Forge, and moltbook-watchtower.
+- [PORTFOLIO_README_TEMPLATE.md](PORTFOLIO_README_TEMPLATE.md)
+- [PUBLIC_REPO_AUDIT_CHECKLIST.md](PUBLIC_REPO_AUDIT_CHECKLIST.md)
+- [NAMING_BRAINSTORM.md](NAMING_BRAINSTORM.md)
