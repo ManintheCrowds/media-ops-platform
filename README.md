@@ -1,12 +1,46 @@
-# Self-Hosted Platform — Unified Home Lab Integration
+# software — Archivist + Self-Hosted Platform
+
+Production automation: **Archivist** (government meeting transcription at scale) and a **unified homelab platform** (FastAPI gateway, SSO, observability).
+
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/) [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Tests](https://github.com/ManintheCrowds/software/actions/workflows/tests.yml/badge.svg)](https://github.com/ManintheCrowds/software/actions/workflows/tests.yml)
+
+## Archivist — Problem → Solution → Impact
+
+- **Problem:** Government meeting video was hard to search and inaccessible for citizens who need captions; manual captioning did not scale across multiple municipalities.
+- **Solution:** End-to-end pipeline: ingest → WhisperX transcription → SCC caption generation → publication to VOD/search with monitoring and alerting.
+- **Impact (portfolio snapshot):** 256+ caption files, 330+ content hours, ~93.5% success rate, &lt;1% errors, 100% uptime across **9 cities** (see [docs/portfolio/README.md](docs/portfolio/README.md) for metrics and diagram sources).
+
+### Archivist architecture
+
+```mermaid
+flowchart LR
+  subgraph ingest [Ingest]
+    V[Video sources]
+  end
+  subgraph core [Archivist]
+    W[WhisperX]
+    S[SCC captions]
+    Q[Quality check]
+  end
+  subgraph out [Outputs]
+    P[Publish VOD/search]
+    M[Prometheus/Grafana]
+  end
+  V --> W --> S --> Q --> P
+  Q --> M
+```
+
+Export PNGs from [docs/portfolio/architecture-high-level.mmd](docs/portfolio/architecture-high-level.mmd) for portfolio pages.
+
+---
+
+## Self-Hosted Platform
 
 One place to run and manage security, job automation, education, and monitoring services—with a single dashboard, SSO, and an API gateway so everything is discoverable and authenticated in one go.
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/) [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+**Tech stack:** FastAPI, PostgreSQL, Redis, Docker Compose, Nginx, Prometheus, Grafana.
 
-**Tech stack:** FastAPI, PostgreSQL, Docker Compose, Nginx, Prometheus, Grafana.
-
-## Problem → Solution → Impact
+## Platform — Problem → Solution → Impact
 
 - **Problem:** Self-hosted services (Jellyfin, Seafile, Gitea, Vaultwarden, etc.) each have their own auth, dashboards, and health checks—no single pane of glass.
 - **Solution:** FastAPI-based Platform API with OAuth2/JWT SSO, service registry, API gateway, and unified dashboard. All services integrate through one authenticated entry point.
@@ -480,7 +514,8 @@ PRs welcome. Code speaks.
 - [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment instructions
 - [Development Guide](docs/DEVELOPMENT.md) - Development setup and contributing
 - [Security Guide](docs/SECURITY.md) - Security best practices and configuration
-- [API Documentation](API.md) - API endpoint reference
+- [API Documentation](docs/API.md) - Platform OpenAPI entry and Archivist surfaces
+- [Roadmap](ROADMAP.md) - Public portfolio milestones
 
 ### AI Agent Documentation
 
