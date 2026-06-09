@@ -27,6 +27,7 @@ wheels/
 .env
 .venv
 .env.*
+*.env.backup
 !.env.example
 !.cursor/brain-map.env.example
 

@@ -90,7 +90,7 @@
 |------|-----------------|
 | **MISSING LICENSE** | 6/6 roots (all) |
 | **MISSING .gitignore** | 1 (obsidian_cursor_integration) |
-| **Gitleaks** | Not run (gitleaks not installed); use CI workflows or install locally |
+| **Gitleaks** | Run locally 2026-06-05 (8.30.1, exit 0); see `run-gh-pf03-local-scan.ps1` |
 | **pip audit** | Not run (pip-audit not installed); run `pip install pip-audit` then re-audit |
 | **Test failures** | 2: WatchTower_main (collection errors), software (1 failing test + coverage gate) |
 | **Stale "Your License Here" / TBD** | WatchTower_main: `docs/README.md` (2), `daggr_workflows/EVALUATION.md` (multiple TBD) |

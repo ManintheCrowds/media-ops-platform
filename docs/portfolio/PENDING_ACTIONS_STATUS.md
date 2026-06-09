@@ -24,7 +24,7 @@
 |--------|----------|--------|
 | Done | P0 | LICENSE/README alignment |
 | Done | P0 | Untrack operator-only trees with harness paths |
-| Conditional | P1 | gitleaks/trufflehog — use CI on push (local CLI not installed) |
+| Done | P1 | gitleaks/trufflehog — local CLI installed 2026-06-05; `run-gh-pf03-local-scan.ps1`; untrack `job-automation-service/.env.backup` |
 | Pending | P2 | Coverage 58% → 70% | ROADMAP |
 | Pending | P3 | Refresh stale per-repo security_audit docs if re-added |
 

@@ -5,7 +5,7 @@ Complete guide for showcasing CaptionPipeline in a developer portfolio with read
 ## Quick Start
 
 1. **Export Diagrams**: Run the Mermaid CLI commands below to generate PNG images
-2. **Update Metrics**: Verify all numbers in the case study match current data
+2. **Update Metrics**: Verify numbers against [`metrics.json`](metrics.json) (machine-readable SSOT); run `.\docs\portfolio\refresh_metrics.ps1` to validate and bump `generated_at`
 3. **Test Links**: Ensure all internal and external links work correctly
 4. **Review Content**: Check that all sections are complete and accurate
 5. **Deploy**: Upload to your portfolio hosting platform

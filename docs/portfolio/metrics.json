@@ -1,0 +1,69 @@
+{
+    "schema_version":  "1",
+    "generated_at":  "2026-06-09T02:48:25Z",
+    "sources":  [
+                    {
+                        "id":  "caption_pipeline",
+                        "kind":  "markdown",
+                        "path":  "docs/portfolio/README.md",
+                        "section":  "Impact (Dec 2025 snapshot)",
+                        "note":  "CaptionPipeline portfolio export kit prose"
+                    },
+                    {
+                        "id":  "caption_pipeline_readme",
+                        "kind":  "markdown",
+                        "path":  "README.md",
+                        "section":  "CaptionPipeline — Problem → Solution → Impact",
+                        "note":  "media-ops-platform root README"
+                    },
+                    {
+                        "id":  "scp",
+                        "kind":  "markdown",
+                        "path":  "https://github.com/ManintheCrowds/SCP/blob/main/README.md",
+                        "section":  "Problem → Solution → Impact",
+                        "note":  "16/16 promptfoo tier probes"
+                    },
+                    {
+                        "id":  "profile_readme",
+                        "kind":  "markdown",
+                        "path":  "https://github.com/ManintheCrowds/ManintheCrowds/blob/main/README.md",
+                        "section":  "Problem → Solution → Impact",
+                        "note":  "OpenHarness autoresearch Tier B 5/5 (Jun 2026)"
+                    },
+                    {
+                        "id":  "autoresearch_frontend_a2ui",
+                        "kind":  "adhoc",
+                        "path":  "MiscRepos/.cursor/state/adhoc/autoresearch-2026-06-07-frontend-a2ui-observe/results.tsv",
+                        "note":  "Tier B 5/5 post-iter1 2026-06-08"
+                    }
+                ],
+    "caption_pipeline":  {
+                             "as_of":  "2025-12",
+                             "caption_files_min":  256,
+                             "content_hours_min":  330,
+                             "avg_processing_minutes":  85,
+                             "success_rate_pct_min":  93.5,
+                             "error_rate_pct_max":  1,
+                             "production_feeds":  9,
+                             "uptime_pct":  100,
+                             "peak_files_per_day":  121,
+                             "avg_files_per_day":  18.29
+                         },
+    "scp":  {
+                "as_of":  "2026-06",
+                "promptfoo_tier_probes_pass":  16,
+                "promptfoo_tier_probes_total":  16,
+                "owasp":  [
+                              "LLM01",
+                              "LLM06"
+                          ]
+            },
+    "openharness":  {
+                        "as_of":  "2026-06",
+                        "harness_pinable_by_commit_sha":  true,
+                        "autoresearch_tier_b":  {
+                                                    "foam_pkm":  "5/5",
+                                                    "frontend_a2ui":  "5/5"
+                                                }
+                    }
+}

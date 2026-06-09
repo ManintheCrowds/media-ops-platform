@@ -35,8 +35,23 @@ mmdc -i architecture-detailed.mmd -o ../../portfolio/assets/diagrams/architectur
 - **Operational scope:** Nine production feeds, 100% uptime since deployment (portfolio snapshot), error rate &lt;1%
 - **Throughput:** 18.29 files/day avg; 121 files/day peak; 330+ hours processed
 
+## Machine-readable metrics
+
+**SSOT for agents and profile copy:** [`metrics.json`](metrics.json) — CaptionPipeline (Dec 2025 snapshot), SCP promptfoo probes, OpenHarness autoresearch Tier B. Prefer this file over re-parsing markdown.
+
+**Refresh (validate schema + bump `generated_at`):**
+
+```powershell
+# From media-ops-platform repo root
+.\docs\portfolio\refresh_metrics.ps1
+.\docs\portfolio\refresh_metrics.ps1 -DryRun
+```
+
+Live homelab/Grafana export hooks are stubbed for **PF-REPO-8** (`-FromGrafanaJson`). Quarterly ritual: MiscRepos `pending_tasks` **PF-PR-16**.
+
 ## Related docs
 
+- [metrics.json](metrics.json) · [refresh_metrics.ps1](refresh_metrics.ps1)
 - [PORTFOLIO_README_TEMPLATE.md](PORTFOLIO_README_TEMPLATE.md)
 - [PUBLIC_REPO_AUDIT_CHECKLIST.md](PUBLIC_REPO_AUDIT_CHECKLIST.md)
 - [NAMING_BRAINSTORM.md](NAMING_BRAINSTORM.md)
