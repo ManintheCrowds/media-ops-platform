@@ -57,7 +57,7 @@ class ArloService:
         self._clients = {}  # Cache of Arlo clients per base station
         
         # Storage path for recordings
-        self.storage_path = self.config.storage_path
+        self.storage_path = self.config.path
         self.storage_path.mkdir(parents=True, exist_ok=True)
 
     def _get_arlo_client(self, username: Optional[str] = None, password: Optional[str] = None) -> 'Arlo':

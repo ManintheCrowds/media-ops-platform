@@ -36,7 +36,7 @@ def mock_config(tmp_path):
     """Create a mock encoder config."""
     storage_path = tmp_path / "recordings"
     config = EncoderConfig(
-        encoder_storage_path=str(storage_path),
+        storage_path=str(storage_path),
         encoder_network_scan_range="192.168.1.0/24"
     )
     return config
@@ -134,16 +134,20 @@ class TestVideoEncoderServiceDiscover:
             'device_name': 'AJA HELO',
             'firmware_version': '1.0.0'
         })
-        
-        with patch('aiohttp.ClientSession', new_callable=AsyncMock) as mock_session:
-            session_instance = AsyncMock()
-            session_instance.get.return_value.__aenter__.return_value = mock_response
-            mock_session.return_value.__aenter__.return_value = session_instance
-            
-            discovered = await encoder_service.discover_encoders(db_session, "192.168.1.0/24")
-            
-            assert len(discovered) > 0
-            assert all('ip_address' in enc for enc in discovered)
+        mock_get_ctx = AsyncMock()
+        mock_get_ctx.__aenter__.return_value = mock_response
+        mock_get_ctx.__aexit__.return_value = None
+        session_instance = MagicMock()
+        session_instance.get.return_value = mock_get_ctx
+        mock_session_ctx = AsyncMock()
+        mock_session_ctx.__aenter__.return_value = session_instance
+        mock_session_ctx.__aexit__.return_value = None
+
+        with patch('aiohttp.ClientSession', return_value=mock_session_ctx):
+            discovered = await encoder_service.discover_encoders(db_session, "192.168.1.100/32")
+
+            assert len(discovered) == 1
+            assert discovered[0]['ip_address'] == '192.168.1.100'
             assert all('device_type' in enc for enc in discovered)
     
     @pytest.mark.asyncio

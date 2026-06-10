@@ -6,12 +6,15 @@ from typing import Dict, Any
 fake = Faker()
 
 
+TEST_USER_PASSWORD = "SecurePass123!@#"
+
+
 def create_user_data(**kwargs) -> Dict[str, Any]:
     """Create test user data."""
     defaults = {
         "username": fake.user_name(),
         "email": fake.email(),
-        "password": "SecurePassword123!"
+        "password": TEST_USER_PASSWORD
     }
     defaults.update(kwargs)
     return defaults

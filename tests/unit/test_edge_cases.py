@@ -7,26 +7,29 @@ from services.camera.arlo_service import ArloService
 from services.camera.config import CameraConfig
 from services.video_encoder.encoder_service import VideoEncoderService
 from services.video_encoder.config import EncoderConfig
-from app.exceptions import ArloError, EncoderError
+from app.exceptions import ArloError, ArloCameraError, EncoderError
+
+
+@pytest.fixture
+def arlo_service(tmp_path):
+    """Create ArloService with temp storage path."""
+    storage_path = tmp_path / "camera_recordings"
+    config = CameraConfig(storage_path=str(storage_path))
+    with patch('services.camera.arlo_service.Arlo'):
+        return ArloService(config=config)
+
+
+@pytest.fixture
+def encoder_service(tmp_path):
+    """Create VideoEncoderService with temp storage path."""
+    storage_path = tmp_path / "encoder_recordings"
+    config = EncoderConfig(storage_path=str(storage_path))
+    return VideoEncoderService(config=config)
 
 
 @pytest.mark.unit
 class TestEmptyListHandling:
     """Test handling of empty lists."""
-    
-    @pytest.fixture
-    def arlo_service(self, tmp_path):
-        """Create ArloService with temp storage path."""
-        storage_path = tmp_path / "camera_recordings"
-        config = CameraConfig(arlo_storage_path=str(storage_path))
-        return ArloService(config=config)
-    
-    @pytest.fixture
-    def encoder_service(self, tmp_path):
-        """Create VideoEncoderService with temp storage path."""
-        storage_path = tmp_path / "encoder_recordings"
-        config = EncoderConfig(encoder_storage_path=str(storage_path))
-        return VideoEncoderService(config=config)
     
     @pytest.mark.asyncio
     async def test_list_cameras_empty(self, db_session, arlo_service):

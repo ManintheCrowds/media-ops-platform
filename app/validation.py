@@ -181,7 +181,7 @@ def validate_service_url(
     localhost_variations = {
         "localhost",
         "127.0.0.1",
-        "0.0.0.0",
+        "0.0.0.0",  # nosec B104 - blocked SSRF target, not a bind address
         "::1",
         "::",
         "0:0:0:0:0:0:0:1",

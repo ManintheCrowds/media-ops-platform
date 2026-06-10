@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 try:
     from security_service.intelligence.password_breach import PasswordBreachService
     password_breach_service = PasswordBreachService()
-    PASSWORD_BREACH_CHECK_ENABLED = True
+    PASSWORD_BREACH_CHECK_ENABLED = password_breach_service.enabled
 except ImportError:
     logger.warning("Password breach service not available - password checking disabled")
     password_breach_service = None
@@ -60,10 +60,13 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
+OAUTH2_TOKEN_TYPE = "bearer"  # nosec B105 - OAuth2 token type label, not a credential
+
+
 class Token(BaseModel):
     """Token response model."""
     access_token: str
-    token_type: str = "bearer"
+    token_type: str = OAUTH2_TOKEN_TYPE
 
 
 class UserCreate(BaseModel):
@@ -138,7 +141,7 @@ async def login(
         expires_delta=access_token_expires
     )
     
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": OAUTH2_TOKEN_TYPE}
 
 
 @router.post("/register", response_model=UserResponse)

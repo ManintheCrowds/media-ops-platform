@@ -16,6 +16,15 @@ from faker import Faker
 # Set required environment variables before importing app modules
 os.environ.setdefault('SECRET_KEY', 'test-secret-key-32-chars-long-enough')
 os.environ.setdefault('JWT_SECRET_KEY', 'test-jwt-secret-key-32-chars-long-enough')
+# Writable storage paths for CameraConfig/EncoderConfig validation on CI runners
+_test_storage_root = os.path.join(tempfile.gettempdir(), "platform-test-storage")
+os.makedirs(os.path.join(_test_storage_root, "camera_recordings"), exist_ok=True)
+os.makedirs(os.path.join(_test_storage_root, "encoder_recordings"), exist_ok=True)
+os.environ.setdefault("ARLO_STORAGE_PATH", os.path.join(_test_storage_root, "camera_recordings"))
+os.environ.setdefault("ENCODER_STORAGE_PATH", os.path.join(_test_storage_root, "encoder_recordings"))
+# Disable live HIBP checks in tests (SecurePassword123! is in the breach DB)
+os.environ.setdefault("SECURITY_HIBP_ENABLE_PASSWORD_CHECK", "false")
+os.environ.setdefault("SECURITY_HIBP_ENABLE_EMAIL_CHECK", "false")
 # CORS: force explicit origins for tests (credentials + '*' fails validation)
 os.environ['CORS_ORIGINS'] = '["http://localhost:3000","http://127.0.0.1:3000"]'
 # Redirect coverage output to a temp path to avoid permission issues
@@ -196,5 +205,5 @@ def sample_user_data():
     return {
         "username": fake.user_name(),
         "email": fake.email(),
-        "password": "SecurePassword123!"
+        "password": "SecurePass123!@#"
     }

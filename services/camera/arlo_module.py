@@ -1682,7 +1682,6 @@ class Arlo(object):
             stream_url_dict = self.request.post(f'https://{self.BASE_URL}/hmsweb/users/devices/startStream', {"to":camera.get('parentId'),"from":self.user_id+"_web","resource":"cameras/"+camera.get('deviceId'),"action":"set","responseUrl":"", "publishResponse":True,"transId":self.genTransId(),"properties":{"activityState":"startUserStream","cameraId":camera.get('deviceId')}}, headers={"xcloudId":camera.get('xCloudId')})
 
         def callback(self, event):
-            nonlocal stream_url_dict
             if event.get("from") == basestation.get("deviceId") and event.get("resource") == "cameras/"+camera.get("deviceId") and event.get("properties", {}).get("activityState") == "userStreamActive":
                 return stream_url_dict['url'].replace("rtsp://", "rtsps://")
 
@@ -1694,11 +1693,9 @@ class Arlo(object):
         stream_url_dict = None
 
         def trigger(self):
-            nonlocal stream_url_dict
             self.request.post(f'https://{self.BASE_URL}/hmsweb/users/devices/stopStream', {"to":camera.get('parentId'),"from":self.user_id+"_web","resource":"cameras/"+camera.         get('deviceId'),"action":"set","responseUrl":"", "publishResponse":True,"transId":self.genTransId(),"properties":{"activityState":"stopUserStream","cameraId":camera.get('deviceId')}}, headers={"xcloudId": camera.get('xCloudId')})
 
         def callback(self, event):
-            nonlocal stream_url_dict
             if event.get("from") == basestation.get("deviceId") and event.get("resource") == "cameras/"+camera.get("deviceId") and event.get("properties", {}).get("activityState") == "userStreamActive":
                 return stream_url_dict['url'].replace("rtsp://", "rtsps://") if stream_url_dict else None
             return None

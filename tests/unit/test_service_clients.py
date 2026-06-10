@@ -25,8 +25,13 @@ from tests.fixtures.mock_responses import (
 
 
 def mock_get(respx_mock, pattern: str, **kwargs):
-    """Register a regex-based GET mock."""
-    respx_mock.get(re.compile(pattern)).mock(**kwargs)
+    """Register a GET mock for service client HTTP calls."""
+    if pattern.startswith("http"):
+        normalized = re.sub(r":80(?=/|\.\*|$)", "", pattern)
+        url_prefix = normalized[:-2] if normalized.endswith(".*") else normalized
+        respx_mock.route(url__startswith=url_prefix).mock(**kwargs)
+    else:
+        respx_mock.route(url__regex=pattern).mock(**kwargs)
 
 
 @pytest.mark.unit

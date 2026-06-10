@@ -74,7 +74,14 @@
 
 | P0-5 | VirusTotal key in tracked markdown (GitGuardian) | P0 | **Fixed** — delete + filter-repo + force-push 2026-06-04 |
 
-| P0-6 | `job-automation-service/.env.backup` tracked (TruffleHog verified Adzuna) | P0 | **Fixed locally 2026-06-05** — `git rm --cached`; `*.env.backup` in `.gitignore`; commit + push; purge from history if key was ever public |
+| P0-6 | `job-automation-service/.env.backup` tracked (TruffleHog verified Adzuna) | P0 | **Fixed locally 2026-06-05** — `git rm --cached`; `*.env.backup` in `.gitignore`; commit + push; **history purge:** [`scripts/purge-adzuna-history.ps1`](../../scripts/purge-adzuna-history.ps1) + [`config/filter-repo-adzuna-replacements.txt`](../../config/filter-repo-adzuna-replacements.txt) (rotate Adzuna keys first; force-push) |
+
+## TruffleHog scheduled scan (2026-06-10)
+
+- **Push/PR:** diff-only scan (unchanged).
+- **Schedule:** full-history scan; fails on verified Adzuna in history until filter-repo purge completes.
+- **Mitigation:** [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt) excludes dev Postgres URI patterns in `docker-compose*.yml` and portfolio/docs markdown from scheduled noise.
+- **Operator:** `APPROVAL_NEEDED` — rotate Adzuna keys, run purge script, force-push, confirm scheduled workflow green.
 
 
 

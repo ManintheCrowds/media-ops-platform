@@ -3,9 +3,12 @@
 from typing import Dict, Optional, Union
 import aiohttp
 import asyncio
+import logging
 from datetime import datetime
 from enum import Enum
 from app.exceptions import EncoderConnectionError, EncoderRecordingError
+
+logger = logging.getLogger(__name__)
 
 
 class AJAHELOEndpoints(Enum):

@@ -57,7 +57,7 @@ def mock_config(tmp_path):
     config = CameraConfig(
         arlo_username="test@example.com",
         arlo_password="testpass",
-        arlo_storage_path=str(storage_path)
+        storage_path=str(storage_path)
     )
     return config
 

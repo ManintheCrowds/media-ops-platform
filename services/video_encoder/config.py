@@ -11,7 +11,7 @@ from app.config_base import BaseServiceConfig
 class EncoderConfig(BaseServiceConfig):
     """Video encoder service configuration."""
     
-    encoder_storage_path: str = "/var/lib/platform/encoder_recordings"
+    storage_path: str = "/var/lib/platform/encoder_recordings"
     encoder_network_scan_range: str = "192.168.1.0/24"
     encoder_default_port: int = 80
     encoder_timeout: int = 30
@@ -20,7 +20,7 @@ class EncoderConfig(BaseServiceConfig):
         env_prefix = "ENCODER_"
         case_sensitive = False
     
-    @field_validator('encoder_storage_path')
+    @field_validator('storage_path')
     @classmethod
     def validate_storage_path(cls, v: str) -> str:
         """Validate storage path exists or is creatable."""
@@ -44,7 +44,7 @@ class EncoderConfig(BaseServiceConfig):
         return BaseServiceConfig.validate_positive_int(v, "encoder_config")
     
     @property
-    def storage_path(self) -> Path:
+    def path(self) -> Path:
         """Get storage path as Path object."""
-        return Path(self.encoder_storage_path)
+        return Path(self.storage_path)
 

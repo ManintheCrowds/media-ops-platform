@@ -1,0 +1,9 @@
+# git-filter-repo replacement literals for Adzuna credentials in history.
+#
+# Operator: rotate keys at Adzuna first, then run scripts/purge-adzuna-history.ps1
+#
+# Add lines in filter-repo format (one per secret pattern). Example:
+#   literal:YOUR_OLD_ADZUNA_API_KEY==>***REMOVED***
+#   regex:ADZUNA_API_KEY=[^\s\r\n]+==>ADZUNA_API_KEY=***REMOVED***
+#
+# Do not commit real key values. Use a local-only replacements file for the purge run.

@@ -13,7 +13,7 @@ class CameraConfig(BaseServiceConfig):
     # Arlo Configuration
     arlo_username: Optional[str] = None
     arlo_password: Optional[str] = None
-    arlo_storage_path: str = "/var/lib/platform/camera_recordings"
+    storage_path: str = "/var/lib/platform/camera_recordings"
     arlo_sync_interval: int = 300
     arlo_encryption_key: Optional[str] = None
     
@@ -21,7 +21,7 @@ class CameraConfig(BaseServiceConfig):
         env_prefix = "ARLO_"
         case_sensitive = False
     
-    @field_validator('arlo_storage_path')
+    @field_validator('storage_path')
     @classmethod
     def validate_storage_path(cls, v: str) -> str:
         """Validate storage path exists or is creatable."""
@@ -41,7 +41,7 @@ class CameraConfig(BaseServiceConfig):
         return BaseServiceConfig.validate_non_empty_string(v, "arlo_credentials")
     
     @property
-    def storage_path(self) -> Path:
+    def path(self) -> Path:
         """Get storage path as Path object."""
-        return Path(self.arlo_storage_path)
+        return Path(self.storage_path)
 

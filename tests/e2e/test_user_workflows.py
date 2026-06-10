@@ -17,7 +17,7 @@ class TestUserWorkflows:
             json={
                 "username": "workflowuser",
                 "email": "workflow@example.com",
-                "password": "SecurePassword123!"
+                "password": "SecurePass123!@#"
             }
         )
         assert register_response.status_code == status.HTTP_200_OK
@@ -29,7 +29,7 @@ class TestUserWorkflows:
             "/api/auth/token",
             data={
                 "username": "workflowuser",
-                "password": "SecurePassword123!"
+                "password": "SecurePass123!@#"
             }
         )
         assert login_response.status_code == status.HTTP_200_OK
@@ -64,7 +64,7 @@ class TestUserWorkflows:
             json={
                 "username": "serviceuser",
                 "email": "service@example.com",
-                "password": "SecurePassword123!"
+                "password": "SecurePass123!@#"
             }
         )
         
@@ -72,7 +72,7 @@ class TestUserWorkflows:
             "/api/auth/token",
             data={
                 "username": "serviceuser",
-                "password": "SecurePassword123!"
+                "password": "SecurePass123!@#"
             }
         )
         token = login_response.json()["access_token"]

@@ -28,7 +28,7 @@ class VideoEncoderService:
         self._clients = {}  # Cache of encoder clients
         
         # Storage path for recordings
-        self.storage_path = self.config.storage_path
+        self.storage_path = self.config.path
         self.storage_path.mkdir(parents=True, exist_ok=True)
 
     def _get_encoder_client(self, encoder: VideoEncoder) -> AJAHELOClient:

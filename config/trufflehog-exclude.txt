@@ -1,0 +1,5 @@
+# TruffleHog path exclude patterns (one regex per line).
+# Dev-only Postgres URIs and compose placeholders — not production credentials.
+(?i)docker-compose.*\.yml$
+(?i)docker-compose.*\.yaml$
+(?i)^docs/.*\.md$

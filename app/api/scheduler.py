@@ -152,8 +152,6 @@ async def get_scheduler_status(
     current_user: User = Depends(get_current_user)
 ) -> SchedulerStatusResponse:
     """Get current scheduler status."""
-    global _scheduler_running, _current_config
-    
     if _scheduler_running and _current_config:
         return {
             "status": "running",

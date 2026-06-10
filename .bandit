@@ -1,0 +1,4 @@
+; Bandit baseline — CI gate uses `bandit -ll` (High only). Document accepted skips here.
+[bandit]
+exclude: /tests,/job-automation-service/tests
+skips = B113

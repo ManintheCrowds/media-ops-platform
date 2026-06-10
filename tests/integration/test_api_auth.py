@@ -16,7 +16,7 @@ class TestAuthEndpoints:
             json={
                 "username": "newuser",
                 "email": "newuser@example.com",
-                "password": "SecurePassword123!"
+                "password": "SecurePass123!@#"
             }
         )
         assert response.status_code == status.HTTP_200_OK
@@ -34,7 +34,7 @@ class TestAuthEndpoints:
             json={
                 "username": test_user.username,
                 "email": "different@example.com",
-                "password": "SecurePassword123!"
+                "password": "SecurePass123!@#"
             }
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -46,7 +46,7 @@ class TestAuthEndpoints:
             json={
                 "username": "differentuser",
                 "email": test_user.email,
-                "password": "SecurePassword123!"
+                "password": "SecurePass123!@#"
             }
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
