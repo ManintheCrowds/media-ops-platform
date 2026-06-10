@@ -36,7 +36,7 @@ SECRET_KEY=your-very-long-random-secret-key-here  # Minimum 32 characters
 JWT_SECRET_KEY=your-jwt-secret-key-here  # Minimum 32 characters
 
 # Database
-DATABASE_URL=postgresql://platform:strong-password@postgres:5432/platform
+DATABASE_URL=postgresql://platform:${POSTGRES_PASSWORD}@postgres:5432/platform
 
 # Service URLs (update if using different ports/hosts)
 SEAFILE_URL=http://seafile:8000

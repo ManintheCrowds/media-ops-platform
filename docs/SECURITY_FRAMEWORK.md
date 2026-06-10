@@ -80,7 +80,7 @@ The framework consists of several key components:
 ```bash
 # Service Configuration
 SECURITY_SERVICE_PORT=8001
-SECURITY_DATABASE_URL=postgresql://platform:platform@postgres:5432/platform
+SECURITY_DATABASE_URL=postgresql://platform:${POSTGRES_PASSWORD}@postgres:5432/platform
 SECURITY_REDIS_URL=redis://redis:6379
 
 # Threat Intelligence

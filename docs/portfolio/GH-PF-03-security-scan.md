@@ -74,14 +74,22 @@
 
 | P0-5 | VirusTotal key in tracked markdown (GitGuardian) | P0 | **Fixed** — delete + filter-repo + force-push 2026-06-04 |
 
-| P0-6 | `job-automation-service/.env.backup` tracked (TruffleHog verified Adzuna) | P0 | **Fixed locally 2026-06-05** — `git rm --cached`; `*.env.backup` in `.gitignore`; commit + push; **history purge:** [`scripts/purge-adzuna-history.ps1`](../../scripts/purge-adzuna-history.ps1) + [`config/filter-repo-adzuna-replacements.txt`](../../config/filter-repo-adzuna-replacements.txt) (rotate Adzuna keys first; force-push) |
+| P0-6 | `job-automation-service/.env.backup` tracked (TruffleHog verified Adzuna) | P0 | **Index fixed 2026-06-05** — `git rm --cached`; `*.env.backup` in `.gitignore`. **History purge pending (Gate 1):** regex replacements in [`config/filter-repo-adzuna-replacements.txt`](../../config/filter-repo-adzuna-replacements.txt); run [`scripts/purge-adzuna-history.ps1`](../../scripts/purge-adzuna-history.ps1) after rotating keys at https://developer.adzuna.com/; `git push --force-with-lease origin main`; confirm scheduled TruffleHog zero verified. Local scan 2026-06-10: 1 verified Adzuna (see [`trufflehog-baselines/README.md`](trufflehog-baselines/README.md)). |
 
-## TruffleHog scheduled scan (2026-06-10)
+## TruffleHog policy (2026-06-10, Gate 2)
 
-- **Push/PR:** diff-only scan (unchanged).
-- **Schedule:** full-history scan; fails on verified Adzuna in history until filter-repo purge completes.
-- **Mitigation:** [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt) excludes dev Postgres URI patterns in `docker-compose*.yml` and portfolio/docs markdown from scheduled noise.
-- **Operator:** `APPROVAL_NEEDED` — rotate Adzuna keys, run purge script, force-push, confirm scheduled workflow green.
+| Trigger | Workflow job | Path excludes |
+|---------|--------------|---------------|
+| PR / push to `main` | `trufflehog-strict` | **None** — full diff scan |
+| Schedule (02:00 UTC) | `trufflehog-scheduled` | [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt) — **enumerated dev compose only** (not `docker-compose.prod.yml`, not `docs/**`) |
+
+- **Doc placeholders:** five root `docs/*.md` URIs updated to `${POSTGRES_PASSWORD}` / `<POSTGRES_PASSWORD>` (no blanket markdown exclude).
+- **Baseline notes:** [`docs/portfolio/trufflehog-baselines/README.md`](trufflehog-baselines/README.md) — run scans locally; do not commit raw output (may echo secrets).
+
+**Operator gates:**
+
+- `APPROVAL_NEEDED: Adzuna key rotation + git filter-repo force-push to main` (Gate 1 — purge not executed in repo yet)
+- `APPROVAL_NEEDED: TruffleHog allowlist entries` — Gate 2 narrowed to five dev compose paths; confirm at [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt)
 
 
 

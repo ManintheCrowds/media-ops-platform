@@ -13,7 +13,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  trufflehog:
+  trufflehog-strict:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,10 +22,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run TruffleHog
+      - name: Run TruffleHog (PR/push — no path excludes)
         uses: trufflesecurity/trufflehog@v3.94.0
         with:
           path: ./
           base: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           head: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          extra_args: --results=verified,unknown
+
+  trufflehog-scheduled:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog (schedule — dev compose path excludes only)
+        uses: trufflesecurity/trufflehog@v3.94.0
+        with:
+          path: ./
+          base: ${{ github.event.before }}
+          head: ${{ github.sha }}
           extra_args: --results=verified,unknown --exclude-paths=config/trufflehog-exclude.txt

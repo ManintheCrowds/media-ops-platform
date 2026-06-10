@@ -711,7 +711,7 @@ class Settings(BaseSettings):
     secret_key: str = "change-me-in-production"
     
     # Database
-    database_url: str = "postgresql://user:pass@localhost/db"
+    database_url: str = "postgresql://user:<POSTGRES_PASSWORD>@localhost/db"
     
     # Service URLs
     service_url: Optional[str] = "http://service:8000"

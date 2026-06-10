@@ -100,7 +100,7 @@
 # Required
 $env:SECRET_KEY = "your_32_char_secret_key"
 $env:JWT_SECRET_KEY = "your_32_char_jwt_secret"
-$env:DATABASE_URL = "postgresql://user:pass@localhost/dbname"
+$env:DATABASE_URL = "postgresql://user:<POSTGRES_PASSWORD>@localhost/dbname"
 
 # Arlo Configuration
 $env:ARLO_USERNAME = "your@email.com"

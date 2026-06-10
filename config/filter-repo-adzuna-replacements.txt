@@ -1,9 +1,14 @@
-# git-filter-repo replacement literals for Adzuna credentials in history.
+# git-filter-repo replacement patterns for Adzuna credentials in history.
 #
-# Operator: rotate keys at Adzuna first, then run scripts/purge-adzuna-history.ps1
+# Safe to commit: regex-only (no literal key values). Operator must rotate keys at
+# https://developer.adzuna.com/ BEFORE running filter-repo.
 #
-# Add lines in filter-repo format (one per secret pattern). Example:
-#   literal:YOUR_OLD_ADZUNA_API_KEY==>***REMOVED***
-#   regex:ADZUNA_API_KEY=[^\s\r\n]+==>ADZUNA_API_KEY=***REMOVED***
+# Usage: git filter-repo --force --replace-text config/filter-repo-adzuna-replacements.txt
 #
-# Do not commit real key values. Use a local-only replacements file for the purge run.
+# Add literal lines in a local-only file if TruffleHog still reports verified hits
+# after regex purge (never commit real key values).
+
+regex:ADZUNA_API_KEY=[^\s\r\n#]+==>ADZUNA_API_KEY=***REMOVED***
+regex:ADZUNA_API_ID=[^\s\r\n#]+==>ADZUNA_API_ID=***REMOVED***
+regex:adzuna_api_key=[^\s\r\n#]+==>adzuna_api_key=***REMOVED***
+regex:adzuna_api_id=[^\s\r\n#]+==>adzuna_api_id=***REMOVED***

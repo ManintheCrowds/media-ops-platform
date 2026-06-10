@@ -23,7 +23,7 @@ Edit `.env` file:
 
 ```env
 # Database
-DATABASE_URL=postgresql://education:password@education-db:5432/education
+DATABASE_URL=postgresql://education:${EDUCATION_POSTGRES_PASSWORD}@education-db:5432/education
 
 # Platform Integration
 PLATFORM_URL=http://platform:8000
@@ -127,7 +127,7 @@ education-service:
   build: ./education-service
   container_name: platform-education
   environment:
-    - DATABASE_URL=postgresql://education:password@education-db:5432/education
+    - DATABASE_URL=postgresql://education:${EDUCATION_POSTGRES_PASSWORD}@education-db:5432/education
     - PLATFORM_URL=http://platform:8000
     - JWT_SECRET_KEY=${JWT_SECRET_KEY}
   ports:
