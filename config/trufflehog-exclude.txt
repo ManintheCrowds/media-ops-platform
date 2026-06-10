@@ -1,0 +1,6 @@
+# Operator approved 2026-06-10: five dev compose paths (scheduled scan only).
+# PR/push uses trufflehog-strict with NO excludes. NOT docker-compose.prod.yml.^docker-compose\.yml$
+^docker-compose\.vlans\.yml$
+^job-automation-service/docker-compose\.yml$
+^education-service/docker-compose\.yml$
+^home-cyber-risk/infra/docker-compose\.yml$

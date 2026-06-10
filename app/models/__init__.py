@@ -52,28 +52,34 @@ class Service(Base):
     @hybrid_property
     def auth_token(self):
         """Get decrypted auth token."""
-        if self._auth_token_encrypted is None:
+        if not hasattr(self, "_sa_instance_state"):
             return None
-        
+
+        encrypted = self._auth_token_encrypted
+        if encrypted is None:
+            return None
+        if not isinstance(encrypted, str):
+            return None
+
         # Migration: if not encrypted, encrypt it on first access
-        if not is_encrypted(self._auth_token_encrypted):
+        if not is_encrypted(encrypted):
             try:
-                # This is a plain-text token, encrypt it
-                logger.info(f"Migrating plain-text token for service {self.id} to encrypted format")
+                logger.info(
+                    "Migrating plain-text token for service %s to encrypted format",
+                    self.id,
+                )
                 self._auth_token_encrypted = encrypt_token(
-                    self._auth_token_encrypted,
-                    settings.secret_key
+                    encrypted,
+                    settings.secret_key,
                 )
             except Exception as e:
                 logger.error(f"Failed to encrypt token during migration: {e}")
-                # Return the plain text as fallback
-                return self._auth_token_encrypted
-        
+                return encrypted
+
         try:
             return decrypt_token(self._auth_token_encrypted, settings.secret_key)
         except EncryptionError as e:
             logger.error(f"Failed to decrypt token for service {self.id}: {e}")
-            # Return None on decryption failure to prevent crashes
             return None
     
     @auth_token.setter

@@ -138,7 +138,7 @@ flowchart LR
    - Example: `http://jellyfin:8096/System/Info`
 
 2. **Platform API to Database**: PostgreSQL connection using SQLAlchemy
-   - Connection string: `postgresql://platform:platform@postgres:5432/platform`
+   - Connection string: `postgresql://platform:${POSTGRES_PASSWORD}@postgres:5432/platform`
 
 3. **Service to Service**: Direct HTTP communication within Docker network
    - Grafana queries Prometheus: `http://prometheus:9090/api/v1/query`

@@ -17,12 +17,12 @@ from app.exceptions import (
     ArloError,
     ArloConnectionError,
     ArloCameraError,
-    ArloRecordingError
+    ArloRecordingError,
 )
 from app.utils.error_responses import (
     handle_service_error,
     convert_to_http_exception,
-    ErrorCodes
+    ErrorCodes,
 )
 
 router = APIRouter(prefix="/api/camera", tags=["camera"])
@@ -31,57 +31,61 @@ router = APIRouter(prefix="/api/camera", tags=["camera"])
 # Pydantic models for request/response
 class CameraResponse(BaseModel):
     """Camera response model."""
+
     id: int
-    base_station_id: int
+    base_station_id: Optional[int] = None
     name: str
     device_id: str
-    device_type: Optional[str]
-    status: Optional[str]
-    is_armed: bool
-    battery_level: Optional[int]
-    signal_strength: Optional[int]
-    created_at: Optional[str]
-    updated_at: Optional[str]
-    
+    device_type: Optional[str] = None
+    status: Optional[str] = None
+    is_armed: bool = False
+    battery_level: Optional[int] = None
+    signal_strength: Optional[int] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
     class Config:
         from_attributes = True
 
 
 class BaseStationResponse(BaseModel):
     """Base station response model."""
+
     id: int
     name: str
     serial_number: str
-    ip_address: Optional[str]
-    status: Optional[str]
-    last_sync: Optional[str]
-    camera_count: int
-    created_at: Optional[str]
-    updated_at: Optional[str]
-    
+    ip_address: Optional[str] = None
+    status: Optional[str] = None
+    last_sync: Optional[str] = None
+    camera_count: int = 0
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
     class Config:
         from_attributes = True
 
 
 class RecordingResponse(BaseModel):
     """Recording response model."""
+
     id: int
     camera_id: int
     recording_id: str
-    presigned_url: Optional[str]
-    created_date: Optional[str]
-    duration: Optional[int]
-    file_size: Optional[int]
-    downloaded: bool
-    created_at: Optional[str]
-    updated_at: Optional[str]
-    
+    presigned_url: Optional[str] = None
+    created_date: Optional[str] = None
+    duration: Optional[int] = None
+    file_size: Optional[int] = None
+    downloaded: bool = False
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
     class Config:
         from_attributes = True
 
 
 class SnapshotResponse(BaseModel):
     """Snapshot response model."""
+
     camera_id: int
     snapshot_url: str
     timestamp: str
@@ -89,6 +93,7 @@ class SnapshotResponse(BaseModel):
 
 class StreamResponse(BaseModel):
     """Stream response model."""
+
     camera_id: int
     stream_url: str
     status: str
@@ -96,13 +101,13 @@ class StreamResponse(BaseModel):
 
 class DiscoverRequest(BaseModel):
     """Request model for camera discovery."""
+
     network_range: Optional[str] = None
 
 
 @router.get("/cameras", response_model=List[CameraResponse])
 async def list_cameras(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> List[CameraResponse]:
     """List all registered cameras."""
     try:
@@ -117,7 +122,7 @@ async def list_cameras(
 async def get_camera(
     camera_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> CameraResponse:
     """Get camera details by ID."""
     try:
@@ -132,7 +137,7 @@ async def get_camera(
 async def discover_cameras(
     request: Optional[DiscoverRequest] = None,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> List[CameraResponse]:
     """Discover and register cameras from base station."""
     if not current_user.is_admin:
@@ -141,16 +146,18 @@ async def discover_cameras(
             detail={
                 "error": "Admin access required",
                 "error_code": ErrorCodes.AUTHORIZATION_ERROR,
-                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            }
+                "timestamp": datetime.now(timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z"),
+            },
         )
-    
+
     try:
         service = ArloService()
-        
+
         # Discover cameras
         discovered = await service.discover_cameras(db)
-        
+
         # Register each camera
         registered = []
         for camera_data in discovered:
@@ -159,8 +166,10 @@ async def discover_cameras(
                 registered.append(registered_camera)
             except Exception as e:
                 # Log error but continue with other cameras
-                logger.error(f"Failed to register camera {camera_data.get('device_id')}: {str(e)}")
-        
+                logger.error(
+                    f"Failed to register camera {camera_data.get('device_id')}: {str(e)}"
+                )
+
         return registered
     except ArloError as e:
         raise convert_to_http_exception(e)
@@ -170,7 +179,7 @@ async def discover_cameras(
 async def arm_camera(
     camera_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> CameraResponse:
     """Arm camera (enable motion detection)."""
     if not current_user.is_admin:
@@ -179,10 +188,12 @@ async def arm_camera(
             detail={
                 "error": "Admin access required",
                 "error_code": ErrorCodes.AUTHORIZATION_ERROR,
-                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            }
+                "timestamp": datetime.now(timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z"),
+            },
         )
-    
+
     try:
         service = ArloService()
         camera = await service.arm_camera(db, camera_id)
@@ -195,7 +206,7 @@ async def arm_camera(
 async def disarm_camera(
     camera_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> CameraResponse:
     """Disarm camera (disable motion detection)."""
     if not current_user.is_admin:
@@ -204,10 +215,12 @@ async def disarm_camera(
             detail={
                 "error": "Admin access required",
                 "error_code": ErrorCodes.AUTHORIZATION_ERROR,
-                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            }
+                "timestamp": datetime.now(timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z"),
+            },
         )
-    
+
     try:
         service = ArloService()
         camera = await service.disarm_camera(db, camera_id)
@@ -220,7 +233,7 @@ async def disarm_camera(
 async def capture_snapshot(
     camera_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> SnapshotResponse:
     """Capture a snapshot from camera."""
     if not current_user.is_admin:
@@ -229,10 +242,12 @@ async def capture_snapshot(
             detail={
                 "error": "Admin access required",
                 "error_code": ErrorCodes.AUTHORIZATION_ERROR,
-                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            }
+                "timestamp": datetime.now(timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z"),
+            },
         )
-    
+
     try:
         service = ArloService()
         snapshot = await service.capture_snapshot(db, camera_id)
@@ -245,7 +260,7 @@ async def capture_snapshot(
 async def get_camera_status(
     camera_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Get camera health/status."""
     try:
@@ -263,12 +278,14 @@ async def get_recordings(
     end_date: Optional[str] = Query(None, description="End date (ISO format)"),
     limit: int = Query(100, ge=1, le=1000, description="Maximum number of recordings"),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> List[RecordingResponse]:
     """List recordings for a specific camera."""
     try:
         service = ArloService()
-        recordings = await service.get_library(db, camera_id, start_date, end_date, limit)
+        recordings = await service.get_library(
+            db, camera_id, start_date, end_date, limit
+        )
         return recordings
     except ArloError as e:
         raise convert_to_http_exception(e)
@@ -279,7 +296,7 @@ async def download_recording(
     camera_id: int,
     recording_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Get download URL for a recording."""
     if not current_user.is_admin:
@@ -288,10 +305,12 @@ async def download_recording(
             detail={
                 "error": "Admin access required",
                 "error_code": ErrorCodes.AUTHORIZATION_ERROR,
-                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            }
+                "timestamp": datetime.now(timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z"),
+            },
         )
-    
+
     try:
         service = ArloService()
         recording = await service.download_recording(db, camera_id, recording_id)
@@ -305,7 +324,7 @@ async def delete_recording(
     camera_id: int,
     recording_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Delete a recording from Arlo cloud."""
     if not current_user.is_admin:
@@ -314,10 +333,12 @@ async def delete_recording(
             detail={
                 "error": "Admin access required",
                 "error_code": ErrorCodes.AUTHORIZATION_ERROR,
-                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            }
+                "timestamp": datetime.now(timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z"),
+            },
         )
-    
+
     try:
         service = ArloService()
         result = await service.delete_recording(db, camera_id, recording_id)
@@ -328,8 +349,7 @@ async def delete_recording(
 
 @router.get("/base-station", response_model=BaseStationResponse)
 async def get_base_station(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> BaseStationResponse:
     """Get information about the Arlo base station."""
     try:
@@ -344,7 +364,7 @@ async def get_base_station(
 async def start_live_stream(
     camera_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> StreamResponse:
     """Start a live stream from an Arlo camera."""
     if not current_user.is_admin:
@@ -353,10 +373,12 @@ async def start_live_stream(
             detail={
                 "error": "Admin access required",
                 "error_code": ErrorCodes.AUTHORIZATION_ERROR,
-                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            }
+                "timestamp": datetime.now(timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z"),
+            },
         )
-    
+
     try:
         service = ArloService()
         stream = await service.start_live_stream(db, camera_id)
@@ -367,8 +389,10 @@ async def start_live_stream(
 
 @router.post("/scan-network")
 async def scan_network(
-    network_range: Optional[str] = Query(None, description="Network range (e.g., 192.168.1.0/24)"),
-    current_user: User = Depends(get_current_user)
+    network_range: Optional[str] = Query(
+        None, description="Network range (e.g., 192.168.1.0/24)"
+    ),
+    current_user: User = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Scan local network for potential Arlo base stations."""
     if not current_user.is_admin:
@@ -377,16 +401,18 @@ async def scan_network(
             detail={
                 "error": "Admin access required",
                 "error_code": ErrorCodes.AUTHORIZATION_ERROR,
-                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            }
+                "timestamp": datetime.now(timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z"),
+            },
         )
-    
+
     try:
         service = ArloService()
         discovered_devices = await service.scan_network(network_range)
         return {
             "message": "Network scan completed",
-            "discovered_devices": discovered_devices
+            "discovered_devices": discovered_devices,
         }
     except ArloError as e:
         raise HTTPException(status_code=500, detail=str(e.message))
@@ -394,8 +420,7 @@ async def scan_network(
 
 @router.post("/webhooks")
 async def arlo_webhook_event(
-    event_data: dict,
-    db: Session = Depends(get_db)
+    event_data: dict, db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """Endpoint for Arlo to send event webhooks."""
     # Note: This would typically not require authentication for webhooks
@@ -406,4 +431,3 @@ async def arlo_webhook_event(
         return {"status": "success", "message": "Event processed"}
     except ArloError as e:
         raise HTTPException(status_code=500, detail=str(e.message))
-

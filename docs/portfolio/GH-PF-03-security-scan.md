@@ -74,7 +74,22 @@
 
 | P0-5 | VirusTotal key in tracked markdown (GitGuardian) | P0 | **Fixed** — delete + filter-repo + force-push 2026-06-04 |
 
-| P0-6 | `job-automation-service/.env.backup` tracked (TruffleHog verified Adzuna) | P0 | **Fixed locally 2026-06-05** — `git rm --cached`; `*.env.backup` in `.gitignore`; commit + push; purge from history if key was ever public |
+| P0-6 | `job-automation-service/.env.backup` tracked (TruffleHog verified Adzuna) | P0 | **Index fixed 2026-06-05** — `git rm --cached`; `*.env.backup` in `.gitignore`. **History purge pending (Gate 1):** regex replacements in [`config/filter-repo-adzuna-replacements.txt`](../../config/filter-repo-adzuna-replacements.txt); run [`scripts/purge-adzuna-history.ps1`](../../scripts/purge-adzuna-history.ps1) after rotating keys at https://developer.adzuna.com/; `git push --force-with-lease origin main`; confirm scheduled TruffleHog zero verified. Local scan 2026-06-10: 1 verified Adzuna (see [`trufflehog-baselines/README.md`](trufflehog-baselines/README.md)). |
+
+## TruffleHog policy (2026-06-10, Gate 2)
+
+| Trigger | Workflow job | Path excludes |
+|---------|--------------|---------------|
+| PR / push to `main` | `trufflehog-strict` | **None** — full diff scan |
+| Schedule (02:00 UTC) | `trufflehog-scheduled` | [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt) — **enumerated dev compose only** (not `docker-compose.prod.yml`, not `docs/**`) |
+
+- **Doc placeholders:** five root `docs/*.md` URIs updated to `${POSTGRES_PASSWORD}` / `<POSTGRES_PASSWORD>` (no blanket markdown exclude).
+- **Baseline notes:** [`docs/portfolio/trufflehog-baselines/README.md`](trufflehog-baselines/README.md) — run scans locally; do not commit raw output (may echo secrets).
+
+**Operator gates:**
+
+- `APPROVAL_NEEDED: Adzuna key rotation + git filter-repo force-push to main` (Gate 1 — purge not executed in repo yet)
+- **Gate 2 allowlist signed off 2026-06-10:** five dev compose paths in [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt) (scheduled job only). Residual risk: file-level exclude hides all findings in those paths on nightly runs; merge path `trufflehog-strict` has no excludes.
 
 
 
