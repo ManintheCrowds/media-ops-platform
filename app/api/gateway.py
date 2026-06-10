@@ -62,8 +62,10 @@ async def proxy_request(
     
     # Add authentication if required
     request_headers = headers or {}
-    if service.requires_auth and service.auth_token:
-        request_headers["Authorization"] = f"Bearer {service.auth_token}"
+    if service.requires_auth:
+        token = service.auth_token
+        if token:
+            request_headers["Authorization"] = f"Bearer {token}"
     
     # Get timeout for service type, default to 30.0 seconds for unknown types
     timeout = settings.service_timeouts.get(service.service_type, 30.0)

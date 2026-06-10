@@ -186,6 +186,7 @@ class TestCameraArmDisarm:
             mock_service.arm_camera = AsyncMock(return_value={
                 'id': camera.id,
                 'name': 'Test Camera',
+                'device_id': 'CAM001',
                 'is_armed': True
             })
             
@@ -218,6 +219,7 @@ class TestCameraArmDisarm:
             mock_service.disarm_camera = AsyncMock(return_value={
                 'id': camera.id,
                 'name': 'Test Camera',
+                'device_id': 'CAM001',
                 'is_armed': False
             })
             

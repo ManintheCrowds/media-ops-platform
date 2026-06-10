@@ -3,6 +3,7 @@
 import pytest
 import respx
 import httpx
+from unittest.mock import AsyncMock, patch
 from fastapi import status
 from tests.fixtures.mock_responses import (
     mock_seafile_libraries_response,
@@ -259,7 +260,6 @@ class TestGatewayEndpoints:
         from app.models import Service
         from app.auth.encryption import is_encrypted
 
-        # Create service with auth token
         service = Service(
             name="test-gateway-service",
             service_type="file_storage",
@@ -270,36 +270,36 @@ class TestGatewayEndpoints:
         )
         db_session.add(service)
         db_session.commit()
-        db_session.refresh(service)
 
-        # Verify token is encrypted in database (read persisted column value)
-        stored_token = (
+        persisted = (
             db_session.query(Service)
             .filter(Service.id == service.id)
             .first()
-            ._auth_token_encrypted
         )
-        assert is_encrypted(stored_token)
+        assert persisted is not None
+        assert persisted.auth_token == "test-bearer-token-123"
+        assert is_encrypted(persisted._auth_token_encrypted)
 
-        # Mock the external service call
-        with respx.mock:
-            # Verify that the Authorization header contains the decrypted token
-            def check_auth_header(request):
-                auth_header = request.headers.get("Authorization")
-                assert auth_header == "Bearer test-bearer-token-123"
-                return httpx.Response(200, json={"status": "ok"})
+        mock_response = httpx.Response(
+            200,
+            json={"status": "ok"},
+            headers={"content-type": "application/json"},
+        )
+        mock_client = AsyncMock()
+        mock_client.get = AsyncMock(return_value=mock_response)
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=None)
 
-            respx.get("http://test-service:8000/api/test").mock(
-                side_effect=check_auth_header
-            )
-
-            # Use the proxy endpoint
+        with patch("app.api.gateway.httpx.AsyncClient", return_value=mock_client):
             response = client.get(
                 f"/api/gateway/proxy/{service.name}/api/test",
                 headers={"Authorization": f"Bearer {test_token}"},
             )
-            # Should succeed (or 502 if service unavailable, but auth should work)
-            assert response.status_code in [
-                status.HTTP_200_OK,
-                status.HTTP_502_BAD_GATEWAY,
-            ]
+
+        assert response.status_code == status.HTTP_200_OK
+        mock_client.get.assert_called_once()
+        _, call_kwargs = mock_client.get.call_args
+        assert (
+            call_kwargs["headers"]["Authorization"]
+            == "Bearer test-bearer-token-123"
+        )
