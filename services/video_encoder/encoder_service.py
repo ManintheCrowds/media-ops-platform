@@ -8,11 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.models.encoder.encoder_models import VideoEncoder
 from app.models.encoder.enums import EncoderStatus, EncoderDeviceType
-from app.exceptions import (
-    EncoderError,
-    EncoderConnectionError,
-    EncoderRecordingError
-)
+from app.exceptions import EncoderError, EncoderConnectionError, EncoderRecordingError
 from .aja_client import AJAHELOClient
 from .config import EncoderConfig
 
@@ -26,7 +22,7 @@ class VideoEncoderService:
         """Initialize video encoder service."""
         self.config = config or EncoderConfig()
         self._clients = {}  # Cache of encoder clients
-        
+
         # Storage path for recordings
         self.storage_path = self.config.path
         self.storage_path.mkdir(parents=True, exist_ok=True)
@@ -37,28 +33,30 @@ class VideoEncoderService:
         if cache_key not in self._clients:
             try:
                 self._clients[cache_key] = AJAHELOClient(
-                    encoder.ip_address,
-                    encoder.port,
-                    self.config.encoder_timeout
+                    encoder.ip_address, encoder.port, self.config.encoder_timeout
                 )
                 logger.info(f"Encoder client initialized: {encoder.ip_address}")
             except Exception as e:
-                raise EncoderConnectionError(f"Failed to initialize encoder client: {str(e)}")
-        
+                raise EncoderConnectionError(
+                    f"Failed to initialize encoder client: {str(e)}"
+                )
+
         return self._clients[cache_key]
 
-    async def discover_encoders(self, db: Session, network_range: Optional[str] = None) -> List[Dict]:
+    async def discover_encoders(
+        self, db: Session, network_range: Optional[str] = None
+    ) -> List[Dict]:
         """Discover encoders on the network."""
         import ipaddress
         import aiohttp
         import asyncio
-        
+
         network = network_range or self.config.encoder_network_scan_range
         logger.info(f"Scanning network for encoders: {network}")
-        
+
         network_obj = ipaddress.ip_network(network, strict=False)
         discovered = []
-        
+
         async def probe_ip(ip: str) -> Optional[Dict]:
             """Probe a single IP for encoder."""
             timeout = aiohttp.ClientTimeout(total=2)
@@ -69,66 +67,75 @@ class VideoEncoderService:
                         if response.status == 200:
                             data = await response.json()
                             return {
-                                'ip_address': ip,
-                                'port': 80,
-                                'device_type': EncoderDeviceType.AJA_HELO.value,
-                                'status': EncoderStatus.ONLINE.value,
-                                'device_info': data
+                                "ip_address": ip,
+                                "port": 80,
+                                "device_type": EncoderDeviceType.AJA_HELO.value,
+                                "status": EncoderStatus.ONLINE.value,
+                                "device_info": data,
                             }
-            except (aiohttp.ClientError, asyncio.TimeoutError, ValueError, KeyError) as e:
+            except (
+                aiohttp.ClientError,
+                asyncio.TimeoutError,
+                ValueError,
+                KeyError,
+            ) as e:
                 logger.debug(f"Failed to probe encoder at {ip}: {e}")
                 pass
             return None
-        
+
         tasks = [probe_ip(str(ip)) for ip in network_obj.hosts()]
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         for result in results:
             if isinstance(result, dict) and result:
                 discovered.append(result)
-        
+
         logger.info(f"Discovered {len(discovered)} encoders")
         return discovered
 
     async def register_encoder(self, db: Session, encoder_data: Dict) -> Dict:
         """Register encoder in database."""
-        required_fields = ['ip_address', 'name']
+        required_fields = ["ip_address", "name"]
         for field in required_fields:
             if field not in encoder_data:
                 raise EncoderError(f"Missing required field: {field}")
-        
+
         # Check if encoder already exists
-        existing = db.query(VideoEncoder).filter_by(ip_address=encoder_data['ip_address']).first()
+        existing = (
+            db.query(VideoEncoder)
+            .filter_by(ip_address=encoder_data["ip_address"])
+            .first()
+        )
         if existing:
             # Update existing encoder
-            existing.name = encoder_data.get('name', existing.name)
-            port_value = encoder_data.get('port')
+            existing.name = encoder_data.get("name", existing.name)
+            port_value = encoder_data.get("port")
             if port_value is not None:
                 existing.port = port_value
             elif existing.port is None:
                 existing.port = 80
 
-            device_type_value = encoder_data.get('device_type') or 'AJA_HELO'
+            device_type_value = encoder_data.get("device_type") or "AJA_HELO"
             existing.device_type = EncoderDeviceType[device_type_value.upper()]
             db.commit()
             return existing.to_dict()
-        
+
         # Create new encoder
-        port_value = encoder_data.get('port')
-        device_type_value = encoder_data.get('device_type') or 'AJA_HELO'
+        port_value = encoder_data.get("port")
+        device_type_value = encoder_data.get("device_type") or "AJA_HELO"
 
         encoder = VideoEncoder(
-            name=encoder_data['name'],
-            ip_address=encoder_data['ip_address'],
+            name=encoder_data["name"],
+            ip_address=encoder_data["ip_address"],
             port=port_value if port_value is not None else 80,
             device_type=EncoderDeviceType[device_type_value.upper()],
-            status=EncoderStatus.UNKNOWN
+            status=EncoderStatus.UNKNOWN,
         )
-        
+
         db.add(encoder)
         db.commit()
         db.refresh(encoder)
-        
+
         logger.info(f"Encoder registered: {encoder.id}, ip: {encoder.ip_address}")
         return encoder.to_dict()
 
@@ -141,7 +148,9 @@ class VideoEncoderService:
         """Get encoder details by ID."""
         encoder = db.query(VideoEncoder).filter_by(id=encoder_id).first()
         if not encoder:
-            raise EncoderError(f"Encoder not found: {encoder_id}", encoder_id=str(encoder_id))
+            raise EncoderError(
+                f"Encoder not found: {encoder_id}", encoder_id=str(encoder_id)
+            )
         return encoder.to_dict()
 
     async def record_stream(
@@ -150,125 +159,129 @@ class VideoEncoderService:
         encoder_id: int,
         source_url: str,
         output_path: Optional[str] = None,
-        duration: Optional[int] = None
+        duration: Optional[int] = None,
     ) -> Dict:
         """Record a stream to local storage."""
         encoder = db.query(VideoEncoder).filter_by(id=encoder_id).first()
         if not encoder:
-            raise EncoderError(f"Encoder not found: {encoder_id}", encoder_id=str(encoder_id))
-        
+            raise EncoderError(
+                f"Encoder not found: {encoder_id}", encoder_id=str(encoder_id)
+            )
+
         if encoder.is_recording:
             raise EncoderRecordingError(
-                f"Encoder {encoder_id} is already recording",
-                encoder_id=str(encoder_id)
+                f"Encoder {encoder_id} is already recording", encoder_id=str(encoder_id)
             )
-        
+
         try:
             client = self._get_encoder_client(encoder)
-            
+
             # Configure recording
-            output = output_path or str(self.storage_path / f"recording_{encoder_id}_{datetime.utcnow().timestamp()}.mp4")
+            output = output_path or str(
+                self.storage_path
+                / f"recording_{encoder_id}_{datetime.utcnow().timestamp()}.mp4"
+            )
             recording_config = {
-                'source_url': source_url,
-                'output_path': output,
-                'duration': duration
+                "source_url": source_url,
+                "output_path": output,
+                "duration": duration,
             }
-            
+
             await client.configure_recording(recording_config)
             await client.start_recording()
-            
+
             # Update encoder status
             encoder.is_recording = True
             encoder.current_recording_path = output
             encoder.status = EncoderStatus.RECORDING
             db.commit()
-            
+
             logger.info(f"Recording started on encoder {encoder_id}: {output}")
             return {
-                'status': 'recording',
-                'encoder_id': encoder_id,
-                'output_path': output,
-                'source_url': source_url
+                "status": "recording",
+                "encoder_id": encoder_id,
+                "output_path": output,
+                "source_url": source_url,
             }
-            
+
         except Exception as e:
             encoder.status = EncoderStatus.ERROR
             db.commit()
             raise EncoderRecordingError(
-                f"Failed to start recording: {str(e)}",
-                encoder_id=str(encoder_id)
+                f"Failed to start recording: {str(e)}", encoder_id=str(encoder_id)
             )
 
     async def stop_recording(self, db: Session, encoder_id: int) -> Dict:
         """Stop recording on encoder."""
         encoder = db.query(VideoEncoder).filter_by(id=encoder_id).first()
         if not encoder:
-            raise EncoderError(f"Encoder not found: {encoder_id}", encoder_id=str(encoder_id))
-        
+            raise EncoderError(
+                f"Encoder not found: {encoder_id}", encoder_id=str(encoder_id)
+            )
+
         if not encoder.is_recording:
             raise EncoderRecordingError(
-                f"Encoder {encoder_id} is not recording",
-                encoder_id=str(encoder_id)
+                f"Encoder {encoder_id} is not recording", encoder_id=str(encoder_id)
             )
-        
+
         try:
             client = self._get_encoder_client(encoder)
             await client.stop_recording()
-            
+
             # Update encoder status
             encoder.is_recording = False
             encoder.status = EncoderStatus.ONLINE
             recording_path = encoder.current_recording_path
             encoder.current_recording_path = None
             db.commit()
-            
+
             logger.info(f"Recording stopped on encoder {encoder_id}")
             return {
-                'status': 'stopped',
-                'encoder_id': encoder_id,
-                'recording_path': recording_path
+                "status": "stopped",
+                "encoder_id": encoder_id,
+                "recording_path": recording_path,
             }
-            
+
         except Exception as e:
             raise EncoderRecordingError(
-                f"Failed to stop recording: {str(e)}",
-                encoder_id=str(encoder_id)
+                f"Failed to stop recording: {str(e)}", encoder_id=str(encoder_id)
             )
 
     async def get_encoder_status(self, db: Session, encoder_id: int) -> Dict:
         """Get encoder health/status."""
         encoder = db.query(VideoEncoder).filter_by(id=encoder_id).first()
         if not encoder:
-            raise EncoderError(f"Encoder not found: {encoder_id}", encoder_id=str(encoder_id))
-        
+            raise EncoderError(
+                f"Encoder not found: {encoder_id}", encoder_id=str(encoder_id)
+            )
+
         try:
             client = self._get_encoder_client(encoder)
             status_info = await client.get_full_status()
-            
+
             # Update encoder status
-            if status_info.get('recording'):
+            if status_info.get("recording"):
                 encoder.is_recording = True
                 encoder.status = EncoderStatus.RECORDING
-            elif status_info.get('streaming'):
+            elif status_info.get("streaming"):
                 encoder.is_streaming = True
                 encoder.status = EncoderStatus.STREAMING
             else:
                 encoder.is_recording = False
                 encoder.is_streaming = False
                 encoder.status = EncoderStatus.ONLINE
-            
+
             db.commit()
-            
+
             return {
-                'encoder_id': encoder_id,
-                'status': encoder.status.value,
-                'is_recording': encoder.is_recording,
-                'is_streaming': encoder.is_streaming,
-                'device_status': status_info
+                "encoder_id": encoder_id,
+                "status": encoder.status.value,
+                "is_recording": encoder.is_recording,
+                "is_streaming": encoder.is_streaming,
+                "device_status": status_info,
             }
-            
+
         except Exception as e:
             encoder.status = EncoderStatus.ERROR
             db.commit()
             raise EncoderConnectionError(f"Failed to get encoder status: {str(e)}")
-

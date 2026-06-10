@@ -13,20 +13,21 @@ logger = logging.getLogger(__name__)
 
 class AJAHELOEndpoints(Enum):
     """AJA HELO API endpoints."""
+
     # Control endpoints
     STREAM_START = "/control/stream/start"
     STREAM_STOP = "/control/stream/stop"
     RECORD_START = "/control/record/start"
     RECORD_STOP = "/control/record/stop"
     REBOOT = "/control/reboot"
-    
+
     # Status endpoints
     SYSTEM_STATUS = "/status/system"
     STREAM_STATUS = "/status/streaming"
     RECORD_STATUS = "/status/recording"
     NETWORK_STATUS = "/status/network"
     MEDIA_STATUS = "/status/media"
-    
+
     # Configuration endpoints
     STREAM_CONFIG = "/config/stream"
     RECORD_CONFIG = "/config/record"
@@ -36,7 +37,7 @@ class AJAHELOEndpoints(Enum):
 
 class AJAHELOClient:
     """AJA HELO REST API Client for recording and streaming."""
-    
+
     def __init__(self, ip_address: str, port: int = 80, timeout: int = 30):
         """Initialize AJA HELO client."""
         self.base_url = f"http://{ip_address}:{port}/api/v1"
@@ -49,12 +50,12 @@ class AJAHELOClient:
         """Handle API error responses."""
         try:
             error_data = await response.json()
-            error_msg = error_data.get('error', 'Unknown error')
+            error_msg = error_data.get("error", "Unknown error")
         except (ValueError, aiohttp.ContentTypeError, asyncio.TimeoutError) as e:
             # Response is not valid JSON, use status code as error message
             logger.debug(f"Could not parse error response as JSON: {e}")
             error_msg = f"HTTP {response.status}"
-        
+
         if response.status == 400:
             raise EncoderRecordingError(f"Invalid request: {error_msg}")
         elif response.status == 401:
@@ -69,10 +70,7 @@ class AJAHELOClient:
             raise EncoderConnectionError(f"API error ({response.status}): {error_msg}")
 
     async def _make_request(
-        self,
-        method: str,
-        endpoint: Union[str, AJAHELOEndpoints],
-        **kwargs
+        self, method: str, endpoint: Union[str, AJAHELOEndpoints], **kwargs
     ) -> Dict:
         """Make authenticated request with retries and error handling."""
         if isinstance(endpoint, AJAHELOEndpoints):
@@ -133,27 +131,47 @@ class AJAHELOClient:
                 self._make_request("GET", AJAHELOEndpoints.STREAM_STATUS),
                 self._make_request("GET", AJAHELOEndpoints.RECORD_STATUS),
                 self._make_request("GET", AJAHELOEndpoints.NETWORK_STATUS),
-                return_exceptions=True
+                return_exceptions=True,
             )
 
             return {
-                'timestamp': datetime.utcnow().isoformat(),
-                'system': status_results[0] if not isinstance(status_results[0], Exception) else None,
-                'streaming': status_results[1] if not isinstance(status_results[1], Exception) else None,
-                'recording': status_results[2] if not isinstance(status_results[2], Exception) else None,
-                'network': status_results[3] if not isinstance(status_results[3], Exception) else None,
-                'errors': [str(r) for r in status_results if isinstance(r, Exception)]
+                "timestamp": datetime.utcnow().isoformat(),
+                "system": (
+                    status_results[0]
+                    if not isinstance(status_results[0], Exception)
+                    else None
+                ),
+                "streaming": (
+                    status_results[1]
+                    if not isinstance(status_results[1], Exception)
+                    else None
+                ),
+                "recording": (
+                    status_results[2]
+                    if not isinstance(status_results[2], Exception)
+                    else None
+                ),
+                "network": (
+                    status_results[3]
+                    if not isinstance(status_results[3], Exception)
+                    else None
+                ),
+                "errors": [str(r) for r in status_results if isinstance(r, Exception)],
             }
         except Exception as e:
             raise EncoderConnectionError(f"Failed to get device status: {str(e)}")
 
     async def configure_stream(self, config: Dict) -> Dict:
         """Configure streaming parameters."""
-        return await self._make_request("POST", AJAHELOEndpoints.STREAM_CONFIG, json=config)
+        return await self._make_request(
+            "POST", AJAHELOEndpoints.STREAM_CONFIG, json=config
+        )
 
     async def configure_recording(self, config: Dict) -> Dict:
         """Configure recording parameters."""
-        return await self._make_request("POST", AJAHELOEndpoints.RECORD_CONFIG, json=config)
+        return await self._make_request(
+            "POST", AJAHELOEndpoints.RECORD_CONFIG, json=config
+        )
 
     async def get_network_stats(self) -> Dict:
         """Get network statistics."""
@@ -172,4 +190,3 @@ class AJAHELOClient:
         """Async context manager exit."""
         if self.session:
             await self.session.close()
-

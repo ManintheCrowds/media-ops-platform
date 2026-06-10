@@ -14,23 +14,26 @@ import respx
 from faker import Faker
 
 # Set required environment variables before importing app modules
-os.environ.setdefault('SECRET_KEY', 'test-secret-key-32-chars-long-enough')
-os.environ.setdefault('JWT_SECRET_KEY', 'test-jwt-secret-key-32-chars-long-enough')
+os.environ.setdefault("SECRET_KEY", "test-secret-key-32-chars-long-enough")
+os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-32-chars-long-enough")
 # Writable storage paths for CameraConfig/EncoderConfig validation on CI runners
 _test_storage_root = os.path.join(tempfile.gettempdir(), "platform-test-storage")
 os.makedirs(os.path.join(_test_storage_root, "camera_recordings"), exist_ok=True)
 os.makedirs(os.path.join(_test_storage_root, "encoder_recordings"), exist_ok=True)
-os.environ.setdefault("ARLO_STORAGE_PATH", os.path.join(_test_storage_root, "camera_recordings"))
-os.environ.setdefault("ENCODER_STORAGE_PATH", os.path.join(_test_storage_root, "encoder_recordings"))
+os.environ.setdefault(
+    "ARLO_STORAGE_PATH", os.path.join(_test_storage_root, "camera_recordings")
+)
+os.environ.setdefault(
+    "ENCODER_STORAGE_PATH", os.path.join(_test_storage_root, "encoder_recordings")
+)
 # Disable live HIBP checks in tests (SecurePassword123! is in the breach DB)
 os.environ.setdefault("SECURITY_HIBP_ENABLE_PASSWORD_CHECK", "false")
 os.environ.setdefault("SECURITY_HIBP_ENABLE_EMAIL_CHECK", "false")
 # CORS: force explicit origins for tests (credentials + '*' fails validation)
-os.environ['CORS_ORIGINS'] = '["http://localhost:3000","http://127.0.0.1:3000"]'
+os.environ["CORS_ORIGINS"] = '["http://localhost:3000","http://127.0.0.1:3000"]'
 # Redirect coverage output to a temp path to avoid permission issues
 os.environ.setdefault(
-    "COVERAGE_FILE",
-    os.path.join(tempfile.gettempdir(), f"coverage-{uuid.uuid4().hex}")
+    "COVERAGE_FILE", os.path.join(tempfile.gettempdir(), f"coverage-{uuid.uuid4().hex}")
 )
 
 from app.main import app
@@ -58,13 +61,10 @@ def event_loop():
 @pytest.fixture(scope="function")
 def test_db() -> Generator[Session, None, None]:
     """Create a test database session."""
-    engine = create_engine(
-        TEST_DATABASE_URL,
-        connect_args={"check_same_thread": False}
-    )
+    engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    
+
     session = TestingSessionLocal()
     try:
         yield session
@@ -82,11 +82,13 @@ def db_session(test_db: Session) -> Session:
 @pytest.fixture
 def override_get_db(test_db: Session):
     """Override get_db dependency for testing."""
+
     def _get_db():
         try:
             yield test_db
         finally:
             test_db.rollback()
+
     return _get_db
 
 
@@ -116,7 +118,7 @@ def test_user(db_session: Session) -> User:
         email="test@example.com",
         hashed_password=get_password_hash("testpassword123"),
         is_active=True,
-        is_admin=False
+        is_admin=False,
     )
     db_session.add(user)
     db_session.commit()
@@ -132,7 +134,7 @@ def test_admin_user(db_session: Session) -> User:
         email="admin@example.com",
         hashed_password=get_password_hash("adminpassword123"),
         is_active=True,
-        is_admin=True
+        is_admin=True,
     )
     db_session.add(user)
     db_session.commit()
@@ -144,8 +146,12 @@ def test_admin_user(db_session: Session) -> User:
 def test_token(test_user: User) -> str:
     """Create a JWT token for test user."""
     return create_access_token(
-        data={"sub": test_user.username, "email": test_user.email, "is_admin": test_user.is_admin},
-        expires_delta=timedelta(minutes=30)
+        data={
+            "sub": test_user.username,
+            "email": test_user.email,
+            "is_admin": test_user.is_admin,
+        },
+        expires_delta=timedelta(minutes=30),
     )
 
 
@@ -153,8 +159,12 @@ def test_token(test_user: User) -> str:
 def admin_token(test_admin_user: User) -> str:
     """Create a JWT token for admin user."""
     return create_access_token(
-        data={"sub": test_admin_user.username, "email": test_admin_user.email, "is_admin": test_admin_user.is_admin},
-        expires_delta=timedelta(minutes=30)
+        data={
+            "sub": test_admin_user.username,
+            "email": test_admin_user.email,
+            "is_admin": test_admin_user.is_admin,
+        },
+        expires_delta=timedelta(minutes=30),
     )
 
 
@@ -170,7 +180,7 @@ def test_service(db_session: Session) -> Service:
         is_active=True,
         requires_auth=True,
         auth_token="test-token-123",
-        health_status="unknown"
+        health_status="unknown",
     )
     db_session.add(service)
     db_session.commit()
@@ -195,7 +205,7 @@ def sample_service_data():
         "api_url": "http://seafile:8000/api2",
         "health_check_url": "http://seafile:8000/api2/ping/",
         "requires_auth": True,
-        "auth_token": "test-api-token"
+        "auth_token": "test-api-token",
     }
 
 
@@ -205,5 +215,5 @@ def sample_user_data():
     return {
         "username": fake.user_name(),
         "email": fake.email(),
-        "password": "SecurePass123!@#"
+        "password": "SecurePass123!@#",
     }
