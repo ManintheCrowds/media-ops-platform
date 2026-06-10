@@ -89,7 +89,7 @@
 **Operator gates:**
 
 - `APPROVAL_NEEDED: Adzuna key rotation + git filter-repo force-push to main` (Gate 1 — purge not executed in repo yet)
-- `APPROVAL_NEEDED: TruffleHog allowlist entries` — Gate 2 narrowed to five dev compose paths; confirm at [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt)
+- **Gate 2 allowlist signed off 2026-06-10:** five dev compose paths in [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt) (scheduled job only). Residual risk: file-level exclude hides all findings in those paths on nightly runs; merge path `trufflehog-strict` has no excludes.
 
 
 

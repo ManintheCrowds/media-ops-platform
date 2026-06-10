@@ -27,7 +27,7 @@ if (-not (Test-Path $Replacements)) {
     Write-Error "Missing $Replacements"
 }
 
-Write-Host "Gate 1 — Adzuna history purge"
+Write-Host "Gate 1 - Adzuna history purge"
 Write-Host "  1. Rotate ADZUNA_API_ID / ADZUNA_API_KEY at https://developer.adzuna.com/"
 Write-Host "  2. Confirm job-automation-service/.env.backup is not tracked (git ls-files)"
 Write-Host "  3. Replacements file: $Replacements"

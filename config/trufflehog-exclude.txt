@@ -1,8 +1,5 @@
-# TruffleHog path exclude patterns (one regex per line).
-# Scheduled full-history scan only — see security-trufflehog.yml.
-# Dev compose placeholders (${*_POSTGRES_PASSWORD:-changeme}) — NOT production.
-# docker-compose.prod.yml is intentionally NOT listed.
-^docker-compose\.yml$
+# Operator approved 2026-06-10: five dev compose paths (scheduled scan only).
+# PR/push uses trufflehog-strict with NO excludes. NOT docker-compose.prod.yml.^docker-compose\.yml$
 ^docker-compose\.vlans\.yml$
 ^job-automation-service/docker-compose\.yml$
 ^education-service/docker-compose\.yml$
