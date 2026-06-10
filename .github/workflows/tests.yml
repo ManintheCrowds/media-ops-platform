@@ -251,7 +251,7 @@ jobs:
       
       - name: Generate coverage report
         run: |
-          pytest --cov=app --cov=services --cov-report=html --cov-report=term-missing --cov-fail-under=0
+          pytest tests/unit tests/integration -v --cov=app --cov=services --cov-report=html --cov-report=term-missing --cov-fail-under=0 -m "unit or integration"
       
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
