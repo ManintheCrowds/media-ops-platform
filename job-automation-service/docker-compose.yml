@@ -24,7 +24,7 @@ services:
       dockerfile: Dockerfile
     container_name: job-automation-service
     environment:
-      - DATABASE_URL=postgresql://jobautomation:password@job-automation-db:5432/jobautomation
+      - DATABASE_URL=postgresql://jobautomation:${JOB_AUTOMATION_POSTGRES_PASSWORD:-changeme}@job-automation-db:5432/jobautomation
       - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
       - LLM_PROVIDER=${LLM_PROVIDER:-ollama}
       - LLM_MODEL=${LLM_MODEL:-llama3.2}
