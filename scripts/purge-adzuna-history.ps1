@@ -56,6 +56,11 @@ if (-not $filterRepo) {
     Write-Error "git-filter-repo not found. Install: pip install git-filter-repo"
 }
 
-Write-Host "Running git filter-repo..."
-git filter-repo --force --replace-text $Replacements
+$alreadyRan = Join-Path $RepoRoot ".git\filter-repo\already_ran"
+if (Test-Path $alreadyRan) {
+    Remove-Item $alreadyRan -Force
+}
+
+Write-Host "Running git filter-repo (non-interactive)..."
+"Y" | git filter-repo --force --replace-text $Replacements
 Write-Host "Done. Verify with trufflehog, then: git push --force-with-lease origin main"

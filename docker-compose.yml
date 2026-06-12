@@ -88,9 +88,9 @@ services:
     container_name: platform-seafile
     environment:
       - SEAFILE_ADMIN_EMAIL=art.int.interface@gmail.com
-      - SEAFILE_ADMIN_PASSWORD=cableTV21
+      - SEAFILE_ADMIN_PASSWORD=${SEAFILE_ADMIN_PASSWORD:-changeme}
       - DB_HOST=seafile-db
-      - DB_ROOT_PASSWD=cableTV21
+      - DB_ROOT_PASSWD=${SEAFILE_DB_ROOT_PASSWORD:-changeme}
     volumes:
       - seafile_data:/shared
     ports:
@@ -126,7 +126,7 @@ services:
     image: mariadb:10.11
     container_name: platform-seafile-db
     environment:
-      - MYSQL_ROOT_PASSWORD=cableTV21
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-changeme}
       - MYSQL_DATABASE=seafile
     volumes:
       - seafile_db_data:/var/lib/mysql
@@ -247,7 +247,7 @@ services:
     container_name: platform-grafana
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana_data:/var/lib/grafana
@@ -336,7 +336,7 @@ services:
       dockerfile: Dockerfile
     container_name: platform-education
     environment:
-      - DATABASE_URL=postgresql://education:password@education-db:5432/education
+      - DATABASE_URL=postgresql://education:${EDUCATION_POSTGRES_PASSWORD:-changeme}@education-db:5432/education
       - PLATFORM_URL=http://platform:8000
       # REQUIRED: JWT secret key (must match main platform, at least 32 characters)
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}

@@ -89,6 +89,9 @@
 **Operator gates:**
 
 - `APPROVAL_NEEDED: Adzuna key rotation + git filter-repo force-push to main` (Gate 1 — purge not executed in repo yet)
+- **2026-06-10 hang:** first `purge-adzuna-history.ps1 -Execute` blocked on git-filter-repo prompt *"Treat this run as a continuation… (Y/N)?"* — no force-push occurred. Fix in PR #41: remove `.git/filter-repo/already_ran` + pipe `Y` before filter-repo.
+- **Gate 1 resume (operator):** rotate keys → kill stuck filter-repo if any → `.\scripts\purge-adzuna-history.ps1 -Execute` on `main` → local TruffleHog verified=0 → `git push --force-with-lease origin main` → confirm `trufflehog-strict` green.
+- **Branch protection (manual):** GitHub → Settings → Branches → rule for `main` → require status checks **`trufflehog-strict`** and **`gitleaks`** (API automation blocked; use UI).
 - **Gate 2 allowlist signed off 2026-06-10:** five dev compose paths in [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt) (scheduled job only). Residual risk: file-level exclude hides all findings in those paths on nightly runs; merge path `trufflehog-strict` has no excludes.
 
 
