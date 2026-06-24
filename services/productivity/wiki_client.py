@@ -46,12 +46,12 @@ class WikiClient(BaseServiceClient):
                     return self._access_token
                 else:
                     raise WikiError(f"Failed to get access token: HTTP {response.status_code}")
-        except httpx.HTTPError as e:
-            logger.warning(f"HTTP error in {self.__class__.__name__}._get_access_token(): {e}")
-            raise WikiError(f"HTTP error while getting access token: {e}")
         except httpx.TimeoutException as e:
             logger.warning(f"Timeout in {self.__class__.__name__}._get_access_token(): {e}")
             raise WikiError(f"Timeout while getting access token: {e}")
+        except httpx.HTTPError as e:
+            logger.warning(f"HTTP error in {self.__class__.__name__}._get_access_token(): {e}")
+            raise WikiError(f"HTTP error while getting access token: {e}")
         except WikiError:
             raise
         except Exception as e:
