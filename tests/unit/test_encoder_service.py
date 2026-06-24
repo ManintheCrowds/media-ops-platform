@@ -113,6 +113,23 @@ class TestVideoEncoderServiceGetClient:
             assert "Failed to initialize encoder client" in str(exc_info.value)
 
 
+def _aiohttp_session_get_mock(status: int, json_data=None):
+    """Build nested aiohttp ClientSession/get context-manager mocks."""
+    mock_response = MagicMock()
+    mock_response.status = status
+    if json_data is not None:
+        mock_response.json = AsyncMock(return_value=json_data)
+    mock_get_ctx = AsyncMock()
+    mock_get_ctx.__aenter__.return_value = mock_response
+    mock_get_ctx.__aexit__.return_value = None
+    session_instance = MagicMock()
+    session_instance.get.return_value = mock_get_ctx
+    mock_session_ctx = AsyncMock()
+    mock_session_ctx.__aenter__.return_value = session_instance
+    mock_session_ctx.__aexit__.return_value = None
+    return mock_session_ctx
+
+
 @pytest.mark.unit
 class TestVideoEncoderServiceDiscover:
     """Test encoder discovery."""
@@ -120,19 +137,9 @@ class TestVideoEncoderServiceDiscover:
     @pytest.mark.asyncio
     async def test_discover_encoders_success(self, encoder_service, db_session):
         """Test successful encoder discovery."""
-        mock_response = MagicMock()
-        mock_response.status = 200
-        mock_response.json = AsyncMock(
-            return_value={"device_name": "AJA HELO", "firmware_version": "1.0.0"}
+        mock_session_ctx = _aiohttp_session_get_mock(
+            200, {"device_name": "AJA HELO", "firmware_version": "1.0.0"}
         )
-        mock_get_ctx = AsyncMock()
-        mock_get_ctx.__aenter__.return_value = mock_response
-        mock_get_ctx.__aexit__.return_value = None
-        session_instance = MagicMock()
-        session_instance.get.return_value = mock_get_ctx
-        mock_session_ctx = AsyncMock()
-        mock_session_ctx.__aenter__.return_value = session_instance
-        mock_session_ctx.__aexit__.return_value = None
 
         with patch("aiohttp.ClientSession", return_value=mock_session_ctx):
             discovered = await encoder_service.discover_encoders(
@@ -146,14 +153,9 @@ class TestVideoEncoderServiceDiscover:
     @pytest.mark.asyncio
     async def test_discover_encoders_no_results(self, encoder_service, db_session):
         """Test discovery with no encoders found."""
-        mock_response = MagicMock()
-        mock_response.status = 404
+        mock_session_ctx = _aiohttp_session_get_mock(404)
 
-        with patch("aiohttp.ClientSession", new_callable=AsyncMock) as mock_session:
-            session_instance = AsyncMock()
-            session_instance.get.return_value.__aenter__.return_value = mock_response
-            mock_session.return_value.__aenter__.return_value = session_instance
-
+        with patch("aiohttp.ClientSession", return_value=mock_session_ctx):
             discovered = await encoder_service.discover_encoders(
                 db_session, "192.168.1.0/24"
             )
@@ -165,18 +167,11 @@ class TestVideoEncoderServiceDiscover:
         self, encoder_service, db_session
     ):
         """Test discovery uses default network range when not provided."""
-        mock_response = MagicMock()
-        mock_response.status = 200
-        mock_response.json = AsyncMock(return_value={"device_name": "AJA HELO"})
+        mock_session_ctx = _aiohttp_session_get_mock(200, {"device_name": "AJA HELO"})
 
-        with patch("aiohttp.ClientSession", new_callable=AsyncMock) as mock_session:
-            session_instance = AsyncMock()
-            session_instance.get.return_value.__aenter__.return_value = mock_response
-            mock_session.return_value.__aenter__.return_value = session_instance
-
+        with patch("aiohttp.ClientSession", return_value=mock_session_ctx):
             discovered = await encoder_service.discover_encoders(db_session)
 
-            # Should use default range from config
             assert isinstance(discovered, list)
 
 
@@ -230,6 +225,29 @@ class TestVideoEncoderServiceRegister:
         # Verify update
         db_session.refresh(encoder)
         assert encoder.name == "New Name"
+
+    @pytest.mark.asyncio
+    async def test_register_encoder_existing_defaults_port(
+        self, encoder_service, db_session
+    ):
+        """Test updating existing encoder sets default port when unset."""
+        encoder = VideoEncoder(
+            name="Encoder",
+            ip_address="192.168.1.101",
+            port=None,
+            status=EncoderStatus.OFFLINE,
+        )
+        db_session.add(encoder)
+        db_session.commit()
+
+        result = await encoder_service.register_encoder(
+            db_session,
+            {"ip_address": "192.168.1.101", "name": "Encoder Updated"},
+        )
+
+        assert result["port"] == 80
+        db_session.refresh(encoder)
+        assert encoder.port == 80
 
     @pytest.mark.asyncio
     async def test_register_encoder_missing_fields(self, encoder_service, db_session):

@@ -8,6 +8,7 @@ import uuid
 from typing import Generator, AsyncGenerator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
 import respx
@@ -46,10 +47,6 @@ from datetime import timedelta
 
 fake = Faker()
 
-# Test database URL (SQLite for speed)
-TEST_DATABASE_URL = "sqlite:///./test.db"
-
-
 @pytest.fixture(scope="session")
 def event_loop():
     """Create an instance of the default event loop for the test session."""
@@ -60,8 +57,12 @@ def event_loop():
 
 @pytest.fixture(scope="function")
 def test_db() -> Generator[Session, None, None]:
-    """Create a test database session."""
-    engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+    """Create an isolated in-memory SQLite session per test."""
+    engine = create_engine(
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
     Base.metadata.create_all(bind=engine)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -69,8 +70,10 @@ def test_db() -> Generator[Session, None, None]:
     try:
         yield session
     finally:
+        session.rollback()
         session.close()
         Base.metadata.drop_all(bind=engine)
+        engine.dispose()
 
 
 @pytest.fixture
