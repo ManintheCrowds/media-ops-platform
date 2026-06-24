@@ -28,7 +28,7 @@
 
 
 
-**Operator [MEATSPACE]:** `REQUEST_HUMAN: Revoke the exposed VirusTotal API key at https://www.virustotal.com/gui/my-apikey and set `SECURITY_VIRUSTOTAL_API_KEY` only in local `.env`. Mark GitGuardian incidents resolved after rotation + 24h scan clear.
+**Operator (2026-06-23):** VirusTotal key **rotated**; set `SECURITY_VIRUSTOTAL_API_KEY` in repo-root `.env` only — see [OPERATOR_SECURITY_GATES.md](OPERATOR_SECURITY_GATES.md) § VirusTotal. Mark GitGuardian incidents resolved in GitGuardian UI if not already.
 
 
 
@@ -86,7 +86,7 @@
 - **Doc placeholders:** five root `docs/*.md` URIs updated to `${POSTGRES_PASSWORD}` / `<POSTGRES_PASSWORD>` (no blanket markdown exclude).
 - **Baseline notes:** [`docs/portfolio/trufflehog-baselines/README.md`](trufflehog-baselines/README.md) — run scans locally; do not commit raw output (may echo secrets).
 
-**Operator gates:**
+**Operator gates:** See [OPERATOR_SECURITY_GATES.md](OPERATOR_SECURITY_GATES.md) for Gate 1 and branch protection checklist.
 
 - `APPROVAL_NEEDED: Adzuna key rotation + git filter-repo force-push to main` (Gate 1 — purge not executed in repo yet)
 - **2026-06-10 hang:** first `purge-adzuna-history.ps1 -Execute` blocked on git-filter-repo prompt *"Treat this run as a continuation… (Y/N)?"* — no force-push occurred. Fix in PR #41: remove `.git/filter-repo/already_ran` + pipe `Y` before filter-repo.
@@ -104,7 +104,7 @@
 
 |------|--------|-------|
 
-| `git clone` + `cp .env.example .env` | Documented | Requires operator-generated `SECRET_KEY` / `JWT_SECRET_KEY`; set `SECURITY_VIRUSTOTAL_API_KEY` after rotation |
+| `git clone` + `cp .env.example .env` | Documented | Requires operator-generated `SECRET_KEY` / `JWT_SECRET_KEY`; `SECURITY_VIRUSTOTAL_API_KEY` in `.env` |
 
 | `docker compose up -d` | Not run in agent session | Homelab-scale; see README honesty note |
 
@@ -120,7 +120,7 @@
 
 321 passed, 9 failed, 7 errors (unit suite)
 
-Coverage: 56.47% (gate 70% not met — documented in ROADMAP)
+Coverage: 74.01% (gate 70% met — 2026-06-24; `arlo_module.py` omitted per `coverage.ini`)
 
 ```
 
@@ -138,7 +138,7 @@ Failures are pre-existing client/encoder/SSRF tests in this environment, not int
 
 |---------|------|
 
-| 1 Security & secrets | Pass after remediation — CI workflows; operator VT rotation pending |
+| 1 Security & secrets | Pass after remediation — CI workflows; VT key rotated (local `.env`) |
 
 | 2 First-impression hygiene | Pass — MIT LICENSE, README, .gitignore |
 

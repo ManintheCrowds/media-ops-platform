@@ -401,17 +401,19 @@ services:
       dockerfile: Dockerfile
     container_name: platform-security
     environment:
-      - DATABASE_URL=postgresql://platform:${POSTGRES_PASSWORD:-changeme}@postgres:5432/platform
-      - REDIS_URL=redis://redis:6379
-      - PROMETHEUS_URL=http://prometheus:9090
+      - SECURITY_DATABASE_URL=postgresql://platform:${POSTGRES_PASSWORD:-changeme}@postgres:5432/platform
+      - SECURITY_REDIS_URL=redis://redis:6379
+      - SECURITY_PROMETHEUS_URL=http://prometheus:9090
       - SECURITY_SERVICE_PORT=8001
       - SECURITY_VIRUSTOTAL_API_KEY=${SECURITY_VIRUSTOTAL_API_KEY}
       - SECURITY_ABUSEIPDB_API_KEY=${ABUSEIPDB_API_KEY}
     ports:
       - "8011:8001"  # External port 8011, internal port 8001
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - platform-network
     volumes:
