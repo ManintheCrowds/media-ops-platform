@@ -8,7 +8,7 @@
 
 ## Medium term
 
-- [x] Coverage gate back to 70% on platform-api tests (74.01% local, 2026-06-24)
+- [x] Coverage gate back to 70% on platform-api tests (78.98% local, 457 passed — 2026-06-24 Session A)
 - [ ] Dependabot + branch protection on `main`
 - [ ] Case-study export sync with Ghost canonical hub (PUB-9)
 

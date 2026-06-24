@@ -112,21 +112,21 @@
 
 
 
-## Pytest (2026-06-04)
+## Pytest (2026-06-24 — Session A test health closure)
 
 
 
 ```
 
-321 passed, 9 failed, 7 errors (unit suite)
+457 passed, 0 failed, 0 errors (unit suite)
 
-Coverage: 74.01% (gate 70% met — 2026-06-24; `arlo_module.py` omitted per `coverage.ini`)
+Coverage: 78.98% (gate 70% met; `pytest tests/unit -m unit --cov-fail-under=70`; `arlo_module.py` omitted per `coverage.ini`)
 
 ```
 
 
 
-Failures are pre-existing client/encoder/SSRF tests in this environment, not introduced by rebrand. **CI** on GitHub remains authoritative after push.
+All unit tests green locally. **CI** on GitHub remains authoritative after push; CI still uses `--cov-fail-under=0` until PF-REPO-6 billing resolved.
 
 
 

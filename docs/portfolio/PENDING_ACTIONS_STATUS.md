@@ -26,7 +26,7 @@
 | Done | P0 | LICENSE/README alignment |
 | Done | P0 | Untrack operator-only trees with harness paths |
 | Done | P1 | gitleaks/trufflehog — local CLI installed 2026-06-05; `run-gh-pf03-local-scan.ps1`; untrack `job-automation-service/.env.backup` |
-| Done | P2 | Coverage 58% → 70% | ROADMAP — **74.01%** local gate 2026-06-24 |
+| Done | P2 | Coverage 58% → 70% | ROADMAP — **78.98%** local gate; **457 passed, 0 failed** (2026-06-24 Session A) |
 | Done | P3 | Refresh stale per-repo security_audit docs if re-added | Refreshed in MiscRepos harness 2026-06-24; not re-tracked in public repo |
 | Pending | **Operator** | Adzuna Gate 1, branch protection | [OPERATOR_SECURITY_GATES.md](OPERATOR_SECURITY_GATES.md) |
 | Done | P1 | VirusTotal API key rotated; active key in local `.env` only | `SECURITY_VIRUSTOTAL_API_KEY` — see [OPERATOR_SECURITY_GATES.md](OPERATOR_SECURITY_GATES.md) § VirusTotal |
@@ -45,4 +45,4 @@
 ## Summary
 
 - **Done this pass:** MIT license, gitignore/untrack operator dirs, rebrand, README rewrite, portfolio case study rename, security markdown report.
-- **Still pending:** optional pip-audit locally, coverage gate, Grafana reliability screenshot (PF-REPO-2 — Branch B until homelab stack runs), Adzuna Gate 1 history purge, branch protection on `main`.
+- **Still pending:** optional pip-audit locally, Grafana reliability screenshot (PF-REPO-2 — Branch B until homelab stack runs), Adzuna Gate 1 history purge, branch protection on `main`.

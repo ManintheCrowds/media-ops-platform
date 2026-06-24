@@ -234,10 +234,11 @@ class TestVideoEncoderServiceRegister:
         encoder = VideoEncoder(
             name="Encoder",
             ip_address="192.168.1.101",
-            port=None,
             status=EncoderStatus.OFFLINE,
         )
         db_session.add(encoder)
+        db_session.flush()
+        encoder.port = None
         db_session.commit()
 
         result = await encoder_service.register_encoder(
