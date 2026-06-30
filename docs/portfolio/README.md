@@ -25,8 +25,14 @@ mmdc -i architecture-detailed.mmd -o ../../portfolio/assets/diagrams/architectur
 
 ### 2. Monitoring/Reliability Screenshot
 
-- Capture Grafana when the stack is running (uptime and error-rate panels)
+**Status (2026-06-23):** Live Grafana capture **deferred** (Branch B). Homelab Docker/Grafana was not running during audit; this clone has Platform API monitoring dashboards, not CaptionPipeline production panels.
+
+- **CaptionPipeline metrics** in [metrics.json](metrics.json) are a **Dec 2025 portfolio snapshot** (`caption_pipeline.as_of: 2025-12`), not live homelab export.
+- When the stack runs: capture Grafana uptime and error-rate panels from `service-health` or `platform-overview` ([monitoring/grafana/dashboards/](../../monitoring/grafana/dashboards/)).
 - Save as `portfolio/assets/diagrams/grafana-reliability.png`
+- **Label honestly:** if captured from homelab Platform API, state that in portfolio copy — do not imply live 9-feed CaptionPipeline production unless that stack is running and scraped.
+
+**Until live capture:** use architecture PNGs from §1 Mermaid sources below.
 
 ### 3. Talking Points
 

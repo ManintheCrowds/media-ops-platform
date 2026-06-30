@@ -102,3 +102,26 @@
 3. **Fix WatchTower_main tests:** resolve 14 collection errors (imports or env); replace "[Your License Here]" in `docs/README.md` and add a real LICENSE at repo root.
 4. **Fix software tests:** address failing test (`test_secret_key_min_length`) and optionally relax or meet coverage gate.
 5. **Install and run gitleaks** (or rely on existing GitHub workflows) and **pip-audit** for a full security pass; re-run this checklist and update this report.
+
+---
+
+## 7. media-ops-platform (2026-06-23 partial re-run)
+
+**Scope:** `ManintheCrowds/media-ops-platform` only (PF-REPO-4 partial). Other five pinned repos: backlog for PF-PR-16 quarterly ritual.
+
+**Evidence:** [2026-06-23-media-ops-pf04-audit](https://github.com/ManintheCrowds/MiscRepos/blob/main/local-proto/docs/adhoc/2026-06-23-media-ops-pf04-audit.md)
+
+| Section | Result |
+|---------|--------|
+| 1 Security & secrets | **Partial pass** — gitleaks exit 0; TruffleHog verified=1 (Adzuna Gate 1 pending); scheduled TruffleHog CI failing nightly |
+| 2 First-impression hygiene | **Pass** — MIT LICENSE, README, .gitignore, .env.example |
+| 3 Runnable in 5 min | **Partial** — documented; full compose not agent-verified (Docker daemon off on audit host) |
+| 4 Consistency | **Pass** — README matches portfolio template |
+| 5 Trust & maintainability | **Partial** — CI workflows active; branch protection not configured |
+| 6 Portfolio narrative | **Pass** — CaptionPipeline snapshot honest; Grafana screenshot deferred |
+
+**Recommended next steps (media-ops):**
+
+1. Execute [OPERATOR_SECURITY_GATES.md](OPERATOR_SECURITY_GATES.md) Gate 1 + branch protection.
+2. Complete PF-REPO-2 when Grafana reachable; PF-REPO-8 live metrics export.
+3. Re-run checklist on remaining five pinned repos under PF-PR-16.

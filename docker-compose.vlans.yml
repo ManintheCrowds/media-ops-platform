@@ -148,7 +148,7 @@ services:
     container_name: platform-grafana
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana_data:/var/lib/grafana
@@ -214,7 +214,7 @@ services:
       dockerfile: Dockerfile
     container_name: platform-education
     environment:
-      - DATABASE_URL=postgresql://education:password@10.0.40.50:5432/education
+      - DATABASE_URL=postgresql://education:${EDUCATION_POSTGRES_PASSWORD:-changeme}@10.0.40.50:5432/education
       - PLATFORM_URL=http://10.0.30.10:8000
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-change-me-in-production-jwt}
       - BOOKSTACK_URL=http://10.0.30.60:80

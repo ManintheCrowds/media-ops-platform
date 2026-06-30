@@ -7,8 +7,24 @@ import asyncio
 import httpx
 from pathlib import Path
 
+repo_root = Path(__file__).resolve().parent.parent
+env_path = repo_root / ".env"
+if env_path.is_file():
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(env_path)
+    except ImportError:
+        pass
+
+if not os.getenv("SECURITY_DATABASE_URL") and os.getenv("DATABASE_URL", "").find("@postgres") >= 0:
+    print(
+        "[HINT] Host-side DB tests need SECURITY_DATABASE_URL with @localhost:5432 "
+        "(see docs/portfolio/OPERATOR_SECURITY_GATES.md)"
+    )
+
 # Add security-service to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "security-service"))
+sys.path.insert(0, str(repo_root / "security-service"))
 
 from security_service.config import config
 from security_service.intelligence.ip_reputation import IPReputationService
@@ -20,10 +36,10 @@ async def test_virustotal_api_key():
     api_key = config.virustotal_api_key
     
     if not api_key:
-        print("❌ SECURITY_VIRUSTOTAL_API_KEY is not set in environment")
+        print("[FAIL] SECURITY_VIRUSTOTAL_API_KEY is not set in environment")
         return False
     
-    print(f"✅ API Key found: {api_key[:20]}...")
+    print("[OK] SECURITY_VIRUSTOTAL_API_KEY is set")
     
     # Test with a known IP
     test_ip = "8.8.8.8"
@@ -40,25 +56,25 @@ async def test_virustotal_api_key():
             if response.status_code == 200:
                 data = response.json()
                 if data.get("response_code") == 1:
-                    print(f"✅ VirusTotal API key is VALID")
+                    print("[OK] VirusTotal API key is VALID")
                     print(f"   Test IP: {test_ip}")
                     print(f"   Detected URLs: {len(data.get('detected_urls', []))}")
                     return True
                 elif data.get("response_code") == 0:
-                    print(f"⚠️  API key is valid but IP not found in database")
+                    print("[WARN] API key is valid but IP not found in database")
                     return True
                 else:
-                    print(f"❌ API error: {data.get('verbose_msg', 'Unknown error')}")
+                    print(f"[FAIL] API error: {data.get('verbose_msg', 'Unknown error')}")
                     return False
             elif response.status_code == 403:
-                print("❌ API key is INVALID or rate limit exceeded")
+                print("[FAIL] API key is INVALID or rate limit exceeded")
                 return False
             else:
-                print(f"❌ HTTP Error: {response.status_code}")
+                print(f"[FAIL] HTTP Error: {response.status_code}")
                 print(f"   Response: {response.text[:200]}")
                 return False
     except Exception as e:
-        print(f"❌ Error testing API: {e}")
+        print(f"[FAIL] Error testing API: {e}")
         return False
 
 
@@ -73,7 +89,7 @@ async def test_ip_reputation_service():
         init_db()
         db = next(get_db())
     except Exception as e:
-        print(f"⚠️  Database not available: {e}")
+        print(f"[WARN] Database not available: {e}")
         print("   Skipping database integration test")
         return True
     
@@ -87,7 +103,7 @@ async def test_ip_reputation_service():
         result = await service.check_ip_reputation(test_ip)
         
         if result:
-            print(f"✅ IP Reputation Service working")
+            print("[OK] IP Reputation Service working")
             print(f"   IP: {result.ip_address}")
             print(f"   Reputation Score: {result.reputation_score}/100")
             print(f"   Confidence: {result.confidence_level}")
@@ -95,10 +111,10 @@ async def test_ip_reputation_service():
             print(f"   Is Malicious: {result.is_malicious}")
             return True
         else:
-            print("❌ IP Reputation Service returned no result")
+            print("[FAIL] IP Reputation Service returned no result")
             return False
     except Exception as e:
-        print(f"❌ Error testing IP Reputation Service: {e}")
+        print(f"[FAIL] Error testing IP Reputation Service: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -123,17 +139,17 @@ async def main():
         
         if service_test_passed:
             print("\n" + "="*60)
-            print("✅ All tests passed! VirusTotal integration is working.")
+            print("[OK] All tests passed! VirusTotal integration is working.")
             print("="*60)
             return 0
         else:
             print("\n" + "="*60)
-            print("⚠️  API key works but service integration has issues")
+            print("[WARN] API key works but service integration has issues")
             print("="*60)
             return 1
     else:
         print("\n" + "="*60)
-        print("❌ API key test failed. Please check your configuration.")
+        print("[FAIL] API key test failed. Please check your configuration.")
         print("="*60)
         return 1
 

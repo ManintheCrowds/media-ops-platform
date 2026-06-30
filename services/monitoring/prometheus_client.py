@@ -76,11 +76,11 @@ class PrometheusClient(BaseServiceClient):
                 if response.status_code == 200:
                     data = response.json()
                     return data.get("data", [])
-        except httpx.HTTPError as e:
-            logger.warning(f"HTTP error in {self.__class__.__name__}.get_metrics(): {e}")
-            return []
         except httpx.TimeoutException as e:
             logger.warning(f"Timeout in {self.__class__.__name__}.get_metrics(): {e}")
+            return []
+        except httpx.HTTPError as e:
+            logger.warning(f"HTTP error in {self.__class__.__name__}.get_metrics(): {e}")
             return []
         except Exception as e:
             logger.error(f"Unexpected error in {self.__class__.__name__}.get_metrics(): {e}", exc_info=True)

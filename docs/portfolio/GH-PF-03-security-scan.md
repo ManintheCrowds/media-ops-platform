@@ -28,7 +28,7 @@
 
 
 
-**Operator [MEATSPACE]:** `REQUEST_HUMAN: Revoke the exposed VirusTotal API key at https://www.virustotal.com/gui/my-apikey and set `SECURITY_VIRUSTOTAL_API_KEY` only in local `.env`. Mark GitGuardian incidents resolved after rotation + 24h scan clear.
+**Operator (2026-06-23):** VirusTotal key **rotated**; set `SECURITY_VIRUSTOTAL_API_KEY` in repo-root `.env` only — see [OPERATOR_SECURITY_GATES.md](OPERATOR_SECURITY_GATES.md) § VirusTotal. Mark GitGuardian incidents resolved in GitGuardian UI if not already.
 
 
 
@@ -86,9 +86,12 @@
 - **Doc placeholders:** five root `docs/*.md` URIs updated to `${POSTGRES_PASSWORD}` / `<POSTGRES_PASSWORD>` (no blanket markdown exclude).
 - **Baseline notes:** [`docs/portfolio/trufflehog-baselines/README.md`](trufflehog-baselines/README.md) — run scans locally; do not commit raw output (may echo secrets).
 
-**Operator gates:**
+**Operator gates:** See [OPERATOR_SECURITY_GATES.md](OPERATOR_SECURITY_GATES.md) for Gate 1 and branch protection checklist.
 
 - `APPROVAL_NEEDED: Adzuna key rotation + git filter-repo force-push to main` (Gate 1 — purge not executed in repo yet)
+- **2026-06-10 hang:** first `purge-adzuna-history.ps1 -Execute` blocked on git-filter-repo prompt *"Treat this run as a continuation… (Y/N)?"* — no force-push occurred. Fix in PR #41: remove `.git/filter-repo/already_ran` + pipe `Y` before filter-repo.
+- **Gate 1 resume (operator):** rotate keys → kill stuck filter-repo if any → `.\scripts\purge-adzuna-history.ps1 -Execute` on `main` → local TruffleHog verified=0 → `git push --force-with-lease origin main` → confirm `trufflehog-strict` green.
+- **Branch protection (manual):** GitHub → Settings → Branches → rule for `main` → require status checks **`trufflehog-strict`** and **`gitleaks`** (API automation blocked; use UI).
 - **Gate 2 allowlist signed off 2026-06-10:** five dev compose paths in [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt) (scheduled job only). Residual risk: file-level exclude hides all findings in those paths on nightly runs; merge path `trufflehog-strict` has no excludes.
 
 
@@ -101,7 +104,7 @@
 
 |------|--------|-------|
 
-| `git clone` + `cp .env.example .env` | Documented | Requires operator-generated `SECRET_KEY` / `JWT_SECRET_KEY`; set `SECURITY_VIRUSTOTAL_API_KEY` after rotation |
+| `git clone` + `cp .env.example .env` | Documented | Requires operator-generated `SECRET_KEY` / `JWT_SECRET_KEY`; `SECURITY_VIRUSTOTAL_API_KEY` in `.env` |
 
 | `docker compose up -d` | Not run in agent session | Homelab-scale; see README honesty note |
 
@@ -109,21 +112,21 @@
 
 
 
-## Pytest (2026-06-04)
+## Pytest (2026-06-24 — Session A test health closure)
 
 
 
 ```
 
-321 passed, 9 failed, 7 errors (unit suite)
+457 passed, 0 failed, 0 errors (unit suite)
 
-Coverage: 56.47% (gate 70% not met — documented in ROADMAP)
+Coverage: 78.98% (gate 70% met; `pytest tests/unit -m unit --cov-fail-under=70`; `arlo_module.py` omitted per `coverage.ini`)
 
 ```
 
 
 
-Failures are pre-existing client/encoder/SSRF tests in this environment, not introduced by rebrand. **CI** on GitHub remains authoritative after push.
+All unit tests green locally. **CI** on GitHub remains authoritative after push; CI still uses `--cov-fail-under=0` until PF-REPO-6 billing resolved.
 
 
 
@@ -135,7 +138,7 @@ Failures are pre-existing client/encoder/SSRF tests in this environment, not int
 
 |---------|------|
 
-| 1 Security & secrets | Pass after remediation — CI workflows; operator VT rotation pending |
+| 1 Security & secrets | Pass after remediation — CI workflows; VT key rotated (local `.env`) |
 
 | 2 First-impression hygiene | Pass — MIT LICENSE, README, .gitignore |
 

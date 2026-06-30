@@ -8,7 +8,7 @@ Production media caption automation and a self-hosted FastAPI integration plane 
 
 - **Problem:** Large video libraries were hard to search and lacked consistent captions; manual captioning did not scale across multiple production feeds.
 - **Solution:** End-to-end pipeline: ingest → WhisperX transcription → broadcast SCC-format captions → publication to VOD/search with monitoring and alerting.
-- **Impact (portfolio snapshot):** 256+ caption files, 330+ content hours, ~93.5% success rate, &lt;1% errors, 100% uptime across **9 production feeds** (see [docs/portfolio/README.md](docs/portfolio/README.md) for metrics and diagram sources).
+- **Impact (portfolio snapshot, Dec 2025):** 256+ caption files, 330+ content hours, ~93.5% success rate, &lt;1% errors, 100% uptime across **9 production feeds** (see [docs/portfolio/README.md](docs/portfolio/README.md) for metrics and diagram sources). Live homelab Grafana capture pending — [PF-REPO-2](docs/portfolio/README.md).
 
 ### CaptionPipeline architecture
 

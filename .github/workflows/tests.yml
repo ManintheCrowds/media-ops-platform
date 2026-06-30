@@ -116,7 +116,7 @@ jobs:
           SECURITY_HIBP_ENABLE_EMAIL_CHECK: "false"
         run: |
           mkdir -p /tmp/platform-test/camera_recordings /tmp/platform-test/encoder_recordings
-          pytest tests/unit -v --cov=app --cov=services --cov-report=xml --cov-report=term-missing --cov-fail-under=0 -m "unit"
+          pytest tests/unit -v --cov=app --cov=services --cov-config=coverage.ini --cov-report=xml --cov-report=term-missing --cov-fail-under=70 -m "unit"
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -272,7 +272,7 @@ jobs:
           SECURITY_HIBP_ENABLE_EMAIL_CHECK: "false"
         run: |
           mkdir -p /tmp/platform-test/camera_recordings /tmp/platform-test/encoder_recordings
-          pytest tests/unit -v --cov=app --cov=services --cov-report= --cov-fail-under=0 -m "unit"
+          pytest tests/unit -v --cov=app --cov=services --cov-config=coverage.ini --cov-report= --cov-fail-under=70 -m "unit"
           pytest tests/integration -v --cov=app --cov=services --cov-report=html --cov-report=term-missing --cov-fail-under=0 -m "integration" --cov-append
       
       - name: Upload coverage report
