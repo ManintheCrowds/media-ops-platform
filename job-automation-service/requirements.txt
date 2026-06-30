@@ -1,12 +1,12 @@
 # Core Framework
-fastapi==0.104.1
+fastapi>=0.128.0
 uvicorn[standard]==0.24.0
-python-multipart==0.0.6
+python-multipart==0.0.32
 
 # Authentication & Security
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.4.0
 passlib[bcrypt]==1.7.4
-python-dotenv==1.0.0
+python-dotenv==1.2.2
 bcrypt==4.1.2
 
 # Database
@@ -16,12 +16,12 @@ alembic==1.12.1
 
 # HTTP Clients
 httpx==0.25.2
-aiohttp==3.9.1
-requests==2.31.0
+aiohttp==3.14.1
+requests==2.33.0
 
 # Web Scraping
 beautifulsoup4==4.12.2
-lxml==4.9.3
+lxml==6.1.0
 selenium==4.15.2
 playwright==1.40.0
 
@@ -31,15 +31,14 @@ openai>=1.0.0
 anthropic>=0.18.0
 
 # Utilities
-pydantic==2.5.0
-pydantic-settings==2.1.0
-jinja2==3.1.2
+pydantic>=2.10.0
+pydantic-settings>=2.1.0
+jinja2==3.1.6
 
 # Testing
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
-pytest-mock==3.12.0
-respx==0.20.2
+pytest==9.0.3
+pytest-asyncio==1.4.0
+pytest-cov==6.0.0
+pytest-mock==3.14.0
+respx==0.21.1
 faker==20.1.0
-
