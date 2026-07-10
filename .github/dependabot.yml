@@ -1,41 +1,160 @@
+# PURPOSE: Cap Dependabot PR volume and group related bumps.
+# MODIFICATION NOTES: 2026-07-10 triage — open-pull-requests-limit + groups
+#   after 38 stale conflicting PRs piled up.
 version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      test:
+        patterns:
+          - "pytest*"
+          - "respx"
+          - "faker"
+          - "coverage"
+      http:
+        patterns:
+          - "httpx"
+          - "requests"
+          - "aiohttp"
+          - "urllib3"
+      web:
+        patterns:
+          - "fastapi"
+          - "uvicorn*"
+          - "starlette"
+          - "python-multipart"
+          - "jinja2"
+          - "pydantic*"
 
   - package-ecosystem: "pip"
     directory: "/home-cyber-risk"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      test:
+        patterns:
+          - "pytest*"
+      http:
+        patterns:
+          - "httpx"
+          - "requests"
+      web:
+        patterns:
+          - "fastapi"
+          - "uvicorn*"
+          - "pydantic*"
 
   - package-ecosystem: "pip"
     directory: "/security-service"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      test:
+        patterns:
+          - "pytest*"
+      http:
+        patterns:
+          - "httpx"
+          - "requests"
+          - "aiohttp"
+      web:
+        patterns:
+          - "fastapi"
+          - "uvicorn*"
+          - "python-multipart"
+          - "pydantic*"
 
   - package-ecosystem: "pip"
     directory: "/pi-client"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      test:
+        patterns:
+          - "pytest*"
+      http:
+        patterns:
+          - "httpx"
+          - "aiofiles"
+      web:
+        patterns:
+          - "fastapi"
+          - "uvicorn*"
+          - "jinja2"
+          - "pydantic*"
+          - "websockets"
 
   - package-ecosystem: "pip"
     directory: "/monitoring/cursor-exporter"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      monitoring:
+        patterns:
+          - "prometheus*"
 
   - package-ecosystem: "pip"
     directory: "/job-automation-service"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      test:
+        patterns:
+          - "pytest*"
+          - "respx"
+          - "faker"
+      http:
+        patterns:
+          - "httpx"
+          - "requests"
+          - "aiohttp"
+      web:
+        patterns:
+          - "fastapi"
+          - "uvicorn*"
+          - "python-multipart"
+          - "jinja2"
+          - "pydantic*"
 
   - package-ecosystem: "pip"
     directory: "/education-service"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      test:
+        patterns:
+          - "pytest*"
+          - "respx"
+          - "faker"
+      http:
+        patterns:
+          - "httpx"
+          - "requests"
+          - "aiohttp"
+      web:
+        patterns:
+          - "fastapi"
+          - "uvicorn*"
+          - "python-multipart"
+          - "jinja2"
+          - "pydantic*"
