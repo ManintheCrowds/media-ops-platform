@@ -29,5 +29,5 @@ aiosmtplib==3.0.1
 python-dotenv==1.2.2
 
 # Testing
-pytest==9.0.3
+pytest==9.1.1
 pytest-asyncio==1.4.0
