@@ -17,6 +17,7 @@ jobs:
       education_service: ${{ steps.filter.outputs.education_service }}
       job_automation_service: ${{ steps.filter.outputs.job_automation_service }}
       pi_client: ${{ steps.filter.outputs.pi_client }}
+      services_json: ${{ steps.filter.outputs.services_json }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,6 +39,7 @@ jobs:
               echo "education_service=true" >> "$GITHUB_OUTPUT"
               echo "job_automation_service=true" >> "$GITHUB_OUTPUT"
               echo "pi_client=true" >> "$GITHUB_OUTPUT"
+              echo 'services_json=["home-cyber-risk","security-service","education-service","job-automation-service","pi-client"]' >> "$GITHUB_OUTPUT"
               exit 0
             fi
           else
@@ -47,6 +49,7 @@ jobs:
             echo "education_service=true" >> "$GITHUB_OUTPUT"
             echo "job_automation_service=true" >> "$GITHUB_OUTPUT"
             echo "pi_client=true" >> "$GITHUB_OUTPUT"
+            echo 'services_json=["home-cyber-risk","security-service","education-service","job-automation-service","pi-client"]' >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -60,6 +63,7 @@ jobs:
             echo "education_service=false" >> "$GITHUB_OUTPUT"
             echo "job_automation_service=false" >> "$GITHUB_OUTPUT"
             echo "pi_client=false" >> "$GITHUB_OUTPUT"
+            echo 'services_json=[]' >> "$GITHUB_OUTPUT"
             exit 0
           elif grep -Eq '^(app|services|tests|frontend|alembic|scripts|config|nginx|monitoring|security-service|home-cyber-risk|job-automation-service|pi-client|education-service)/|^(Dockerfile|requirements\.txt|pytest\.ini|alembic\.ini|coverage\.ini|docker-compose.*\.yml|\.github/workflows/.*)$' relevant_files.txt; then
             echo "code_changed=true" >> "$GITHUB_OUTPUT"
@@ -67,56 +71,64 @@ jobs:
             echo "code_changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-          # Per-service path filters — drive isolated service-manifest installs
+          services=()
           if grep -Eq '^home-cyber-risk/' relevant_files.txt; then
             echo "home_cyber_risk=true" >> "$GITHUB_OUTPUT"
+            services+=("home-cyber-risk")
           else
             echo "home_cyber_risk=false" >> "$GITHUB_OUTPUT"
           fi
           if grep -Eq '^security-service/' relevant_files.txt; then
             echo "security_service=true" >> "$GITHUB_OUTPUT"
+            services+=("security-service")
           else
             echo "security_service=false" >> "$GITHUB_OUTPUT"
           fi
           if grep -Eq '^education-service/' relevant_files.txt; then
             echo "education_service=true" >> "$GITHUB_OUTPUT"
+            services+=("education-service")
           else
             echo "education_service=false" >> "$GITHUB_OUTPUT"
           fi
           if grep -Eq '^job-automation-service/' relevant_files.txt; then
             echo "job_automation_service=true" >> "$GITHUB_OUTPUT"
+            services+=("job-automation-service")
           else
             echo "job_automation_service=false" >> "$GITHUB_OUTPUT"
           fi
           if grep -Eq '^pi-client/' relevant_files.txt; then
             echo "pi_client=true" >> "$GITHUB_OUTPUT"
+            services+=("pi-client")
           else
             echo "pi_client=false" >> "$GITHUB_OUTPUT"
           fi
 
+          # JSON array for service-manifest matrix (empty => skip job)
+          if [ ${#services[@]} -eq 0 ]; then
+            echo 'services_json=[]' >> "$GITHUB_OUTPUT"
+          else
+            json='['
+            first=1
+            for s in "${services[@]}"; do
+              if [ $first -eq 1 ]; then first=0; else json+=','; fi
+              json+="\"$s\""
+            done
+            json+=']'
+            echo "services_json=$json" >> "$GITHUB_OUTPUT"
+          fi
+
   # PURPOSE: Prove each touched service's requirements.txt installs in isolation.
-  # DEPENDENCIES: changes job path filters; per-service requirements.txt
+  # DEPENDENCIES: changes.outputs.services_json; per-service requirements.txt
   # MODIFICATION NOTES: PF-REPO-11 — root CI alone does not prove service manifest health.
-  #   Full service pytest often needs Postgres/homelab; install+import is the Dependabot gate.
   service-manifest-tests:
     name: Service manifest (${{ matrix.service }})
     needs: changes
-    if: |
-      (matrix.service == 'home-cyber-risk' && needs.changes.outputs.home_cyber_risk == 'true') ||
-      (matrix.service == 'security-service' && needs.changes.outputs.security_service == 'true') ||
-      (matrix.service == 'education-service' && needs.changes.outputs.education_service == 'true') ||
-      (matrix.service == 'job-automation-service' && needs.changes.outputs.job_automation_service == 'true') ||
-      (matrix.service == 'pi-client' && needs.changes.outputs.pi_client == 'true')
+    if: needs.changes.outputs.services_json != '[]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        service:
-          - home-cyber-risk
-          - security-service
-          - education-service
-          - job-automation-service
-          - pi-client
+        service: ${{ fromJson(needs.changes.outputs.services_json) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -133,47 +145,7 @@ jobs:
 
       - name: Import smoke (manifest usability)
         working-directory: ${{ matrix.service }}
-        run: |
-          python - <<'PY'
-          import importlib
-          import pathlib
-          import re
-          req = pathlib.Path("requirements.txt").read_text(encoding="utf-8")
-          names = []
-          for line in req.splitlines():
-              line = line.strip()
-              if not line or line.startswith("#"):
-                  continue
-              pkg = re.split(r"[<>=!\[]", line, maxsplit=1)[0].strip()
-              # map a few distribution names to import names
-              mapping = {
-                  "psycopg2-binary": "psycopg2",
-                  "python-dotenv": "dotenv",
-                  "python-dateutil": "dateutil",
-                  "python-multipart": "multipart",
-                  "python-telegram-bot": "telegram",
-                  "pyyaml": "yaml",
-                  "uvicorn": "uvicorn",
-                  "beautifulsoup4": "bs4",
-                  "Pillow": "PIL",
-              }
-              if pkg.lower() in {"pytest", "pytest-asyncio", "pytest-mock", "pytest-cov", "black", "flake8", "mypy"}:
-                  continue
-              names.append(mapping.get(pkg, pkg.replace("-", "_")))
-          # Always verify aiosmtplib when listed (PF-REPO-11 consumer gate)
-          if "aiosmtplib" in req:
-              importlib.import_module("aiosmtplib")
-              print("aiosmtplib: OK")
-          failed = []
-          for name in sorted(set(names)):
-              try:
-                  importlib.import_module(name)
-              except Exception as exc:  # noqa: BLE001 — report all import gaps
-                  failed.append(f"{name}: {exc}")
-          if failed:
-              raise SystemExit("Import failures:\n" + "\n".join(failed))
-          print(f"Import smoke OK ({len(set(names))} packages)")
-          PY
+        run: python ../.github/scripts/service_manifest_import_smoke.py
 
   lint:
     needs: changes
