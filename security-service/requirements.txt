@@ -22,9 +22,6 @@ pydantic-settings>=2.1.0
 # Redis
 redis==8.0.1
 
-# Email
-aiosmtplib==3.0.1
-
 # Utilities
 python-dotenv==1.2.2
 
