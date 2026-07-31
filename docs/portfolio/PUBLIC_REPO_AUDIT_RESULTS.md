@@ -125,3 +125,55 @@
 1. Execute [OPERATOR_SECURITY_GATES.md](OPERATOR_SECURITY_GATES.md) Gate 1 + branch protection.
 2. Complete PF-REPO-2 when Grafana reachable; PF-REPO-8 live metrics export.
 3. Re-run checklist on remaining five pinned repos under PF-PR-16.
+
+## 8. ManintheCrowds public portfolio (2026-07-18 full re-run)
+
+**Scope:** All **14** public repositories owned by `ManintheCrowds`, plus profile README. Checklist: [PUBLIC_REPO_AUDIT_CHECKLIST.md](PUBLIC_REPO_AUDIT_CHECKLIST.md). Closes/refreshes **PF-REPO-4** evidence base (prior: 2025-02-10 historic roots + 2026-06-23 media-ops partial).
+
+**Pinned (GitHub UI, live):** OpenHarness, moltbook_watchtower, media-ops-platform, OpenGrimoire, SCP (**5** pins). Profile README table still lists **7** "Pinned work" rows (adds T3MP3ST_BLU3H4T + arc-forge-wiki) — **drift**. Plan: pin **scp-mycelium-registry** as 6th (no removal required).
+
+### Inventory
+
+| Repo | Fork | GH description | README / LICENSE | Copy / narrative notes |
+|------|------|----------------|------------------|------------------------|
+| ManintheCrowds | no | GitHub profile README | OK / MIT | Banner-first; dense PSI; "Pinned work" vs actual pins mismatch; mycelium in "Other" only |
+| OpenHarness | no | Handoffs, Context & Intent Engineering… | OK / GPL-3.0 | Strong proof-set member |
+| SCP | no | Content safety for AI… | OK / MIT | Strong; pairs with registry |
+| scp-mycelium-registry | no | SCP mycelium shared threat registry (data) | OK / MIT | Banner before thesis; stale "v0.2.0 draft" (tag published 2026-07-11); AI service entry undocumented |
+| media-ops-platform | no | CaptionPipeline + FastAPI… | OK / MIT | Partial PF-REPO-4 already; Grafana / live metrics still deferred |
+| OpenGrimoire | no | Local-first context graph… | OK / MIT | Default branch `master` (called out on profile) |
+| arc-forge-wiki | no | Public sterile extract… | OK / MIT | Profile table lists as pin; not actually pinned |
+| moltbook_watchtower | no | Passive monitoring… | OK / MIT | Actually pinned |
+| T3MP3ST_BLU3H4T | yes | autonomous blue teaming… | OK / other | Profile table pin; not actually pinned; banner-first preference conflict |
+| LangChainChatBot | no | Local-first RAG… | OK / MIT | Other projects; fine |
+| PrusaXL_Monitor | no | Observability… | OK / MIT | Other projects; fine |
+| ENTHEA | yes | Forked real-time psychedelic… | OK / AGPL-3.0 | Identical to upstream; no fork-purpose note on public README; EEG I/O lives in MiscRepos vendored tree |
+| Understand-Anything | yes | Graphs that teach… | OK / MIT | Upstream fork; no portfolio narrative |
+| jobsync | yes | Self-hosted job tracker… | OK / MIT | Upstream fork; career ops; keep out of proof-set |
+
+### Checklist summary (portfolio hygiene)
+
+| Section | Result |
+|---------|--------|
+| 1 Security & secrets | **Not re-scanned this pass** — rely on per-repo CI (gitleaks/trufflehog where present). No new secret findings from README/docs review. |
+| 2 First-impression hygiene | **Pass** — LICENSE + README present on all 14. |
+| 3 Runnable in 5 min | **Mixed** — proof-set repos document quick starts; ENTHEA/jobsync/Understand-Anything are forks with upstream docs; registry is data-only (fetch URL). |
+| 4 Consistency | **Fail / drift** — `MiscRepos/docs/PORTFOLIO.md` still points at legacy `software`, Arc_Forge TTRPG framing, `moltbook-watchtower` hyphen vs underscore; profile "Pinned work" ≠ GitHub pins; registry description thinner than README one-liner. |
+| 5 Trust & maintainability | **Partial** — CI badges on proof set; PF-REPO-6 billing historically blocked some Actions; ENTHEA public fork has no fork-specific CI. |
+| 6 Portfolio narrative | **Partial** — Guard–Guide–Defend–Build story clear but jargon-heavy; ENTHEA/EEG experiment and mycelium registry under-explained on profile. |
+
+### Copy recommendations (implement in this session)
+
+1. Profile: plain-language groups; thesis before metrics; list actual pins + planned 6th (mycelium); ENTHEA as experiment under Other.
+2. Registry: thesis before banner; fix v0.2.0 published wording; add AI service entry barriers doc.
+3. ENTHEA: "About this fork" + AGPL notes sync; update GH description to EEG I/O focus.
+4. MiscRepos `docs/PORTFOLIO.md`: refresh to current public repo map.
+5. Track `eeg-connection-hub` beta locally (not public yet).
+
+### Out of scope this pass
+
+- Full `pip audit` / `npm audit` across all 14.
+- Grafana screenshot (PF-REPO-2) / WER caption audit (PF-CAP-AUDIT-*).
+- Public creation of `eeg-connection-hub` (human gate).
+- Silent merge of registry patterns or live Muse hardware claims.
+
