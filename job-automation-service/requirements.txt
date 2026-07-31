@@ -26,7 +26,7 @@ selenium==4.40.0
 playwright==1.58.0
 
 # LLM Integration
-ollama==0.1.6
+ollama==0.4.7
 openai>=1.0.0
 anthropic>=0.18.0
 

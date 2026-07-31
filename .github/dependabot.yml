@@ -18,10 +18,11 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    # arlo pins urllib3==1.24; keep root requests off the http group bumps
+    # arlo pins urllib3==1.24; root httpx held pending RESPX/httpx 0.28 test updates
     ignore:
       - dependency-name: "requests"
       - dependency-name: "urllib3"
+      - dependency-name: "httpx"
     groups:
       test:
         patterns:
@@ -31,7 +32,6 @@ updates:
           - "coverage"
       http:
         patterns:
-          - "httpx"
           - "aiohttp"
       web:
         patterns:
