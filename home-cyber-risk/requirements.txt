@@ -19,7 +19,7 @@ aiosmtplib==5.1.2
 python-telegram-bot==22.8
 
 # Logging
-structlog==24.1.0
+structlog==26.1.0
 
 # Testing
 pytest==9.0.3
