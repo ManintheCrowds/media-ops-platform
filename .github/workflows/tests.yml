@@ -65,7 +65,7 @@ jobs:
             echo "pi_client=false" >> "$GITHUB_OUTPUT"
             echo 'services_json=[]' >> "$GITHUB_OUTPUT"
             exit 0
-          elif grep -Eq '^(app|services|tests|frontend|alembic|scripts|config|nginx|monitoring|security-service|home-cyber-risk|job-automation-service|pi-client|education-service)/|^(Dockerfile|requirements\.txt|pytest\.ini|alembic\.ini|coverage\.ini|docker-compose.*\.yml|\.github/workflows/.*)$' relevant_files.txt; then
+          elif grep -Eq '^(app|services|tests|frontend|alembic|scripts|config|nginx|monitoring|security-service|home-cyber-risk|job-automation-service|pi-client|education-service)/|^(Dockerfile|requirements\.txt|pytest\.ini|alembic\.ini|coverage\.ini|docker-compose.*\.yml|\.github/workflows/.*|\.github/scripts/.*)$' relevant_files.txt; then
             echo "code_changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "code_changed=false" >> "$GITHUB_OUTPUT"

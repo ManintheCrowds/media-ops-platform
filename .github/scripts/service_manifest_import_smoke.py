@@ -22,9 +22,14 @@ def main() -> int:
         "python-dateutil": "dateutil",
         "python-multipart": "multipart",
         "python-telegram-bot": "telegram",
+        "python-jose": "jose",
+        "pyjwt": "jwt",
+        "PyJWT": "jwt",
         "pyyaml": "yaml",
+        "PyYAML": "yaml",
         "beautifulsoup4": "bs4",
         "Pillow": "PIL",
+        "prometheus-client": "prometheus_client",
     }
     skip = {
         "pytest",
@@ -43,7 +48,8 @@ def main() -> int:
         pkg = re.split(r"[<>=!\[]", line, maxsplit=1)[0].strip()
         if pkg.lower() in skip:
             continue
-        names.append(mapping.get(pkg, pkg.replace("-", "_")))
+        key = pkg if pkg in mapping else pkg.lower()
+        names.append(mapping.get(key, pkg.replace("-", "_")))
     if "aiosmtplib" in req:
         importlib.import_module("aiosmtplib")
         print("aiosmtplib: OK")
