@@ -12,7 +12,7 @@ websockets>=16.1.1
 
 # Cryptography
 cryptography>=49.0.0
-pyjwt>=2.8.0
+pyjwt>=2.13.0
 
 # Hardware (optional - only on Raspberry Pi)
 # RPi.GPIO>=0.7.1
