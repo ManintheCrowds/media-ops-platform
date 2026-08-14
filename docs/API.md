@@ -2,7 +2,7 @@
 
 ## CaptionPipeline / transcription services
 
-CaptionPipeline runs as containerized workers (ingest → WhisperX → broadcast SCC-format captions → publish). Operational runbooks live under `docs/` and `portfolio/`; no single public OpenAPI documents the full pipeline in this tree.
+CaptionPipeline workers (ingest → WhisperX → SCC → publish) are **not** in this clone. Case-study copy lives under `docs/portfolio/`; no public OpenAPI documents that pipeline here.
 
 ## Self-hosted platform API
 
@@ -11,7 +11,7 @@ CaptionPipeline runs as containerized workers (ingest → WhisperX → broadcast
 | Surface | Location |
 |---------|----------|
 | Interactive OpenAPI | `http://localhost:8000/docs` when Platform API is up (see root README Quick start) |
-| Health | `GET /health` (and service-registry routes per deployment) |
+| Health | `GET /api/health` (and service-registry routes per deployment) |
 | Gateway | Unified entry for registered homelab services |
 
 Clone and start:
@@ -26,4 +26,4 @@ For route-level detail, open **Swagger UI** at `/docs` after `docker compose up`
 ## Security
 
 - Never commit `.env`; use `.env.example` as the variable checklist.
-- Run gitleaks / CI security workflows before changing repo visibility to public.
+- Run gitleaks / CI security workflows on changes; this GitHub repo is already public.
