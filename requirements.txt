@@ -1,6 +1,6 @@
 # Core Framework
-fastapi>=0.140.13
-uvicorn[standard]==0.51.0
+fastapi>=0.141.1
+uvicorn[standard]==0.52.4
 python-multipart==0.0.32
 
 # Authentication & Security
@@ -28,8 +28,8 @@ arlo>=1.2.62
 prometheus-client==0.19.0
 
 # Utilities (pydantic>=2.10 for Python 3.13 wheels; 2.5.x requires Rust to build pydantic-core)
-pydantic>=2.13.4
-pydantic-settings>=2.14.2
+pydantic>=2.13.5
+pydantic-settings>=2.15.0
 jinja2==3.1.6
 
 # Testing
