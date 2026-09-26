@@ -3,7 +3,7 @@
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field
-from app.models.pi_device import DeviceType, SyncStatus, PackageType
+from app.models.pi_device import DeviceType, SyncStatus, PackageType, PackageStatus
 
 
 class PiDeviceBase(BaseModel):
@@ -48,8 +48,10 @@ class PiSyncPackageResponse(BaseModel):
     package_type: PackageType
     content_ids: List[int]
     package_url: Optional[str] = None
+    package_path: Optional[str] = None
     package_size: Optional[int] = None
     checksum: Optional[str] = None
+    status: PackageStatus = PackageStatus.PENDING
     created_at: datetime
     expires_at: Optional[datetime] = None
     
@@ -65,8 +67,14 @@ class SyncCheckResponse(BaseModel):
     available_packages: List[PiSyncPackageResponse] = []
 
 
+class SyncCompleteRequest(BaseModel):
+    """Body for marking sync complete."""
+    package_id: int
 
 
-
-
-
+class DeviceTokenResponse(BaseModel):
+    """Device-scoped access token."""
+    access_token: str
+    token_type: str = "bearer"
+    device_id: str
+    expires_in_minutes: int

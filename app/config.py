@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expiration_minutes: int = 30
     oauth2_token_url: str = "/api/auth/token"
+
+    # Security-service audit emit (best-effort)
+    security_service_url: str = "http://security-service:8001"
+    security_audit_timeout_seconds: float = 1.0
     
     # Service URLs
     seafile_url: Optional[str] = "http://seafile:8000"

@@ -36,6 +36,14 @@ class PackageType(str, enum.Enum):
     CONTENT_ONLY = "content_only"
 
 
+class PackageStatus(str, enum.Enum):
+    """Sync package readiness lifecycle."""
+    PENDING = "pending"
+    READY = "ready"
+    EXPIRED = "expired"
+    FAILED = "failed"
+
+
 class PiDevice(Base):
     """Raspberry Pi device model."""
     
@@ -71,9 +79,16 @@ class PiSyncPackage(Base):
     device_id = Column(Integer, ForeignKey("pi_devices.id"), nullable=False, index=True)
     package_type = Column(SQLEnum(PackageType), nullable=False)
     content_ids = Column(JSON)  # Array of content item IDs
-    package_url = Column(String(500))  # Download URL
+    package_url = Column(String(500))  # Optional remote URL (unused when streaming local path)
+    package_path = Column(String(500))  # Local filesystem path for StreamingResponse
     package_size = Column(BigInteger)  # Size in bytes
     checksum = Column(String(64))  # SHA256 checksum
+    status = Column(
+        SQLEnum(PackageStatus),
+        default=PackageStatus.PENDING,
+        nullable=False,
+        index=True,
+    )
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     expires_at = Column(DateTime(timezone=True), nullable=True)
     
