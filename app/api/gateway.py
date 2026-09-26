@@ -17,6 +17,7 @@ from services.dev_tools.gitea_client import GiteaClient
 from services.monitoring.prometheus_client import PrometheusClient
 from services.monitoring.grafana_client import GrafanaClient
 from services.security.vaultwarden_client import VaultwardenClient
+from app.utils.audit_emit import emit_audit_event
 
 router = APIRouter()
 
@@ -280,7 +281,17 @@ async def proxy_to_service(
     
     if not service:
         raise HTTPException(status_code=404, detail=f"Service '{service_name}' not found")
-    
+
+    emit_audit_event(
+        "gateway.proxy",
+        f"{request.method} {service_name}/{path}",
+        success=True,
+        user_id=current_user.id,
+        username=current_user.username,
+        ip_address=request.client.host if request.client else None,
+        details={"service_name": service_name, "path": path, "method": request.method},
+    )
+
     # Validate request size before processing
     max_size_bytes = int(settings.max_request_size_mb * 1024 * 1024)
     
