@@ -8,7 +8,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-32-chars-long-enough!!")
+os.environ.setdefault(
+    "JWT_SECRET_KEY", "test-jwt-secret-key-32-chars-long-enough!!"
+)
+os.environ.setdefault("DATABASE_URL", "sqlite://")
 
 import app.models  # noqa: F401 — register all tables
 from app.database import Base
