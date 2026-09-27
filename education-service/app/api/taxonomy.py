@@ -113,7 +113,7 @@ async def get_taxonomy_tree(
             slug=node.slug,
             parent_id=node.parent_id,
             level=node.level,
-            metadata=node.metadata,
+            metadata=node.extra_data,
             children=[build_tree(child) for child in children]
         )
     

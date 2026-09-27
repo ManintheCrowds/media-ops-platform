@@ -59,7 +59,7 @@ class ContentService:
             description=content_data.description,
             body=content_data.body,
             content_type=content_data.content_type,
-            metadata=content_data.metadata or {},
+            extra_data=content_data.metadata or {},
             external_refs=content_data.external_refs or {},
             parent_id=content_data.parent_id,
             version=1,
@@ -145,7 +145,7 @@ class ContentService:
             content.body = content_data.body
         
         if content_data.metadata is not None:
-            content.metadata = content_data.metadata
+            content.extra_data = content_data.metadata
         
         if content_data.external_refs is not None:
             content.external_refs = content_data.external_refs
@@ -218,7 +218,7 @@ class ContentService:
         # Restore version data
         content.title = version.title
         content.body = version.body
-        content.metadata = version.metadata
+        content.extra_data = version.extra_data
         content.version += 1
         
         db.commit()
@@ -237,7 +237,7 @@ class ContentService:
             version_number=content.version,
             title=content.title,
             body=content.body,
-            metadata=content.metadata or {},
+            extra_data=content.extra_data or {},
             created_by=user.sub
         )
         db.add(version)

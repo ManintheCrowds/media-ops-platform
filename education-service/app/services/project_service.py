@@ -58,7 +58,7 @@ class ProjectService:
             slug=slug,
             description=project_data.description,
             status=project_data.status,
-            metadata=project_data.metadata or {},
+            extra_data=project_data.metadata or {},
             created_by=user.sub
         )
         
@@ -141,7 +141,7 @@ class ProjectService:
             project.status = project_data.status
         
         if project_data.metadata is not None:
-            project.metadata = project_data.metadata
+            project.extra_data = project_data.metadata
         
         db.commit()
         db.refresh(project)

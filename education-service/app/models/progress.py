@@ -26,7 +26,8 @@ class UserProgress(Base):
     progress_percentage = Column(Float, default=0.0, nullable=False)
     last_accessed = Column(DateTime(timezone=True), server_default=func.now())
     completed_at = Column(DateTime(timezone=True), nullable=True)
-    metadata = Column(JSON)  # Progress-specific data
+    # DB column remains "metadata"; attr renamed — Declarative reserves .metadata
+    extra_data = Column("metadata", JSON)
     
     # Relationships
     content_item = relationship("ContentItem", back_populates="progress_records")

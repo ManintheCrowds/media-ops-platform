@@ -6,12 +6,18 @@ from typing import Generator
 from app.config import settings
 from app.models import Base
 
-# Create engine with connection pooling
+_engine_kwargs: dict = {"pool_pre_ping": True}
+_connect_args: dict = {}
+if settings.database_url.startswith("sqlite"):
+    _connect_args = {"check_same_thread": False}
+else:
+    _engine_kwargs.update(pool_size=10, max_overflow=20)
+
+# Create engine with connection pooling (Postgres) or sqlite-safe args
 engine = create_engine(
     settings.database_url,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20
+    connect_args=_connect_args,
+    **_engine_kwargs,
 )
 
 # Create session factory
