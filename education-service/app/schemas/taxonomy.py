@@ -2,7 +2,7 @@
 
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, AliasChoices
 
 
 class TagBase(BaseModel):
@@ -30,7 +30,10 @@ class TaxonomyNodeBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     slug: Optional[str] = None
     parent_id: Optional[int] = None
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None,
+        validation_alias=AliasChoices("metadata", "extra_data"),
+    )
 
 
 class TaxonomyNodeCreate(TaxonomyNodeBase):
@@ -43,7 +46,10 @@ class TaxonomyNodeUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     slug: Optional[str] = None
     parent_id: Optional[int] = None
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None,
+        validation_alias=AliasChoices("metadata", "extra_data"),
+    )
 
 
 class TaxonomyNodeResponse(TaxonomyNodeBase):

@@ -38,7 +38,7 @@ class StreamingService:
             return None
         
         # Check if content has media file
-        metadata = content.metadata or {}
+        metadata = content.extra_data or {}
         media_file = metadata.get("media_file")
         external_refs = content.external_refs or {}
         
@@ -165,7 +165,7 @@ class StreamingService:
         if not content:
             return None
         
-        metadata = content.metadata or {}
+        metadata = content.extra_data or {}
         external_refs = content.external_refs or {}
         
         # Get file size
