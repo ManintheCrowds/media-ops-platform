@@ -189,7 +189,7 @@ def test_request_download_complete_happy_path(sync_client):
     assert complete.json() == {"status": "completed", "package_id": package_id}
 
 
-def test_download_pending_returns_accepted(sync_client, tmp_path):
+def test_download_pending_returns_accepted(sync_client):
     client, session, device, _other = sync_client
     pkg = PiSyncPackage(
         device_id=device.id,
