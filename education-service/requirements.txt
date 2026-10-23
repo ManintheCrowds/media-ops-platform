@@ -11,7 +11,7 @@ bcrypt==4.1.2
 
 # Database
 sqlalchemy==2.0.51
-psycopg2-binary>=2.9.11
+psycopg2-binary>=2.9.12
 alembic==1.18.5
 
 # HTTP Clients
