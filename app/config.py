@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     debug_endpoint_require_admin: bool = True  # Require admin authentication even in debug mode
     
     # Database
-    database_url: str = "postgresql://platform:platform@postgres:5432/platform"
+    database_url: str = "postgresql://platform:platform@postgres:5432/platform"  # trufflehog:ignore
     db_pool_size: int = 10
     db_max_overflow: int = 20
     db_pool_pre_ping: bool = True

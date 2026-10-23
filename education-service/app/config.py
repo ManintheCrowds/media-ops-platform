@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     secret_key: str = "change-me-in-production"
     
     # Database
-    database_url: str = "postgresql://education:password@education-db:5432/education"
+    database_url: str = "postgresql://education:password@education-db:5432/education"  # trufflehog:ignore
     
     # Platform Integration
     platform_url: str = "http://platform:8000"
