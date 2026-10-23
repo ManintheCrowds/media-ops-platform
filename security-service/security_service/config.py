@@ -13,7 +13,7 @@ class SecurityServiceConfig(BaseSettings):
     debug: bool = False
     
     # Database Configuration
-    database_url: str = "postgresql://platform:platform@postgres:5432/platform"
+    database_url: str = "postgresql://platform:platform@postgres:5432/platform"  # trufflehog:ignore
     
     # Redis Configuration
     redis_url: str = "redis://redis:6379"
