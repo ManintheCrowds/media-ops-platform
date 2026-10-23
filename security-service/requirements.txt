@@ -20,7 +20,7 @@ pydantic>=2.13.4
 pydantic-settings>=2.14.2
 
 # Redis
-redis==8.0.1
+redis==8.1.0
 
 # Utilities
 python-dotenv==1.2.2
