@@ -5,7 +5,7 @@ python-multipart==0.0.32
 
 # Database
 sqlalchemy==2.0.51
-psycopg2-binary>=2.9.12
+psycopg2-binary>=2.9.13
 
 # HTTP Clients
 httpx==0.28.1
