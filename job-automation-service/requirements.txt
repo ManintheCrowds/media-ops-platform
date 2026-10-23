@@ -23,7 +23,7 @@ requests==2.34.2
 beautifulsoup4==4.15.0
 lxml==6.1.0
 selenium==4.46.0
-playwright==1.58.0
+playwright==1.62.0
 
 # LLM Integration
 ollama==0.4.7
