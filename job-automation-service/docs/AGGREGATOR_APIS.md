@@ -19,8 +19,8 @@ This guide explains how to use job aggregator APIs in the job automation service
 3. Configure in `.env`:
 
 ```env
-ADZUNA_API_ID=your_api_id
-ADZUNA_API_KEY=your_api_key
+ADZUNA_API_ID=changeme
+ADZUNA_API_KEY=changeme
 ```
 
 #### Usage
@@ -29,6 +29,7 @@ ADZUNA_API_KEY=your_api_key
 from app.services.api_clients.adzuna_api import AdzunaAPIClient
 
 client = AdzunaAPIClient()
+# Raises AdzunaCredentialsError if ADZUNA_API_ID or ADZUNA_API_KEY is missing.
 jobs = await client.search_jobs("Python developer", "Minneapolis, MN", limit=25)
 ```
 

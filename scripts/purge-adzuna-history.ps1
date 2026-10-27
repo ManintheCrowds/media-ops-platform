@@ -1,5 +1,8 @@
 # Purge verified Adzuna secrets from git history
 #
+# DO NOT RUN for the current rotation. History is not rewritten. The old key
+# is revoked in the Adzuna developer account, and the nightly scan ignores
+# only the historic paths in config/trufflehog-exclude.txt.
 # APPROVAL_NEEDED: Rotate Adzuna API keys at https://developer.adzuna.com/ BEFORE running.
 # APPROVAL_NEEDED: Force-push rewrites main — coordinate with collaborators.
 #

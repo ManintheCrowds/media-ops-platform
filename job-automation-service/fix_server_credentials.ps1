@@ -35,7 +35,11 @@ if (-not $env:DATABASE_URL) {
     Write-Host "  [WARN] DATABASE_URL not set. Please set it from .env file or secure storage." -ForegroundColor Yellow
 }
 
-Write-Host "  ADZUNA_API_ID: $env:ADZUNA_API_ID" -ForegroundColor Cyan
+if ($env:ADZUNA_API_ID) {
+    Write-Host "  ADZUNA_API_ID: Set" -ForegroundColor Cyan
+} else {
+    Write-Host "  ADZUNA_API_ID: NOT SET" -ForegroundColor Red
+}
 Write-Host "  ADZUNA_API_KEY: Set" -ForegroundColor Cyan
 Write-Host "  JSEARCH_API_KEY: Set" -ForegroundColor Cyan
 Write-Host "[OK] Environment variables set" -ForegroundColor Green

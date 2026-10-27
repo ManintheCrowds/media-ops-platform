@@ -5,13 +5,19 @@ import logging
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.config import settings
+from app.config import _find_env_file, settings
+from app.services.api_clients.adzuna_api import (
+    adzuna_credentials_message,
+    missing_adzuna_env_names,
+)
+from app.services.job_source_manager import JobSourceManager
 from app.database import Base
 from app.api import jobs, applications, matching, scheduler
 
 logger = logging.getLogger(__name__)
 
 LOG_PATH = Path(r"d:\portfolio-harness\.cursor\debug.log")
+
 
 def log_entry(session_id, run_id, hypothesis_id, location, message, data):
     """Write debug log entry."""
@@ -22,7 +28,7 @@ def log_entry(session_id, run_id, hypothesis_id, location, message, data):
         "location": location,
         "message": message,
         "data": data,
-        "timestamp": int(__import__('time').time() * 1000)
+        "timestamp": int(__import__("time").time() * 1000),
     }
     try:
         # Create directory if it doesn't exist
@@ -32,18 +38,28 @@ def log_entry(session_id, run_id, hypothesis_id, location, message, data):
     except Exception:
         pass
 
+
 # #region agent log
-log_entry("server-startup", "run1", "H-STARTUP", "app/main.py", "FastAPI app module loading", {
-    "python": __import__('sys').executable
-})
+log_entry(
+    "server-startup",
+    "run1",
+    "H-STARTUP",
+    "app/main.py",
+    "FastAPI app module loading",
+    {"python": __import__("sys").executable},
+)
 # #endregion agent log
 
 # Create FastAPI app
 # #region agent log
-log_entry("server-startup", "run1", "H-STARTUP", "app/main.py", "Creating FastAPI app", {
-    "app_name": settings.app_name,
-    "version": settings.app_version
-})
+log_entry(
+    "server-startup",
+    "run1",
+    "H-STARTUP",
+    "app/main.py",
+    "Creating FastAPI app",
+    {"app_name": settings.app_name, "version": settings.app_version},
+)
 # #endregion agent log
 
 app = FastAPI(
@@ -55,9 +71,14 @@ app = FastAPI(
 )
 
 # #region agent log
-log_entry("server-startup", "run1", "H-STARTUP", "app/main.py", "FastAPI app created", {
-    "success": True
-})
+log_entry(
+    "server-startup",
+    "run1",
+    "H-STARTUP",
+    "app/main.py",
+    "FastAPI app created",
+    {"success": True},
+)
 # #endregion agent log
 
 # CORS middleware
@@ -80,31 +101,27 @@ app.include_router(scheduler.router)
 async def startup_event():
     """Initialize database on startup and verify credentials."""
     # Database tables will be created by Alembic migrations
-    
-    # Verify credentials are loaded (for debugging)
-    import os
-    from pathlib import Path
-    from app.config import _find_env_file
-    
+
     env_file = _find_env_file()
     env_exists = Path(env_file).exists()
-    
+
     logger.info("=" * 80)
     logger.info("SERVER STARTUP - CREDENTIALS CHECK")
     logger.info("=" * 80)
     logger.info(f"Working Directory: {Path.cwd()}")
     logger.info(f"Env File Path: {env_file}")
     logger.info(f"Env File Exists: {env_exists}")
-    logger.info(f"Adzuna API ID: {settings.adzuna_api_id}")
-    logger.info(f"Adzuna API Key: {'Set' if settings.adzuna_api_key else 'NOT SET'}")
+    missing_adzuna = missing_adzuna_env_names()
+    if missing_adzuna:
+        logger.error("%s", adzuna_credentials_message(missing_adzuna))
+    else:
+        logger.info("Adzuna API credentials: set")
     logger.info(f"JSearch API Key: {'Set' if settings.jsearch_api_key else 'NOT SET'}")
-    
-    # Test JobSourceManager
-    from app.services.job_source_manager import JobSourceManager
+
     manager = JobSourceManager()
     has_adzuna = manager.has_api_client("adzuna")
     logger.info(f"Has Adzuna Client: {has_adzuna}")
-    
+
     if not has_adzuna:
         logger.warning("=" * 80)
         logger.warning("WARNING: Adzuna client not available!")
@@ -140,29 +157,28 @@ async def health():
 
 @app.get("/debug/credentials")
 async def debug_credentials():
-    """Debug endpoint to check what credentials the server sees."""
-    import os
-    from pathlib import Path
-    from app.services.job_source_manager import JobSourceManager
-    from app.config import _find_env_file
-    
+    """Report whether credentials are configured. Never returns secret values."""
     manager = JobSourceManager()
     env_file_path = _find_env_file()
-    
+    missing_adzuna = missing_adzuna_env_names()
+
     return {
         "working_directory": str(Path.cwd()),
         "env_file_path": env_file_path,
         "env_file_exists": Path(env_file_path).exists(),
-        "adzuna_api_id": bool(settings.adzuna_api_id),
-        "adzuna_api_id_value": settings.adzuna_api_id if settings.adzuna_api_id else None,
-        "adzuna_api_key": bool(settings.adzuna_api_key),
-        "adzuna_api_key_preview": settings.adzuna_api_key[:20] + "..." if settings.adzuna_api_key else None,
+        "adzuna_api_id": "ADZUNA_API_ID" not in missing_adzuna,
+        "adzuna_api_key": "ADZUNA_API_KEY" not in missing_adzuna,
+        "adzuna_credentials_message": (
+            adzuna_credentials_message(missing_adzuna) if missing_adzuna else None
+        ),
         "jsearch_api_key": bool(settings.jsearch_api_key),
         "has_adzuna_client": manager.has_api_client("adzuna"),
-        "adzuna_client": str(manager.api_clients.get("adzuna")) if manager.api_clients.get("adzuna") else None,
         "env_vars": {
-            "ADZUNA_API_ID": os.getenv("ADZUNA_API_ID", "NOT SET"),
-            "ADZUNA_API_KEY": "SET" if os.getenv("ADZUNA_API_KEY") else "NOT SET",
-        }
+            "ADZUNA_API_ID": (
+                "SET" if "ADZUNA_API_ID" not in missing_adzuna else "NOT SET"
+            ),
+            "ADZUNA_API_KEY": (
+                "SET" if "ADZUNA_API_KEY" not in missing_adzuna else "NOT SET"
+            ),
+        },
     }
-

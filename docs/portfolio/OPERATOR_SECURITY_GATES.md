@@ -6,21 +6,18 @@ These steps require human approval. Agents must not force-push or rotate third-p
 
 ---
 
-## Gate 1 — Adzuna history purge
+## Gate 1 — Adzuna credential rotation (no history rewrite)
 
-**Status (2026-06-23):** Not executed. Local TruffleHog: `verified=1`. Nightly scheduled TruffleHog CI **failing**.
+**Status:** Code reads `ADZUNA_API_ID` and `ADZUNA_API_KEY` from the environment only. Historic blobs stay in git. Do not run `scripts/purge-adzuna-history.ps1 -Execute` and do not force-push for this rotation.
 
-1. `REQUEST_HUMAN`: Rotate Adzuna API keys at https://developer.adzuna.com/
-2. On `main`, from repo root:
-   ```powershell
-   .\scripts\purge-adzuna-history.ps1 -Execute
-   ```
-3. Local verify: TruffleHog `verified=0`
-4. `git push --force-with-lease origin main`
-5. Confirm GitHub Actions `trufflehog-strict` and scheduled job green
+Andre (operator) still has to:
 
-**Script:** [scripts/purge-adzuna-history.ps1](../../scripts/purge-adzuna-history.ps1)  
-**Replacements:** [config/filter-repo-adzuna-replacements.txt](../../config/filter-repo-adzuna-replacements.txt)
+1. Issue a new app id and app key at https://developer.adzuna.com/ and revoke the old key.
+2. Set `ADZUNA_API_ID` and `ADZUNA_API_KEY` in the deploy environment (repo-root `.env` for root compose, and `job-automation-service/.env` for the service compose or a host process). No GitHub Actions secret is referenced.
+3. Replace `<date TBD by Andre>` in [config/trufflehog-exclude.txt](../../config/trufflehog-exclude.txt) with the revocation date. That file excludes only the historic paths on the nightly scan. The Adzuna detector stays on. Pull-request scans have no path excludes.
+4. Confirm the next scheduled TruffleHog run is green after the old key is revoked and the exclusion is on `main`.
+
+Placeholders in example files are `changeme`. Do not commit the new values.
 
 ---
 
