@@ -45,4 +45,4 @@
 ## Summary
 
 - **Done this pass:** MIT license, gitignore/untrack operator dirs, rebrand, README rewrite, portfolio case study rename, security markdown report.
-- **Still pending:** optional pip-audit locally, Grafana reliability screenshot (PF-REPO-2 — Branch B until homelab stack runs), Adzuna Gate 1 history purge, branch protection on `main`.
+- **Still pending:** optional pip-audit locally, Grafana reliability screenshot (PF-REPO-2 — Branch B until homelab stack runs), Adzuna key revocation (Gate 1; history is not rewritten), branch protection on `main`.

@@ -8,7 +8,7 @@ These steps require human approval. Agents must not force-push or rotate third-p
 
 ## Gate 1 — Adzuna credential rotation (no history rewrite)
 
-**Status:** Code reads `ADZUNA_API_ID` and `ADZUNA_API_KEY` from the environment only. Historic blobs stay in git. Do not run `scripts/purge-adzuna-history.ps1 -Execute` and do not force-push for this rotation.
+**Status:** Code reads `ADZUNA_API_ID` and `ADZUNA_API_KEY` from the environment only. Historic blobs stay in git. The old key is revoked in the Adzuna developer account. History is not rewritten.
 
 Andre (operator) still has to:
 
