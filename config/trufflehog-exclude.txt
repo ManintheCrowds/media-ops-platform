@@ -12,8 +12,9 @@
 #
 # Historic Adzuna app id + app key only. The old key was revoked on
 # <date TBD by Andre> at https://developer.adzuna.com/ — fill that date in
-# after revocation. This is a scheduled full-history exclude for the blobs
-# below, not a detector disable. trufflehog-strict (pull request and push)
+# after revocation. Prepared in draft PR 152. This scheduled full-history
+# exclude covers only the paths below. It does not disable the detector.
+# trufflehog-strict (pull request and push)
 # has no path excludes and still verifies new Adzuna findings.
 # One secret, these commits: 7c07e7b78403, 726225a6c193, f708e4c85c47,
 # 641d4f19dabf. Current tree reads ADZUNA_API_ID and ADZUNA_API_KEY from
