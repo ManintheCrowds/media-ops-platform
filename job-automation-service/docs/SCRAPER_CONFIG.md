@@ -206,8 +206,8 @@ ENABLE_REFERER_CHAIN=true
 COOKIE_PERSISTENCE=true
 
 # API Keys
-ADZUNA_API_KEY=your_key
-ADZUNA_API_ID=your_id
+ADZUNA_API_KEY=changeme
+ADZUNA_API_ID=changeme
 JSEARCH_API_KEY=your_key
 ```
 

@@ -16,12 +16,10 @@ trufflehog filesystem . --results=verified,unknown --exclude-paths=config/truffl
 
 - **Detector:** Adzuna
 - **Source:** `job-automation-service/.env.backup` (gitignored on main; present in git history and may exist locally)
-- **Remediation:** rotate keys at https://developer.adzuna.com/ → `scripts/purge-adzuna-history.ps1 -Execute` → `git push --force-with-lease origin main`
+- **Remediation:** revoke the old key at https://developer.adzuna.com/. Historic blobs stay in git. The nightly scan ignores only those paths in [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt) after revocation. History is not rewritten.
 
 ## Unverified noise (Gate 2)
 
 - Dev compose `${*_POSTGRES_PASSWORD:-changeme}` — excluded on **schedule** only via [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt)
 - Docs: five root `docs/*.md` URIs updated to `${POSTGRES_PASSWORD}` placeholders (2026-06-10)
 - Remaining: `education-service/docs/DEPLOYMENT.md` example URI (optional follow-up)
-
-Path excludes do **not** reduce verified Adzuna count; only history purge clears it.

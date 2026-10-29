@@ -7,9 +7,24 @@
 # (postgres, education-db, job-automation-db, localhost). No other detectors
 # fired in those paths. File-level because history blobs cannot carry
 # trufflehog:ignore; strict PR/push scans still have no excludes.
-# Do not add Adzuna or VirusTotal paths here. Those hits are real credential
-# material (32-hex Adzuna key shared with .env.backup; 64-hex VirusTotal key
-# that nightly verification has confirmed). They stay in the scan.
+# Do not add VirusTotal paths here. That hit is real credential material
+# (64-hex key that nightly verification has confirmed). It stays in the scan.
+#
+# Historic Adzuna app id + app key only. The old key was revoked on
+# <date TBD by Andre> at https://developer.adzuna.com/ — fill that date in
+# after revocation. Prepared in draft PR 152. This scheduled full-history
+# exclude covers only the paths below. It does not disable the detector.
+# trufflehog-strict (pull request and push)
+# has no path excludes and still verifies new Adzuna findings.
+# One secret, these commits: 7c07e7b78403, 726225a6c193, f708e4c85c47,
+# 641d4f19dabf. Current tree reads ADZUNA_API_ID and ADZUNA_API_KEY from
+# the environment. Do not add other Adzuna paths.
+^job-automation-service/\.env\.backup$
+^job-automation-service/ENV_FILE_FIX_SUMMARY\.md$
+^job-automation-service/NEXT_STEPS_TO_FIX\.md$
+^job-automation-service/SERVER_DEBUG_INSTRUCTIONS\.md$
+^job-automation-service/TEST_RESULTS_SUMMARY\.md$
+^job-automation-service/fix_server_credentials\.ps1$
 ^docker-compose\.yml$
 ^docker-compose\.vlans\.yml$
 ^job-automation-service/docker-compose\.yml$

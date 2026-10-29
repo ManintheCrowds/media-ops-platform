@@ -430,6 +430,9 @@ services:
       - DATABASE_URL=postgresql://jobautomation:${JOB_AUTOMATION_POSTGRES_PASSWORD:-changeme}@job-automation-db:5432/jobautomation
       - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
       - PLATFORM_URL=http://platform:8000
+      # From the deploy environment or repo-root .env. Never commit real values.
+      - ADZUNA_API_ID=${ADZUNA_API_ID:-}
+      - ADZUNA_API_KEY=${ADZUNA_API_KEY:-}
     volumes:
       - ./job-automation-service:/app
     ports:
