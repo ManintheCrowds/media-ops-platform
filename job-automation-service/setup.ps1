@@ -48,11 +48,11 @@ if ($LASTEXITCODE -ne 0) {
 
 # Set database URL based on environment
 if ($useDocker) {
-    $env:DATABASE_URL = "postgresql://jobautomation:password@job-automation-db:5432/jobautomation"
+    $env:DATABASE_URL = "postgresql://jobautomation:password@job-automation-db:5432/jobautomation"  # trufflehog:ignore
     Write-Host "Using Docker database URL" -ForegroundColor Green
 } else {
     # Use port 5433 if database is in Docker (exposed port), 5432 for local PostgreSQL
-    $env:DATABASE_URL = "postgresql://jobautomation:password@localhost:5433/jobautomation"
+    $env:DATABASE_URL = "postgresql://jobautomation:password@localhost:5433/jobautomation"  # trufflehog:ignore
     Write-Host "Using localhost database URL (port 5433 for Docker)" -ForegroundColor Green
 }
 
