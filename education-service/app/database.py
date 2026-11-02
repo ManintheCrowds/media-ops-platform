@@ -5,12 +5,18 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app.config import settings
 
+_engine_kwargs: dict = {"pool_pre_ping": True}
+_connect_args: dict = {}
+if settings.database_url.startswith("sqlite"):
+    _connect_args = {"check_same_thread": False}
+else:
+    _engine_kwargs.update(pool_size=10, max_overflow=20)
+
 # Create database engine
 engine = create_engine(
     settings.database_url,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
+    connect_args=_connect_args,
+    **_engine_kwargs,
 )
 
 # Create session factory
@@ -27,10 +33,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
-
-
-
-
-

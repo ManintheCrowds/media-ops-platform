@@ -142,7 +142,7 @@ class TaxonomyService:
             name=node_data.name,
             slug=slug,
             parent_id=node_data.parent_id,
-            metadata=node_data.metadata or {},
+            extra_data=node_data.metadata or {},
             level=0  # Will be calculated
         )
         
@@ -196,7 +196,7 @@ class TaxonomyService:
             node.slug = node_data.slug
         
         if node_data.metadata is not None:
-            node.metadata = node_data.metadata
+            node.extra_data = node_data.metadata
         
         if node_data.parent_id is not None:
             # Prevent circular references

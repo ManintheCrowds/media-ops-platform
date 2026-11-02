@@ -2,7 +2,7 @@
 
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, AliasChoices
 from app.models.project import ProjectStatus
 from app.schemas.content import ContentItemResponse
 
@@ -13,7 +13,10 @@ class ProjectBase(BaseModel):
     slug: Optional[str] = None
     description: Optional[str] = None
     status: ProjectStatus = ProjectStatus.DRAFT
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None,
+        validation_alias=AliasChoices("metadata", "extra_data"),
+    )
 
 
 class ProjectCreate(ProjectBase):
@@ -27,7 +30,10 @@ class ProjectUpdate(BaseModel):
     slug: Optional[str] = None
     description: Optional[str] = None
     status: Optional[ProjectStatus] = None
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None,
+        validation_alias=AliasChoices("metadata", "extra_data"),
+    )
 
 
 class ProjectResponse(ProjectBase):
