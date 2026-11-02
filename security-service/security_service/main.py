@@ -411,6 +411,48 @@ async def trigger_vulnerability_scan(
 
 
 # Audit Logs API
+class AuditEventCreate(pydantic.BaseModel):
+    """Inbound audit event from platform or peer services."""
+
+    event_type: str
+    action: str
+    success: bool = True
+    user_id: Optional[int] = None
+    username: Optional[str] = None
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    resource_type: Optional[str] = None
+    resource_id: Optional[str] = None
+    details: Optional[dict] = None
+
+
+@app.post("/api/security/audit", status_code=status.HTTP_201_CREATED)
+async def create_audit_log(
+    event: AuditEventCreate,
+    db: Session = Depends(get_db),
+):
+    """Ingest an audit event."""
+    audit_logger = get_audit_logger(db)
+    entry = audit_logger.log_event(
+        event_type=event.event_type,
+        action=event.action,
+        user_id=event.user_id,
+        username=event.username,
+        resource_type=event.resource_type,
+        resource_id=event.resource_id,
+        ip_address=event.ip_address,
+        user_agent=event.user_agent,
+        success=event.success,
+        details=event.details,
+    )
+    return {
+        "id": entry.id,
+        "event_type": entry.event_type,
+        "action": entry.action,
+        "success": entry.success,
+    }
+
+
 @app.get("/api/security/audit")
 async def get_audit_logs(
     event_type: Optional[str] = None,

@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, Header, Request
 from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.dependencies import get_current_user, UserInfo
+from app.dependencies import get_current_device
+from app.auth.device_auth import DevicePrincipal
 from app.services.pi_service import PiDeviceService
 from app.services.streaming_service import StreamingService
 
@@ -19,7 +20,7 @@ async def stream_content(
     request: Request,
     range_header: Optional[str] = Header(None, alias="Range"),
     db: Session = Depends(get_db),
-    current_user: UserInfo = Depends(get_current_user),
+    _device: DevicePrincipal = Depends(get_current_device),
 ):
     """Stream media content with HTTP range request support."""
     # Verify device exists
@@ -72,7 +73,7 @@ async def get_stream_info(
     device_id: str,
     content_id: int,
     db: Session = Depends(get_db),
-    current_user: UserInfo = Depends(get_current_user),
+    _device: DevicePrincipal = Depends(get_current_device),
 ):
     """Get stream metadata."""
     # Verify device exists

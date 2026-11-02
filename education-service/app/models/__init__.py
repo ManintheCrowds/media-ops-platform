@@ -6,10 +6,10 @@ from app.database import Base
 from app.models.organization import Organization
 from app.models.project import Project
 from app.models.content import ContentItem, ContentVersion
-from app.models.taxonomy import TaxonomyNode, Tag, ContentTag, ContentTaxonomy
+from app.models.taxonomy import TaxonomyNode, Tag
 from app.models.progress import UserProgress
 from app.models.assessment import Assessment, AssessmentSubmission
-from app.models.pi_device import PiDevice, PiSyncPackage
+from app.models.pi_device import PiDevice, PiSyncPackage, PackageStatus
 
 __all__ = [
     "Base",
@@ -19,13 +19,12 @@ __all__ = [
     "ContentVersion",
     "TaxonomyNode",
     "Tag",
-    "ContentTag",
-    "ContentTaxonomy",
     "UserProgress",
     "Assessment",
     "AssessmentSubmission",
     "PiDevice",
     "PiSyncPackage",
+    "PackageStatus",
 ]
 
 
