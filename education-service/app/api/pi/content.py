@@ -4,7 +4,8 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.dependencies import get_current_user, UserInfo
+from app.dependencies import get_current_device
+from app.auth.device_auth import DevicePrincipal
 from app.services.content_service import ContentService
 from app.services.pi_service import PiDeviceService
 from app.schemas.content import ContentItemResponse
@@ -17,7 +18,7 @@ async def get_device_content(
     device_id: str,
     project_id: Optional[int] = Query(None, description="Filter by project ID"),
     db: Session = Depends(get_db),
-    current_user: UserInfo = Depends(get_current_user),
+    _device: DevicePrincipal = Depends(get_current_device),
 ):
     """Get content list for device (optimized format)."""
     # Verify device exists and belongs to user's organization
@@ -45,7 +46,7 @@ async def get_device_content_item(
     device_id: str,
     content_id: int,
     db: Session = Depends(get_db),
-    current_user: UserInfo = Depends(get_current_user),
+    _device: DevicePrincipal = Depends(get_current_device),
 ):
     """Get specific content item for device (optimized format)."""
     # Verify device exists
@@ -70,7 +71,7 @@ async def get_device_content_item(
 async def get_display_config(
     device_id: str,
     db: Session = Depends(get_db),
-    current_user: UserInfo = Depends(get_current_user),
+    _device: DevicePrincipal = Depends(get_current_device),
 ):
     """Get display configuration for device."""
     device = PiDeviceService.get_device(db, device_id)

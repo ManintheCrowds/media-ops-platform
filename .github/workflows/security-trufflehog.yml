@@ -15,7 +15,9 @@ permissions:
 
 jobs:
   trufflehog-strict:
-    if: github.event_name != 'schedule'
+    # Diff scan only. workflow_dispatch runs the full-history job below so the
+    # nightly configuration can be checked without waiting for the cron.
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,7 +34,7 @@ jobs:
           extra_args: --results=verified,unknown
 
   trufflehog-scheduled:
-    if: github.event_name == 'schedule'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
