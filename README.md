@@ -1,90 +1,64 @@
-# media-ops-platform — CaptionPipeline + Platform API
+# media-ops-platform — homelab Platform API
 
-Production media caption automation and a self-hosted FastAPI integration plane for homelab services.
+Self-hosted FastAPI integration plane: JWT auth, service registry, API gateway, and a dashboard in front of compose-backed homelab apps.
+
+This clone does **not** run CaptionPipeline workers (WhisperX / SCC). That work is a dated portfolio case study under [docs/portfolio/](docs/portfolio/README.md).
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/) [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![Tests](https://github.com/ManintheCrowds/media-ops-platform/actions/workflows/tests.yml/badge.svg)](https://github.com/ManintheCrowds/media-ops-platform/actions/workflows/tests.yml)
 
-## CaptionPipeline — Problem → Solution → Impact
-
-- **Problem:** Large video libraries were hard to search and lacked consistent captions; manual captioning did not scale across multiple production feeds.
-- **Solution:** End-to-end pipeline: ingest → WhisperX transcription → broadcast SCC-format captions → publication to VOD/search with monitoring and alerting.
-- **Impact (portfolio snapshot, Dec 2025):** 256+ caption files, 330+ content hours, ~93.5% success rate, &lt;1% errors, 100% uptime across **9 production feeds** (see [docs/portfolio/README.md](docs/portfolio/README.md) for metrics and diagram sources). Live homelab Grafana capture pending — [PF-REPO-2](docs/portfolio/README.md).
-
-### CaptionPipeline architecture
-
-```mermaid
-flowchart LR
-  subgraph ingest [Ingest]
-    V[Video sources]
-  end
-  subgraph core [CaptionPipeline]
-    W[WhisperX]
-    S[SCC captions]
-    Q[Quality check]
-  end
-  subgraph out [Outputs]
-    P[Publish VOD/search]
-    M[Prometheus/Grafana]
-  end
-  V --> W --> S --> Q --> P
-  Q --> M
-```
-
-Export PNGs from [docs/portfolio/architecture-high-level.mmd](docs/portfolio/architecture-high-level.mmd) for portfolio pages.
-
----
-
-## Platform API
-
-One place to run and manage security, job automation, education, and monitoring services—with a single dashboard, SSO, and an API gateway so everything is discoverable and authenticated in one go.
-
 ## Platform API — Problem → Solution → Impact
 
-- **Problem:** Self-hosted services (Jellyfin, Seafile, Gitea, Vaultwarden, etc.) each have their own auth, dashboards, and health checks—no single pane of glass.
-- **Solution:** FastAPI-based Platform API with OAuth2/JWT SSO, service registry, API gateway, and unified dashboard.
-- **Impact:** Single sign-on across services; centralized monitoring; one API to discover and manage everything.
+- **Problem:** Homelab apps each ship their own login, health, and UI. Operators want one authenticated place to discover and proxy them.
+- **Solution:** FastAPI Platform API with OAuth2-password / JWT for the dashboard and API, a service registry, a gateway to registered backends, Nginx on port 80, Postgres, Redis, Prometheus, and Grafana.
+- **Impact:** One clone-and-compose plane for the apps listed below. This is **not** federated SSO into Jellyfin, Seafile, Gitea, or Vaultwarden — those keep their own accounts unless you configure them separately.
+
+### What `docker compose` starts (default file)
 
 ```mermaid
 flowchart TB
-  subgraph platform [Platform API]
-    API[FastAPI Gateway]
-    Auth[OAuth2/JWT SSO]
-    Registry[Service Registry]
+  subgraph edge [Edge]
+    NGX[nginx :80]
+    API[platform FastAPI :8000]
   end
-  subgraph services [Services]
-    Jellyfin[Jellyfin]
-    Seafile[Seafile]
-    Gitea[Gitea]
-    Vaultwarden[Vaultwarden]
+  subgraph data [Data]
+    PG[postgres]
+    R[redis]
   end
-  subgraph monitor [Monitoring]
-    Prom[Prometheus]
-    Grafana[Grafana]
+  subgraph apps [Homelab apps]
+    JF[jellyfin]
+    SF[seafile]
+    GT[gitea]
+    VW[vaultwarden]
+    BS[bookstack]
   end
-  API --> Auth
-  API --> Registry
-  API --> Jellyfin
-  API --> Seafile
-  API --> Gitea
-  API --> Vaultwarden
-  API --> Prom
-  Prom --> Grafana
+  subgraph extras [In-tree services]
+    EDU[education-service]
+    JOB[job-automation-service]
+    SEC[security-service]
+  end
+  subgraph mon [Monitoring]
+    PROM[prometheus]
+    GRAF[grafana]
+  end
+  NGX --> API
+  API --> PG
+  API --> R
+  API --> JF
+  API --> SF
+  API --> GT
+  API --> VW
+  API --> BS
+  API --> EDU
+  API --> JOB
+  API --> SEC
+  PROM --> GRAF
 ```
 
-## Tech stack
-
-| Area | Technologies |
-|------|----------------|
-| CaptionPipeline | WhisperX, Celery, Redis, PostgreSQL, Flask/FastAPI workers, Prometheus, Grafana |
-| Platform API | FastAPI, SQLAlchemy, Alembic, OAuth2/JWT, Docker Compose, Nginx |
-
-## What runs from this clone
-
-**Runnable in-repo:** Platform API and homelab services via `docker compose up` (see Quick start). **CaptionPipeline** architecture, metrics, and case study live under [docs/portfolio/](docs/portfolio/README.md); pipeline workers are not the primary `app/` entrypoint in this repository tree.
+Auth for `/dashboard` and `/api/*` is the platform JWT. Gateway calls may forward a per-service token from the registry; they do not log you into those apps as a single IdP.
 
 ## Quick start
 
-**Prerequisites:** Docker and Docker Compose, 4GB+ RAM, 20GB+ disk.
+**Prerequisites:** Docker and Docker Compose, 4GB+ RAM, 20GB+ disk. Default compose is homelab-sized (many services). CI runs tests without this stack.
 
 ```bash
 git clone https://github.com/ManintheCrowds/media-ops-platform.git
@@ -94,18 +68,49 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Initialize the platform database and create an admin user — see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for full steps. Dashboard (when compose profile includes it): `http://localhost/dashboard`.
+- Platform API: `http://localhost:8000` (OpenAPI at `/docs`, health at `GET /api/health`)
+- Dashboard (nginx): `http://localhost/dashboard`
 
-> **Note:** Full multi-service compose is homelab-oriented; minimal CI runs unit/integration tests without the entire stack.
+Initialize the database and create an admin user: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (`POST /api/auth/init-db`, register, then `is_admin`). Venv-only development: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+
+## Tech stack (this clone)
+
+| Area | Technologies |
+|------|----------------|
+| Platform API | FastAPI, SQLAlchemy, Alembic, OAuth2-password / JWT, Python 3.11 |
+| Runtime | Docker Compose, Nginx, PostgreSQL 15, Redis |
+| Homelab images | Jellyfin, Seafile, Gitea, Vaultwarden, BookStack |
+| Observability | Prometheus, Grafana |
+
+## Also in this tree
+
+Pointers only — not a second product pitch.
+
+| Path | What it is |
+|------|------------|
+| [education-service](education-service/README.md) | Education CMS (also a compose service) |
+| [job-automation-service](job-automation-service/README.md) | Job scrape/match (also a compose service) |
+| [security-service](security-service/README.md) | Security service (also a compose service) |
+| [monitoring](monitoring/README.md) | Prometheus/Grafana operator notes |
+| [home-cyber-risk](home-cyber-risk/README.md) | Separate HIBP/DNS awareness stack (own compose) |
+| [pi-client](pi-client/README.md) | Raspberry Pi client for the education path |
+| [portfolio](portfolio/README.md) | Static portfolio site |
+
+`ansible/` is operator automation. `terraform/` is a stub, not an implementation.
+
+## CaptionPipeline — portfolio case study (not this runtime)
+
+**Snapshot (Dec 2025), not live from this compose:** 256+ caption files, 330+ content hours, ~93.5% success, 9 production feeds. Source of truth: [docs/portfolio/metrics.json](docs/portfolio/metrics.json). Live Grafana capture is still deferred ([PF-REPO-2](docs/portfolio/README.md)).
+
+Pipeline workers (WhisperX → SCC → publish) are **not** in `app/` or root compose. Architecture sources: [docs/portfolio/architecture-high-level.mmd](docs/portfolio/architecture-high-level.mmd).
 
 ## Documentation
 
-- [docs/API.md](docs/API.md) — Platform OpenAPI entry and CaptionPipeline surfaces
-- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) — Local development and testing
-- [docs/portfolio/README.md](docs/portfolio/README.md) — Portfolio metrics and diagram export
+- [docs/API.md](docs/API.md) — Platform OpenAPI entry
+- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) — Local venv and tests
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — Compose deploy, DB init, admin user
+- [docs/portfolio/README.md](docs/portfolio/README.md) — CaptionPipeline case-study kit
 - [ROADMAP.md](ROADMAP.md) — Planned work
-
-Service-level READMEs: [education-service](education-service/README.md), [job-automation-service](job-automation-service/README.md), [monitoring](monitoring/README.md), [security-service](security-service/README.md).
 
 ## Testing
 
@@ -114,7 +119,7 @@ python -m pip install -r requirements.txt
 python -m pytest tests/ -v
 ```
 
-CI runs lint, unit, and integration workflows on push/PR — see [.github/workflows/tests.yml](.github/workflows/tests.yml).
+CI: lint, unit, integration (path-filtered) — [.github/workflows/tests.yml](.github/workflows/tests.yml).
 
 ## License
 
