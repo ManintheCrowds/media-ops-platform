@@ -25,7 +25,8 @@ class Project(Base):
     slug = Column(String(255), nullable=False, index=True)
     description = Column(Text)
     status = Column(SQLEnum(ProjectStatus), default=ProjectStatus.DRAFT, nullable=False)
-    metadata = Column(JSON)  # Project-specific data
+    # DB column remains "metadata"; attr renamed — Declarative reserves .metadata
+    extra_data = Column("metadata", JSON)
     created_by = Column(String(255), nullable=False)  # Reference to platform user
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

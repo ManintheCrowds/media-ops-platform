@@ -8,7 +8,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from app.config import settings
-from app.api import services, health, gateway, scheduler, camera, encoder
+from app.api import services, health, gateway, scheduler, camera, encoder, capabilities
 from app.auth import oauth2, jwt_handler
 import os
 import logging
@@ -89,6 +89,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 # Include routers
 app.include_router(oauth2.router, prefix="/api/auth", tags=["authentication"])
+app.include_router(capabilities.router, prefix="/api/capabilities", tags=["capabilities"])
 app.include_router(services.router, prefix="/api/services", tags=["services"])
 app.include_router(health.router, prefix="/api/health", tags=["health"])
 app.include_router(gateway.router, prefix="/api/gateway", tags=["gateway"])
@@ -138,6 +139,7 @@ async def api_info():
         "version": settings.app_version,
         "endpoints": {
             "auth": "/api/auth",
+            "capabilities": "/api/capabilities",
             "services": "/api/services",
             "health": "/api/health",
             "gateway": "/api/gateway",

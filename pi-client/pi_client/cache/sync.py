@@ -133,25 +133,49 @@ class SyncManager:
             return False
     
     async def _extract_package(self, package_path: str, package_id: int):
-        """Extract sync package."""
+        """Extract sync package with path-traversal protection."""
         try:
             with tarfile.open(package_path, "r:gz") as tar:
-                # Extract to cache directory
                 extract_path = self.cache_manager.storage.cache_dir / "extracted" / str(package_id)
                 extract_path.mkdir(parents=True, exist_ok=True)
-                
-                tar.extractall(extract_path)
-                
-                # Process extracted files
+
+                members = []
+                for member in tar.getmembers():
+                    if not self._is_safe_tar_member(member, extract_path):
+                        raise ValueError(
+                            f"Unsafe tar member rejected: {member.name!r}"
+                        )
+                    members.append(member)
+
+                # Prefer filter= when available (Python 3.12+)
+                try:
+                    tar.extractall(extract_path, members=members, filter="data")
+                except TypeError:
+                    tar.extractall(extract_path, members=members)
+
                 await self._process_extracted_files(extract_path)
-                
-                # Clean up
+
                 import shutil
                 shutil.rmtree(extract_path)
-                
+
         except Exception as e:
             logger.error(f"Failed to extract package {package_id}: {e}", exc_info=True)
             raise
+
+    @staticmethod
+    def _is_safe_tar_member(member: tarfile.TarInfo, extract_path: Path) -> bool:
+        """Reject absolute paths and path traversal in tar members."""
+        name = member.name
+        if not name or name.startswith("/") or name.startswith("\\"):
+            return False
+        if ".." in Path(name).parts:
+            return False
+        target = (extract_path / name).resolve()
+        try:
+            target.relative_to(extract_path.resolve())
+        except ValueError:
+            return False
+        return True
     
     async def _process_extracted_files(self, extract_path: Path):
         """Process files extracted from sync package."""

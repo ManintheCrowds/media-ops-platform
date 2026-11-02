@@ -4,7 +4,7 @@
 
 ### Prerequisites
 
-- Python 3.10 or 3.11
+- Python 3.11 (Dockerfile uses `python:3.11-slim`; 3.10 may work for local venv)
 - PostgreSQL 15+ (or Docker)
 - Docker and Docker Compose (optional)
 - Git
@@ -13,8 +13,8 @@
 
 1. **Clone the repository:**
 ```bash
-git clone <repository-url>
-cd software
+git clone https://github.com/ManintheCrowds/media-ops-platform.git
+cd media-ops-platform
 ```
 
 2. **Create virtual environment:**
@@ -49,6 +49,8 @@ createdb platform
 python -c "from app.main import app; from app.models import Base; from app.config import settings; from sqlalchemy import create_engine; engine = create_engine(settings.database_url); Base.metadata.create_all(bind=engine)"
 ```
 
+Admin user (register + `is_admin`): see [DEPLOYMENT.md](DEPLOYMENT.md), not this file.
+
 7. **Run the application:**
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -57,7 +59,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ## Project Structure
 
 ```
-software/
+media-ops-platform/
 ├── app/                    # Main application
 │   ├── main.py            # FastAPI app entry point
 │   ├── config.py          # Configuration
