@@ -321,7 +321,10 @@ jobs:
       - name: Install security tools
         run: |
           python -m pip install --upgrade pip
+          # Runner-bundled setuptools can lag Safety advisories (e.g. CVE-2026-59890 <83).
+          python -m pip install --upgrade "setuptools>=83.0.0"
           pip install bandit safety
+          python -m pip install --upgrade "setuptools>=83.0.0"
       
       - name: Run Bandit security scan
         run: |
