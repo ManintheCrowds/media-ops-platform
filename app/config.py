@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     debug_endpoint_require_admin: bool = True  # Require admin authentication even in debug mode
     
     # Database
-    database_url: str = "postgresql://platform:platform@postgres:5432/platform"
+    database_url: str = "postgresql://platform:platform@postgres:5432/platform"  # trufflehog:ignore
     db_pool_size: int = 10
     db_max_overflow: int = 20
     db_pool_pre_ping: bool = True
@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expiration_minutes: int = 30
     oauth2_token_url: str = "/api/auth/token"
+
+    # Security-service audit emit (best-effort)
+    security_service_url: str = "http://security-service:8001"
+    security_audit_timeout_seconds: float = 1.0
     
     # Service URLs
     seafile_url: Optional[str] = "http://seafile:8000"

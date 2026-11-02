@@ -45,7 +45,8 @@ class TaxonomyNode(Base):
     slug = Column(String(255), nullable=False, index=True)
     parent_id = Column(Integer, ForeignKey("taxonomy_nodes.id"), nullable=True)  # For hierarchical taxonomy
     level = Column(Integer, default=0, nullable=False)  # Depth in hierarchy
-    metadata = Column(JSON)
+    # DB column remains "metadata"; attr renamed — Declarative reserves .metadata
+    extra_data = Column("metadata", JSON)
     
     # Relationships
     parent = relationship("TaxonomyNode", remote_side=[id], backref="children")

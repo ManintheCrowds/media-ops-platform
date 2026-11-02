@@ -1,6 +1,15 @@
 # Operator approved 2026-06-10: five dev compose paths (scheduled scan only).
 # PR/push uses trufflehog-strict with NO excludes. NOT docker-compose.prod.yml.
 # Operator approved 2026-07-09: example/placeholder paths (scheduled scan only).
+# 2026-10-23: dev-default Postgres DSNs only. An all-detector history scan of
+# these six paths found Postgres hits whose password is the literal "password"
+# or the same word as the username ("platform"), on docker hostnames
+# (postgres, education-db, job-automation-db, localhost). No other detectors
+# fired in those paths. File-level because history blobs cannot carry
+# trufflehog:ignore; strict PR/push scans still have no excludes.
+# Do not add Adzuna or VirusTotal paths here. Those hits are real credential
+# material (32-hex Adzuna key shared with .env.backup; 64-hex VirusTotal key
+# that nightly verification has confirmed). They stay in the scan.
 ^docker-compose\.yml$
 ^docker-compose\.vlans\.yml$
 ^job-automation-service/docker-compose\.yml$
@@ -14,3 +23,9 @@
 ^.*alembic\.ini$
 ^.*SCRAPER_CONFIG\.md$
 ^.*env\.example$
+^AGENTS\.md$
+^app/config\.py$
+^education-service/app/config\.py$
+^education-service/docs/DEPLOYMENT\.md$
+^job-automation-service/setup\.ps1$
+^security-service/security_service/config\.py$
