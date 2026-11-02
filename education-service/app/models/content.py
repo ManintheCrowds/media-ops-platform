@@ -28,7 +28,8 @@ class ContentItem(Base):
     slug = Column(String(500), nullable=False, index=True)
     description = Column(Text)
     body = Column(Text)  # Main content
-    metadata = Column(JSON)  # Content-specific data
+    # DB column remains "metadata"; attr renamed — Declarative reserves .metadata
+    extra_data = Column("metadata", JSON)
     external_refs = Column(JSON)  # References to BookStack/Gitea/Seafile/Jellyfin
     version = Column(Integer, default=1, nullable=False)
     parent_id = Column(Integer, ForeignKey("content_items.id"), nullable=True)  # For hierarchical content
@@ -56,7 +57,7 @@ class ContentVersion(Base):
     version_number = Column(Integer, nullable=False)
     title = Column(String(500), nullable=False)
     body = Column(Text)
-    metadata = Column(JSON)  # Snapshot of content metadata
+    extra_data = Column("metadata", JSON)  # Snapshot of content metadata
     created_by = Column(String(255), nullable=False)  # Reference to platform user
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     

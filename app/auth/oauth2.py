@@ -20,6 +20,7 @@ from app.config import settings
 from app.models import User, Base
 from app.auth.jwt_handler import create_access_token, verify_token
 from app.database import get_db
+from app.utils.audit_emit import emit_audit_event
 
 logger = logging.getLogger(__name__)
 
@@ -120,12 +121,23 @@ async def get_current_user(
 
 @router.post("/token", response_model=Token)
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+    request: Request,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
 ) -> Token:
     """OAuth2 token endpoint."""
+    client_ip = request.client.host if request.client else None
     user = db.query(User).filter(User.username == form_data.username).first()
 
     if not user or not verify_password(form_data.password, user.hashed_password):
+        emit_audit_event(
+            "auth.fail",
+            "login",
+            success=False,
+            username=form_data.username,
+            ip_address=client_ip,
+            details={"reason": "invalid_credentials"},
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -133,6 +145,15 @@ async def login(
         )
 
     if not user.is_active:
+        emit_audit_event(
+            "auth.fail",
+            "login",
+            success=False,
+            user_id=user.id,
+            username=user.username,
+            ip_address=client_ip,
+            details={"reason": "inactive"},
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="User account is inactive"
         )
@@ -141,6 +162,15 @@ async def login(
     access_token = create_access_token(
         data={"sub": user.username, "email": user.email, "is_admin": user.is_admin},
         expires_delta=access_token_expires,
+    )
+
+    emit_audit_event(
+        "auth.login",
+        "login",
+        success=True,
+        user_id=user.id,
+        username=user.username,
+        ip_address=client_ip,
     )
 
     return {"access_token": access_token, "token_type": OAUTH2_TOKEN_TYPE}
@@ -242,6 +272,19 @@ async def get_current_user_info(
 ) -> UserResponse:
     """Get current user information."""
     return current_user
+
+
+@router.get("/validate")
+async def validate_token(
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, object]:
+    """Validate Bearer token for peer services (e.g. education-service)."""
+    return {
+        "sub": current_user.username,
+        "email": current_user.email,
+        "is_admin": current_user.is_admin,
+        "is_active": current_user.is_active,
+    }
 
 
 @router.post("/init-db")
