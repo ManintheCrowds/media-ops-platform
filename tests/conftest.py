@@ -17,6 +17,8 @@ from faker import Faker
 # Set required environment variables before importing app modules
 os.environ.setdefault("SECRET_KEY", "test-secret-key-32-chars-long-enough")
 os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-32-chars-long-enough")
+# Import-safe default: conftest overrides get_db with in-memory sqlite per test
+os.environ.setdefault("DATABASE_URL", "sqlite://")
 # Writable storage paths for CameraConfig/EncoderConfig validation on CI runners
 _test_storage_root = os.path.join(tempfile.gettempdir(), "platform-test-storage")
 os.makedirs(os.path.join(_test_storage_root, "camera_recordings"), exist_ok=True)

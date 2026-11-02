@@ -2,7 +2,7 @@
 
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, AliasChoices
 from app.models.content import ContentType
 
 
@@ -13,7 +13,10 @@ class ContentItemBase(BaseModel):
     description: Optional[str] = None
     body: Optional[str] = None
     content_type: ContentType
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None,
+        validation_alias=AliasChoices("metadata", "extra_data"),
+    )
     external_refs: Optional[Dict[str, Any]] = None
     parent_id: Optional[int] = None
 
@@ -28,7 +31,10 @@ class ContentItemUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=500)
     description: Optional[str] = None
     body: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None,
+        validation_alias=AliasChoices("metadata", "extra_data"),
+    )
     external_refs: Optional[Dict[str, Any]] = None
     parent_id: Optional[int] = None
 
@@ -53,7 +59,10 @@ class ContentVersionResponse(BaseModel):
     version_number: int
     title: str
     body: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None,
+        validation_alias=AliasChoices("metadata", "extra_data"),
+    )
     created_by: str
     created_at: datetime
     
