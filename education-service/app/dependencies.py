@@ -1,17 +1,19 @@
 """Dependency injection for the educational service."""
 
 from typing import Optional
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.auth.platform_auth import validate_platform_token, UserInfo
-from app.config import settings
 
-# OAuth2 scheme
+from app.auth.device_auth import DevicePrincipal, decode_device_token
+from app.auth.platform_auth import UserInfo, validate_platform_token
+from app.config import settings
+from app.database import get_db
+
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=f"{settings.platform_url}/api/auth/token",
-    auto_error=False
+    auto_error=False,
 )
 
 
@@ -26,7 +28,7 @@ async def get_current_user(
             detail="Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     user_info = await validate_platform_token(token)
     if not user_info:
         raise HTTPException(
@@ -34,13 +36,13 @@ async def get_current_user(
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     if not user_info.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account is inactive",
         )
-    
+
     return user_info
 
 
@@ -56,8 +58,29 @@ async def get_current_admin_user(
     return current_user
 
 
+async def get_current_device(
+    device_id: str,
+    token: Optional[str] = Depends(oauth2_scheme),
+) -> DevicePrincipal:
+    """Require a device-scoped JWT matching the path device_id."""
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Device authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
+    principal = decode_device_token(token)
+    if not principal:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Device token required (human JWT is not accepted for sync routes)",
+        )
 
+    if principal.device_id != device_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Device token does not match device_id",
+        )
 
-
-
+    return principal
