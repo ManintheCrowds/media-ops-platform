@@ -30,6 +30,9 @@ services:
       - LLM_MODEL=${LLM_MODEL:-llama3.2}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      # From the deploy environment or this directory's .env. Never commit real values.
+      - ADZUNA_API_ID=${ADZUNA_API_ID:-}
+      - ADZUNA_API_KEY=${ADZUNA_API_KEY:-}
     volumes:
       - .:/app
     ports:

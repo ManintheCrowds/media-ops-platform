@@ -16,7 +16,7 @@ Title: SDET - Python
 Company: KonnectingTree Inc
 Location: Eagan, Dakota County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5548056034?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=D27563A0A2DD163D01BDBEBEA164F24D8052DBF9
+URL: https://www.adzuna.com/land/ad/5548056034?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=D27563A0A2DD163D01BDBEBEA164F24D8052DBF9
 
 Match Scores:
   Skill Match: 0.000
@@ -35,7 +35,7 @@ Title: Python Tech Lead
 Company: Cognizant
 Location: Saint Paul, Ramsey County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5528221552?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=FD53BC1D6565FEC343E34C93D42727C616065902
+URL: https://www.adzuna.com/land/ad/5528221552?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=FD53BC1D6565FEC343E34C93D42727C616065902
 
 Match Scores:
   Skill Match: 0.000
@@ -54,7 +54,7 @@ Title: Sr. Python Engineer - Remote
 Company: Sharecare
 Location: Saint Paul, Ramsey County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5513717177?se=hmN4uOPh8BGNKfI-HPRwbw&utm_medium=api&utm_source=a4a7673a&v=694855FB9689988B5C3E26563DB0285908CD090E
+URL: https://www.adzuna.com/land/ad/5513717177?se=hmN4uOPh8BGNKfI-HPRwbw&utm_medium=api&utm_source=changeme&v=694855FB9689988B5C3E26563DB0285908CD090E
 
 Match Scores:
   Skill Match: 0.000
@@ -73,7 +73,7 @@ Title: GenAI Python Systems Engineer-Manager
 Company: PwC
 Location: Minneapolis, Hennepin County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5528363776?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=F2E224703ECDA36ED1B485246E1B64D505B66946
+URL: https://www.adzuna.com/land/ad/5528363776?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=F2E224703ECDA36ED1B485246E1B64D505B66946
 
 Match Scores:
   Skill Match: 0.000
@@ -92,7 +92,7 @@ Title: Healthcare Analytics Business Consultant (SQL / Python)
 Company: CVS Health
 Location: Saint Paul, Ramsey County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5497932837?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=5ECCA233F5482F55C684E35448D6884C4C6FA890
+URL: https://www.adzuna.com/land/ad/5497932837?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=5ECCA233F5482F55C684E35448D6884C4C6FA890
 
 Match Scores:
   Skill Match: 0.000
@@ -111,7 +111,7 @@ Title: GenAI Python Systems Engineer -Senior Manager
 Company: PwC
 Location: Minneapolis, Hennepin County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5443561146?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=3EC36E3009635E91DA641F4CFDACFE4A2459D8D6
+URL: https://www.adzuna.com/land/ad/5443561146?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=3EC36E3009635E91DA641F4CFDACFE4A2459D8D6
 
 Match Scores:
   Skill Match: 0.000
@@ -130,7 +130,7 @@ Title: Summer 2026 Software Engineer/Architect - Python Graduate Intern
 Company: Highmark Health
 Location: Saint Paul, Ramsey County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5473543951?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=3A900F559B4C608D20F2BFC62A13D6877BB49BA1
+URL: https://www.adzuna.com/land/ad/5473543951?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=3A900F559B4C608D20F2BFC62A13D6877BB49BA1
 
 Match Scores:
   Skill Match: 0.000
@@ -149,7 +149,7 @@ Title: Lead Software Engineer (Full Stack - Python/React/Cloud)
 Company: Highmark Health
 Location: Saint Paul, Ramsey County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5425468980?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=60ECA1ED8A5ECC653EF4F3E453F90CFF90A073CD
+URL: https://www.adzuna.com/land/ad/5425468980?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=60ECA1ED8A5ECC653EF4F3E453F90CFF90A073CD
 
 Match Scores:
   Skill Match: 0.000
@@ -168,7 +168,7 @@ Title: Full Stack Software Engineer 2 (.Net, React, Python)
 Company: U.S. Bank
 Location: Hopkins, Hennepin County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5545035615?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=6EA7C26541995D1260B0B512EDFD2108C30A444F
+URL: https://www.adzuna.com/land/ad/5545035615?se=vBdNzOPh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=6EA7C26541995D1260B0B512EDFD2108C30A444F
 
 Match Scores:
   Skill Match: 0.000
@@ -187,7 +187,7 @@ Title: Lead Consulting Developer- Python, AI/ML, Distributed System, Microservic
 Company: Oracle
 Location: Saint Paul, Ramsey County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5484195401?se=hmN4uOPh8BGNKfI-HPRwbw&utm_medium=api&utm_source=a4a7673a&v=DFB7F75F3880569250B76A9B8E68853516EA9AB1
+URL: https://www.adzuna.com/land/ad/5484195401?se=hmN4uOPh8BGNKfI-HPRwbw&utm_medium=api&utm_source=changeme&v=DFB7F75F3880569250B76A9B8E68853516EA9AB1
 
 Match Scores:
   Skill Match: 0.000
@@ -206,7 +206,7 @@ Title: Python Developer
 Company: Android Recruiting
 Location: Minneapolis, Hennepin County
 Source: adzuna
-URL: https://www.adzuna.com/details/5232174024?utm_medium=api&utm_source=a4a7673a
+URL: https://www.adzuna.com/details/5232174024?utm_medium=api&utm_source=changeme
 
 Match Scores:
   Skill Match: 0.000
@@ -225,7 +225,7 @@ Title: Python Automation Engineer
 Company: Capgemini
 Location: Saint Paul, Ramsey County
 Source: adzuna
-URL: https://www.adzuna.com/details/4804386460?utm_medium=api&utm_source=a4a7673a
+URL: https://www.adzuna.com/details/4804386460?utm_medium=api&utm_source=changeme
 
 Match Scores:
   Skill Match: 0.000
@@ -244,7 +244,7 @@ Title: Python Tooling Developer (Minneapolis)
 Company: Intellias
 Location: Lauderdale, Ramsey County
 Source: adzuna
-URL: https://www.adzuna.com/details/5533417503?utm_medium=api&utm_source=a4a7673a
+URL: https://www.adzuna.com/details/5533417503?utm_medium=api&utm_source=changeme
 
 Match Scores:
   Skill Match: 0.000
@@ -263,7 +263,7 @@ Title: (Python Based) Senior Research Engineer
 Company: Thomson Reuters
 Location: Eagan, Dakota County
 Source: adzuna
-URL: https://www.adzuna.com/details/5519877736?utm_medium=api&utm_source=a4a7673a
+URL: https://www.adzuna.com/details/5519877736?utm_medium=api&utm_source=changeme
 
 Match Scores:
   Skill Match: 0.000
@@ -282,7 +282,7 @@ Title: Entry-Level Python Developer (Open Source)
 Company: remarqable
 Location: Minneapolis, Hennepin County
 Source: adzuna
-URL: https://www.adzuna.com/details/5286806024?utm_medium=api&utm_source=a4a7673a
+URL: https://www.adzuna.com/details/5286806024?utm_medium=api&utm_source=changeme
 
 Match Scores:
   Skill Match: 0.000
@@ -301,7 +301,7 @@ Title: Full Stack Software Engineer 2 (.Net, React, Python)
 Company: U.S. Bank
 Location: Hopkins, Hennepin County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5546358887?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=F875C926EEE6F4D6DBB12084BE8E1D138BF56EE8
+URL: https://www.adzuna.com/land/ad/5546358887?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=F875C926EEE6F4D6DBB12084BE8E1D138BF56EE8
 
 Match Scores:
   Skill Match: 0.000
@@ -320,7 +320,7 @@ Title: Software Engineer Lead - Python Developer in Tests - Embedded Software
 Company: Capgemini
 Location: Eagan, Dakota County
 Source: adzuna
-URL: https://www.adzuna.com/details/4802649301?utm_medium=api&utm_source=a4a7673a
+URL: https://www.adzuna.com/details/4802649301?utm_medium=api&utm_source=changeme
 
 Match Scores:
   Skill Match: 0.000
@@ -339,7 +339,7 @@ Title: Lead Machine Learning / AI Engineer - Personalization (Python PySpark ML 
 Company: Target
 Location: Brooklyn Center, Hennepin County
 Source: adzuna
-URL: https://www.adzuna.com/details/5539474076?utm_medium=api&utm_source=a4a7673a
+URL: https://www.adzuna.com/details/5539474076?utm_medium=api&utm_source=changeme
 
 Match Scores:
   Skill Match: 0.000
@@ -358,7 +358,7 @@ Title: Data Analyst (Contractor)
 Company: Instacart
 Location: Minneapolis, Hennepin County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5528389079?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=5DCE1C53AA3DBE4ED98185B23D0A54FA706DB540
+URL: https://www.adzuna.com/land/ad/5528389079?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=5DCE1C53AA3DBE4ED98185B23D0A54FA706DB540
 
 Match Scores:
   Skill Match: 0.000
@@ -377,7 +377,7 @@ Title: Data Engineer
 Company: Robert Half
 Location: Shoreview, Ramsey County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5547976697?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=40BF7C5683ACF816B4D6E8BDB12F01ED103276C4
+URL: https://www.adzuna.com/land/ad/5547976697?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=40BF7C5683ACF816B4D6E8BDB12F01ED103276C4
 
 Match Scores:
   Skill Match: 0.000
@@ -396,7 +396,7 @@ Title: Full Stack Engineer (Cloud & AI Focus)
 Company: Ford Motor Company
 Location: Saint Paul, Ramsey County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5524844433?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=A2D0AFF3BAD1CF2386AA42B5F2F65D3BD6B19504
+URL: https://www.adzuna.com/land/ad/5524844433?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=A2D0AFF3BAD1CF2386AA42B5F2F65D3BD6B19504
 
 Match Scores:
   Skill Match: 0.000
@@ -415,7 +415,7 @@ Title: Software Developer 2
 Company: Oracle
 Location: Saint Paul, Ramsey County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5477543249?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=587378EF25C511FA56A729187F303F83C8F27F50
+URL: https://www.adzuna.com/land/ad/5477543249?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=587378EF25C511FA56A729187F303F83C8F27F50
 
 Match Scores:
   Skill Match: 0.000
@@ -434,7 +434,7 @@ Title: Test Engineer
 Company: Actalent
 Location: Saint Paul, Ramsey County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5541637792?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=5BB419E40C01BFF0EE49EBA0681E9C55CF58BDE5
+URL: https://www.adzuna.com/land/ad/5541637792?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=5BB419E40C01BFF0EE49EBA0681E9C55CF58BDE5
 
 Match Scores:
   Skill Match: 0.000
@@ -453,7 +453,7 @@ Title: AWS Image Automation Engineer
 Company: Eliassen Group
 Location: Saint Paul, Ramsey County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5531652857?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=A271AC4E25C419A6FB732C75E68462BA676AEA54
+URL: https://www.adzuna.com/land/ad/5531652857?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=A271AC4E25C419A6FB732C75E68462BA676AEA54
 
 Match Scores:
   Skill Match: 0.000
@@ -472,7 +472,7 @@ Title: Data Science Sr Engineer - US Remote
 Company: Anywhere Real Estate
 Location: Minneapolis, Hennepin County
 Source: adzuna
-URL: https://www.adzuna.com/land/ad/5513665254?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=a4a7673a&v=350E2BF80DF5CE0ED7C74C2903687EF8F2F13E3B
+URL: https://www.adzuna.com/land/ad/5513665254?se=QOrkRPrh8BGjJabxWt0eDQ&utm_medium=api&utm_source=changeme&v=350E2BF80DF5CE0ED7C74C2903687EF8F2F13E3B
 
 Match Scores:
   Skill Match: 0.000

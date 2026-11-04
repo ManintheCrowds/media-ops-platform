@@ -50,8 +50,8 @@ Each service may have its own `.env.example` file:
 - `NOTIFICATION_EMAIL` - Email for notifications
 
 #### Job Automation Service
-- `ADZUNA_API_ID` - Adzuna API ID
-- `ADZUNA_API_KEY` - Adzuna API key
+- `ADZUNA_API_ID` - Adzuna API ID (environment or untracked `.env` only; example value `changeme`)
+- `ADZUNA_API_KEY` - Adzuna API key (environment or untracked `.env` only; example value `changeme`)
 - `JSEARCH_API_KEY` - JSearch API key
 - `DATABASE_URL` - PostgreSQL connection string
 - `LLM_PROVIDER` - LLM provider: `ollama` (local), `openai`, or `anthropic` (default: ollama)

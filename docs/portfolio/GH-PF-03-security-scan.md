@@ -74,7 +74,7 @@
 
 | P0-5 | VirusTotal key in tracked markdown (GitGuardian) | P0 | **Fixed** — delete + filter-repo + force-push 2026-06-04 |
 
-| P0-6 | `job-automation-service/.env.backup` tracked (TruffleHog verified Adzuna) | P0 | **Index fixed 2026-06-05** — `git rm --cached`; `*.env.backup` in `.gitignore`. **History purge pending (Gate 1):** regex replacements in [`config/filter-repo-adzuna-replacements.txt`](../../config/filter-repo-adzuna-replacements.txt); run [`scripts/purge-adzuna-history.ps1`](../../scripts/purge-adzuna-history.ps1) after rotating keys at https://developer.adzuna.com/; `git push --force-with-lease origin main`; confirm scheduled TruffleHog zero verified. Local scan 2026-06-10: 1 verified Adzuna (see [`trufflehog-baselines/README.md`](trufflehog-baselines/README.md)). |
+| P0-6 | `job-automation-service/.env.backup` tracked (TruffleHog verified Adzuna) | P0 | **Index fixed 2026-06-05** — `git rm --cached`; `*.env.backup` in `.gitignore`. History is not rewritten. Revoke the old key at https://developer.adzuna.com/ and set `ADZUNA_API_ID` / `ADZUNA_API_KEY` in the environment. The nightly scan ignores only the historic paths in [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt). Local scan 2026-06-10: 1 verified Adzuna (see [`trufflehog-baselines/README.md`](trufflehog-baselines/README.md)). |
 
 ## TruffleHog policy (2026-06-10, Gate 2)
 
@@ -88,9 +88,7 @@
 
 **Operator gates:** See [OPERATOR_SECURITY_GATES.md](OPERATOR_SECURITY_GATES.md) for Gate 1 and branch protection checklist.
 
-- `APPROVAL_NEEDED: Adzuna key rotation + git filter-repo force-push to main` (Gate 1 — purge not executed in repo yet)
-- **2026-06-10 hang:** first `purge-adzuna-history.ps1 -Execute` blocked on git-filter-repo prompt *"Treat this run as a continuation… (Y/N)?"* — no force-push occurred. Fix in PR #41: remove `.git/filter-repo/already_ran` + pipe `Y` before filter-repo.
-- **Gate 1 resume (operator):** rotate keys → kill stuck filter-repo if any → `.\scripts\purge-adzuna-history.ps1 -Execute` on `main` → local TruffleHog verified=0 → `git push --force-with-lease origin main` → confirm `trufflehog-strict` green.
+- **Gate 1:** revoke the old Adzuna key at https://developer.adzuna.com/. Git history is not rewritten. Set `ADZUNA_API_ID` and `ADZUNA_API_KEY` in the environment, then record the revocation date in [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt).
 - **Branch protection (manual):** GitHub → Settings → Branches → rule for `main` → require status checks **`trufflehog-strict`** and **`gitleaks`** (API automation blocked; use UI).
 - **Gate 2 allowlist signed off 2026-06-10:** five dev compose paths in [`config/trufflehog-exclude.txt`](../../config/trufflehog-exclude.txt) (scheduled job only). Residual risk: file-level exclude hides all findings in those paths on nightly runs; merge path `trufflehog-strict` has no excludes.
 
