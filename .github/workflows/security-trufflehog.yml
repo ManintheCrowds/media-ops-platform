@@ -26,10 +26,10 @@ jobs:
           fetch-depth: 0
 
       - name: Run TruffleHog (PR/push — no path excludes)
-        uses: trufflesecurity/trufflehog@6f3c981e7b77f235fd2702dd74af25fc4b72bf11 # v3.96.0
+        uses: trufflesecurity/trufflehog@ea68ca03c865c5f324e86e849ced20ed3cf9dbbb # v3.99.8
         with:
           # Pin the CLI image to match the action; the input defaults to "latest".
-          version: 3.96.0
+          version: 3.99.8
           path: ./
           base: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           head: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
@@ -47,9 +47,9 @@ jobs:
       # Full-tree scan (no base/head — schedule has no valid git range).
       # Excludes example/placeholder paths; PR/push strict job has no excludes.
       - name: Run TruffleHog (schedule — example paths excluded)
-        uses: trufflesecurity/trufflehog@6f3c981e7b77f235fd2702dd74af25fc4b72bf11 # v3.96.0
+        uses: trufflesecurity/trufflehog@ea68ca03c865c5f324e86e849ced20ed3cf9dbbb # v3.99.8
         with:
           # Pin the CLI image to match the action; the input defaults to "latest".
-          version: 3.96.0
+          version: 3.99.8
           path: ./
           extra_args: --results=verified,unknown --exclude-paths=config/trufflehog-exclude.txt
