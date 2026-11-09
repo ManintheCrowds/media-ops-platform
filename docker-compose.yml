@@ -430,6 +430,11 @@ services:
       - DATABASE_URL=postgresql://jobautomation:${JOB_AUTOMATION_POSTGRES_PASSWORD:-changeme}@job-automation-db:5432/jobautomation
       - OLLAMA_URL=${OLLAMA_URL:-http://host.docker.internal:11434}
       - PLATFORM_URL=http://platform:8000
+      # From the deploy environment or repo-root .env. Never commit real values.
+      - USAJOBS_API_KEY=${USAJOBS_API_KEY:-}
+      - USAJOBS_USER_AGENT_EMAIL=${USAJOBS_USER_AGENT_EMAIL:-}
+      - THEMUSE_API_KEY=${THEMUSE_API_KEY:-}
+      - THE_MUSE_API_KEY=${THE_MUSE_API_KEY:-}
     volumes:
       - ./job-automation-service:/app
     ports:

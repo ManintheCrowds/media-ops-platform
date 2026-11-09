@@ -1,8 +1,9 @@
 """Job-related schemas."""
 
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+from app.services.source_registry import DEFAULT_SEARCH_SOURCES
 
 
 class JobListingBase(BaseModel):
@@ -43,7 +44,7 @@ class JobSearchRequest(BaseModel):
     """Schema for job search request."""
     query: str
     location: Optional[str] = None
-    sources: Optional[List[str]] = ["adzuna", "indeed", "linkedin", "glassdoor", "ziprecruiter"]
+    sources: Optional[List[str]] = Field(default_factory=lambda: list(DEFAULT_SEARCH_SOURCES))
     min_match_score: Optional[float] = 0.0  # Default to 0.0 to return all jobs (users can filter by setting this)
     limit: Optional[int] = 25
 

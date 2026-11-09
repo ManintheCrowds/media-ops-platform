@@ -67,8 +67,18 @@ class Settings(BaseSettings):
     ziprecruiter_api_key: Optional[str] = None
     adzuna_api_key: Optional[str] = None
     adzuna_api_id: Optional[str] = None
+    # The Muse works without a key. THEMUSE_API_KEY or THE_MUSE_API_KEY is optional.
+    # A placeholder such as changeme is treated as unset.
     the_muse_api_key: Optional[str] = None
+    themuse_api_key: Optional[str] = None
     jsearch_api_key: Optional[str] = None
+    # USAJOBS requires both. A missing value or changeme disables the source.
+    usajobs_api_key: Optional[str] = None
+    usajobs_user_agent_email: Optional[str] = None
+    usajobs_max_pages: int = 3
+    themuse_max_pages: int = 3
+    official_api_timeout_seconds: float = 20.0
+    official_api_min_interval_seconds: float = 0.25
     
     # Browser Scraping Configuration
     use_browser_scraping: bool = True

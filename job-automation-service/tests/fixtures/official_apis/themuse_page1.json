@@ -1,0 +1,65 @@
+{
+  "page": 1,
+  "page_count": 2,
+  "items_per_page": 20,
+  "total": 21,
+  "results": [
+    {
+      "id": 42,
+      "name": "Python Engineer <img src=x onerror=alert(1)>",
+      "contents": "<div>Build <b>APIs</b> &amp; tools</div>",
+      "publication_date": "2024-01-15T00:00:00Z",
+      "refs": {
+        "landing_page": "https://www.themuse.com/jobs/acme/python-engineer"
+      },
+      "locations": [
+        {"name": "Flexible / Remote"}
+      ],
+      "categories": [
+        {"name": "Software Engineering"}
+      ],
+      "levels": [
+        {"name": "Mid Level"}
+      ],
+      "company": {
+        "id": 7,
+        "name": "Acme & Co"
+      }
+    },
+    {
+      "id": 42,
+      "name": "Duplicate",
+      "refs": {
+        "landing_page": "https://www.themuse.com/jobs/dup"
+      },
+      "company": {
+        "name": "Dup"
+      }
+    },
+    {
+      "id": 43,
+      "name": "Designer",
+      "contents": "Design things",
+      "refs": {
+        "landing_page": "javascript:alert(1)"
+      },
+      "company": {
+        "name": "Evil"
+      }
+    },
+    {
+      "id": 44,
+      "name": "Data Analyst",
+      "contents": "Analyze data",
+      "refs": {
+        "landing_page": "https://www.themuse.com/jobs/data"
+      },
+      "locations": [
+        {"name": "New York, NY"}
+      ],
+      "company": {
+        "name": "Data Co"
+      }
+    }
+  ]
+}

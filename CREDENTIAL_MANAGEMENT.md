@@ -50,8 +50,11 @@ Each service may have its own `.env.example` file:
 - `NOTIFICATION_EMAIL` - Email for notifications
 
 #### Job Automation Service
-- `ADZUNA_API_ID` - Adzuna API ID
-- `ADZUNA_API_KEY` - Adzuna API key
+- `USAJOBS_API_KEY` - USAJOBS Search API key (https://developer.usajobs.gov/). Required, with the email below, to enable federal listings. `changeme` is treated as unset.
+- `USAJOBS_USER_AGENT_EMAIL` - Email address registered with USAJOBS. Sent as the User-Agent header. Do not commit a real address.
+- `THEMUSE_API_KEY` - Optional The Muse API v2 key. Unset or `changeme` uses the 500 request/hour public limit. A real key raises it to 3,600/hour. `THE_MUSE_API_KEY` is also accepted.
+- `ADZUNA_API_ID` - Legacy Adzuna API ID. Leave unset to keep Adzuna off.
+- `ADZUNA_API_KEY` - Legacy Adzuna API key. Leave unset to keep Adzuna off.
 - `JSEARCH_API_KEY` - JSearch API key
 - `DATABASE_URL` - PostgreSQL connection string
 - `LLM_PROVIDER` - LLM provider: `ollama` (local), `openai`, or `anthropic` (default: ollama)

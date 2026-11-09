@@ -1,0 +1,26 @@
+{
+  "SearchResult": {
+    "SearchResultCount": 1,
+    "SearchResultCountAll": 2,
+    "SearchResultItems": [
+      {
+        "MatchedObjectId": "400",
+        "MatchedObjectDescriptor": {
+          "PositionTitle": "Program Analyst",
+          "PositionURI": "https://www.usajobs.gov/job/400",
+          "PositionLocationDisplay": "Washington, District of Columbia",
+          "OrganizationName": "Department of Example",
+          "PublicationStartDate": "2024-03-01T00:00:00Z",
+          "UserArea": {
+            "Details": {
+              "JobSummary": "Review federal programs"
+            }
+          }
+        }
+      }
+    ],
+    "UserArea": {
+      "NumberOfPages": "2"
+    }
+  }
+}

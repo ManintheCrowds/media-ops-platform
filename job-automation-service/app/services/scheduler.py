@@ -13,7 +13,12 @@ from app.services.job_api import (
     GlassdoorScraper,
     ZipRecruiterScraper
 )
+from app.services.job_source_manager import JobSourceManager
 from app.services.skill_matcher import SkillMatcher
+from app.services.source_registry import DEFAULT_SEARCH_SOURCES, OFFICIAL_API_SOURCES
+
+# Re-exported for callers that look up the scheduled source list here.
+DEFAULT_SCHEDULE_SOURCES = DEFAULT_SEARCH_SOURCES
 
 logger = logging.getLogger(__name__)
 
@@ -47,13 +52,17 @@ async def run_scheduled_search(
         limit_per_query: Maximum jobs per query
     """
     queries = queries or DEFAULT_QUERIES
-    sources = sources or ["adzuna", "indeed", "linkedin", "glassdoor", "ziprecruiter"]
+    sources = list(sources) if sources else list(DEFAULT_SCHEDULE_SOURCES)
+    official_sources = [source for source in sources if source in OFFICIAL_API_SOURCES]
     
     db: Session = SessionLocal()
     scrapers = []
+    source_manager = None
     
     try:
         logger.info(f"Starting scheduled job search: {len(queries)} queries, {len(sources)} sources")
+        if official_sources:
+            source_manager = JobSourceManager()
         
         # Initialize scrapers
         scraper_classes = {
@@ -78,8 +87,20 @@ async def run_scheduled_search(
             logger.info(f"Searching for: {query}")
             
             all_jobs = []
+
+            if source_manager is not None:
+                try:
+                    api_jobs = await source_manager.search_jobs(
+                        query=query,
+                        location=location,
+                        sources=official_sources,
+                        limit=limit_per_query,
+                    )
+                    all_jobs.extend(api_jobs)
+                except Exception as e:
+                    logger.error(f"Error searching official APIs for '{query}': {e}")
             
-            # Search each source
+            # Search each scraper source. Adzuna stays out of this loop.
             for scraper in scrapers:
                 try:
                     jobs = await scraper.search_jobs(
@@ -144,6 +165,11 @@ async def run_scheduled_search(
         logger.error(f"Error in scheduled job search: {e}")
         raise
     finally:
+        if source_manager is not None:
+            try:
+                await source_manager.close()
+            except Exception as e:
+                logger.warning(f"Error closing job source manager: {e}")
         # Cleanup scrapers
         for scraper in scrapers:
             try:

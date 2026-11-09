@@ -14,6 +14,7 @@ from app.schemas.job import (
     JobListingCreate
 )
 from app.services.job_source_manager import JobSourceManager
+from app.services.source_registry import DEFAULT_SEARCH_SOURCES
 from app.services.skill_matcher import SkillMatcher
 import json
 import time
@@ -26,7 +27,7 @@ router = APIRouter(prefix="/api/v1/jobs", tags=["jobs"])
 # Supported sources (including aggregator APIs)
 SUPPORTED_SOURCES = [
     "indeed", "linkedin", "glassdoor", "ziprecruiter",
-    "adzuna", "the_muse", "jsearch"
+    "adzuna", "the_muse", "jsearch", "usajobs",
 ]
 
 
@@ -49,7 +50,7 @@ async def search_jobs(
     pipeline_start_time = time.time()
     
     location = request.location or "Minneapolis, MN"
-    sources = request.sources or ["adzuna", "indeed", "linkedin", "glassdoor", "ziprecruiter"]
+    sources = request.sources or list(DEFAULT_SEARCH_SOURCES)
     
     # Filter to supported sources
     sources = [s for s in sources if s in SUPPORTED_SOURCES]
