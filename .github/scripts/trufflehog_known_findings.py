@@ -2,7 +2,7 @@
 """Match scheduled TruffleHog JSON to an expiring known-findings baseline.
 
 The scheduled job is the only caller. A run passes only when every finding
-matches an unexpired baseline entry by detector, path, and commit. Any
+matches an unexpired baseline entry by detector, path, commit, and line. Any
 verified result fails, including one whose location is in the baseline.
 An expired baseline entry fails the run even when no finding matches it.
 
@@ -59,6 +59,7 @@ class MatchedEntry:
     detector: str
     path: str
     commit: str
+    line: int | None
     days_to_expiry: int
 
 
@@ -232,11 +233,11 @@ def evaluate(
         (entry, (entry.effective_expiry() - today).days) for entry in entries
     )
     expired = tuple(entry for entry, days in days_by_entry if days <= 0)
-    allowed: dict[tuple[str, str, str], int] = {}
+    allowed: dict[tuple[str, str, str, int | None], int] = {}
     for entry, days in days_by_entry:
         if days <= 0:
             continue
-        key = (entry.detector, entry.path, entry.commit)
+        key = (entry.detector, entry.path, entry.commit, entry.line)
         previous = allowed.get(key)
         if previous is None or days < previous:
             allowed[key] = days
@@ -246,7 +247,7 @@ def evaluate(
         if days <= 0:
             failures.append(
                 "expired baseline entry: "
-                f"{entry.detector} {entry.path} {entry.commit} "
+                f"{entry.detector} {entry.path} {entry.commit} line={entry.line} "
                 f"effective_expiry={entry.effective_expiry().isoformat()} "
                 f"days_to_expiry={days}"
             )
@@ -254,20 +255,23 @@ def evaluate(
     matched_count = 0
     unmatched_count = 0
     verified_count = 0
-    matched: dict[tuple[str, str, str], int] = {}
+    matched: dict[tuple[str, str, str, int | None], int] = {}
     for finding in findings:
-        key = (finding.detector, finding.path, finding.commit)
+        key = (finding.detector, finding.path, finding.commit, finding.line)
         if finding.verified:
             verified_count += 1
             failures.append(
-                f"verified result: {finding.detector} {finding.path} {finding.commit}"
+                "verified result: "
+                f"{finding.detector} {finding.path} {finding.commit} "
+                f"line={finding.line}"
             )
         days = allowed.get(key)
         if days is None:
             unmatched_count += 1
             failures.append(
                 "finding not in unexpired baseline: "
-                f"{finding.detector} {finding.path} {finding.commit}"
+                f"{finding.detector} {finding.path} {finding.commit} "
+                f"line={finding.line}"
             )
             continue
         matched_count += 1
@@ -275,8 +279,17 @@ def evaluate(
 
     soonest = min((days for _, days in days_by_entry), default=None)
     matched_entries = tuple(
-        MatchedEntry(detector, path, commit, days)
-        for (detector, path, commit), days in sorted(matched.items())
+        MatchedEntry(detector, path, commit, line, days)
+        for (detector, path, commit, line), days in sorted(
+            matched.items(),
+            key=lambda item: (
+                item[0][0],
+                item[0][1],
+                item[0][2],
+                item[0][3] is None,
+                item[0][3] or 0,
+            ),
+        )
     )
     return Evaluation(
         ok=not failures,
@@ -314,7 +327,8 @@ def format_summary(result: Evaluation) -> str:
     lines.append("matched_entries:")
     if result.matched_entries:
         lines.extend(
-            f"- {item.detector} {item.path} {item.commit} days={item.days_to_expiry}"
+            f"- {item.detector} {item.path} {item.commit} "
+            f"line={item.line} days={item.days_to_expiry}"
             for item in result.matched_entries
         )
     else:

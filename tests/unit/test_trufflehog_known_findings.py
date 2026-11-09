@@ -49,7 +49,11 @@ def _baseline(*entries: dict[str, object]) -> str:
 
 
 def _finding_json(
-    *, verified: bool, commit: str = _COMMIT, detector: str = "Adzuna"
+    *,
+    verified: bool,
+    commit: str = _COMMIT,
+    detector: str = "Adzuna",
+    line: int = 3,
 ) -> str:
     return json.dumps(
         {
@@ -63,7 +67,7 @@ def _finding_json(
                     "Git": {
                         "file": _PATH,
                         "commit": commit,
-                        "line": 3,
+                        "line": line,
                         "email": "person@example.invalid",
                     }
                 }
@@ -105,6 +109,20 @@ def test_empty_findings_pass() -> None:
     assert result.finding_count == 0
     assert result.expired_count == 0
     assert result.matched_entries == ()
+
+
+def test_same_commit_different_line_fails() -> None:
+    result = _evaluate(
+        _finding_json(verified=False, line=45),
+        _baseline(_entry()),
+        date(2026, 11, 9),
+    )
+
+    assert result.ok is False
+    assert result.matched_count == 0
+    assert result.unmatched_count == 1
+    assert any("line=45" in item for item in result.failures)
+    assert _FAKE_RAW not in "\n".join(result.failures)
 
 
 def test_new_finding_fails() -> None:
@@ -315,3 +333,10 @@ def test_scheduled_job_uses_baseline_and_strict_job_does_not() -> None:
     assert "--exclude-paths=config/trufflehog-exclude.txt" in scheduled
     assert ".github/scripts/trufflehog_known_findings.py" in scheduled
     assert ".github/trufflehog-known-findings.json" in scheduled
+    digest = (
+        "ghcr.io/trufflesecurity/trufflehog:3.99.8"
+        "@sha256:674b2f187620a19df77f44cf9a7d77efcc581a5662accef2f2739cbb46ba4a3a"
+    )
+    assert digest in scheduled
+    assert digest not in strict
+    assert "ghcr.io/trufflesecurity/trufflehog:3.99.8 \\" not in scheduled

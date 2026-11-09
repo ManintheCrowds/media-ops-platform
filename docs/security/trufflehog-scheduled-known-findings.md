@@ -8,7 +8,7 @@ Pull request and push scans are unchanged. They do not read the baseline and the
 
 [`.github/trufflehog-known-findings.json`](../../.github/trufflehog-known-findings.json) lists detector name, file path, commit, and line. Each entry expires on **2026-11-23**. An optional `closed_on` date, when set, replaces `expires` and must be on or before that date. The scheduled job runs TruffleHog JSON into [`.github/scripts/trufflehog_known_findings.py`](../../.github/scripts/trufflehog_known_findings.py).
 
-The job passes only when every finding matches an unexpired entry by detector, path, and commit. It fails when:
+The job passes only when every finding matches an unexpired entry by detector, path, commit, and line. Line is the line number in that commit's file. Two scans of this history returned the same line for every Adzuna location. A finding on another line of the same commit fails. The job also fails when:
 
 - a finding is not in the unexpired baseline
 - any result is verified, including a baselined location

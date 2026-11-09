@@ -53,8 +53,12 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
+          # Tag 3.99.8, manifest-list digest. Resolved 2026-11-09 from GHCR
+          # GET /v2/trufflesecurity/trufflehog/manifests/3.99.8
+          # Accept: application/vnd.docker.distribution.manifest.list.v2+json
+          # Header: Docker-Content-Digest. A second request returned the same digest.
           docker run --rm -v "$PWD:/tmp" -w /tmp \
-            ghcr.io/trufflesecurity/trufflehog:3.99.8 \
+            ghcr.io/trufflesecurity/trufflehog:3.99.8@sha256:674b2f187620a19df77f44cf9a7d77efcc581a5662accef2f2739cbb46ba4a3a \
             git file:///tmp/ \
             --no-update \
             --json \
