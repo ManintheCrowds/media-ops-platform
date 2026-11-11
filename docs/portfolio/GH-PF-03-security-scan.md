@@ -85,6 +85,7 @@
 
 - **Doc placeholders:** five root `docs/*.md` URIs updated to `${POSTGRES_PASSWORD}` / `<POSTGRES_PASSWORD>` (no blanket markdown exclude).
 - **Baseline notes:** [`docs/portfolio/trufflehog-baselines/README.md`](trufflehog-baselines/README.md) — run scans locally; do not commit raw output (may echo secrets).
+- **Scheduled known findings (2026-11-09):** the nightly job matches the exposed credential to an expiring baseline (2026-11-23). Pull request and push scans stay strict. After confirmed account closure, those entries become revoked-history suppressions with `closed_on` and an evidence link. History rewrite needs separate owner approval. See [trufflehog-scheduled-known-findings.md](../security/trufflehog-scheduled-known-findings.md).
 
 **Operator gates:** See [OPERATOR_SECURITY_GATES.md](OPERATOR_SECURITY_GATES.md) for Gate 1 and branch protection checklist.
 

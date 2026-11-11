@@ -44,12 +44,26 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Full-tree scan (no base/head — schedule has no valid git range).
-      # Excludes example/placeholder paths; PR/push strict job has no excludes.
-      - name: Run TruffleHog (schedule — example paths excluded)
-        uses: trufflesecurity/trufflehog@ea68ca03c865c5f324e86e849ced20ed3cf9dbbb # v3.99.8
-        with:
-          # Pin the CLI image to match the action; the input defaults to "latest".
-          version: 3.99.8
-          path: ./
-          extra_args: --results=verified,unknown --exclude-paths=config/trufflehog-exclude.txt
+      # Full-history scan (no base/head — schedule has no valid git range).
+      # Example-path excludes stay as they are today. PR/push strict job is unchanged.
+      # JSON stays on the pipe so secret values are not written to the log.
+      # The matcher fails closed on verified results, findings outside the
+      # unexpired baseline, and any expired baseline entry.
+      - name: Run TruffleHog (schedule — known findings baseline)
+        shell: bash
+        run: |
+          set -o pipefail
+          # Tag 3.99.8, manifest-list digest. Resolved 2026-11-09 from GHCR
+          # GET /v2/trufflesecurity/trufflehog/manifests/3.99.8
+          # Accept: application/vnd.docker.distribution.manifest.list.v2+json
+          # Header: Docker-Content-Digest. A second request returned the same digest.
+          docker run --rm -v "$PWD:/tmp" -w /tmp \
+            ghcr.io/trufflesecurity/trufflehog:3.99.8@sha256:674b2f187620a19df77f44cf9a7d77efcc581a5662accef2f2739cbb46ba4a3a \
+            git file:///tmp/ \
+            --no-update \
+            --json \
+            --log-level=-1 \
+            --results=verified,unknown \
+            --exclude-paths=config/trufflehog-exclude.txt \
+            | python3 .github/scripts/trufflehog_known_findings.py \
+                --baseline .github/trufflehog-known-findings.json

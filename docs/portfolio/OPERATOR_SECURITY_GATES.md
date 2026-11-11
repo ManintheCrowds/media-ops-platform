@@ -8,6 +8,8 @@ These steps require human approval. Agents must not force-push or rotate third-p
 
 ## Gate 1 — Adzuna history purge
 
+**Status (2026-11-09):** The nightly job uses an expiring known-findings baseline for this credential. See [trufflehog-scheduled-known-findings.md](../security/trufflehog-scheduled-known-findings.md). Do not run the history purge below unless the owner approves a history rewrite separately. Rotation is not available; the account is being closed.
+
 **Status (2026-06-23):** Not executed. Local TruffleHog: `verified=1`. Nightly scheduled TruffleHog CI **failing**.
 
 1. `REQUEST_HUMAN`: Rotate Adzuna API keys at https://developer.adzuna.com/

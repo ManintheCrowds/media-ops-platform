@@ -1,5 +1,11 @@
 # TruffleHog baseline summary (2026-06-10)
 
+## Scheduled known findings (2026-11-09)
+
+The nightly job matches the known exposed credential to an expiring baseline instead of failing whenever verification returns a non-401. Entries expire 2026-11-23. After confirmed account closure they become revoked-history suppressions (`closed_on` plus an evidence link). Rewriting history is out of scope and needs separate owner approval. See [trufflehog-scheduled-known-findings.md](../../security/trufflehog-scheduled-known-findings.md).
+
+
+
 Run locally from repo root (do **not** commit scan output — it may echo verified secrets):
 
 ```powershell
@@ -16,7 +22,7 @@ trufflehog filesystem . --results=verified,unknown --exclude-paths=config/truffl
 
 - **Detector:** Adzuna
 - **Source:** `job-automation-service/.env.backup` (gitignored on main; present in git history and may exist locally)
-- **Remediation:** rotate keys at https://developer.adzuna.com/ → `scripts/purge-adzuna-history.ps1 -Execute` → `git push --force-with-lease origin main`
+- **Historical Gate 1 plan:** rotate the key, then rewrite history. That rewrite is not the nightly control. The scheduled job uses the expiring baseline described above. A history rewrite still needs separate owner approval.
 
 ## Unverified noise (Gate 2)
 
@@ -24,4 +30,4 @@ trufflehog filesystem . --results=verified,unknown --exclude-paths=config/truffl
 - Docs: five root `docs/*.md` URIs updated to `${POSTGRES_PASSWORD}` placeholders (2026-06-10)
 - Remaining: `education-service/docs/DEPLOYMENT.md` example URI (optional follow-up)
 
-Path excludes do **not** reduce verified Adzuna count; only history purge clears it.
+Path excludes do **not** remove this credential from history. The scheduled matcher accepts only its baselined locations until they expire. A verified result still fails the job.
