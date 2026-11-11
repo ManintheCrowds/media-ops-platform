@@ -1,0 +1,69 @@
+{
+  "SearchResult": {
+    "SearchResultCount": 1,
+    "SearchResultCountAll": 2,
+    "SearchResultItems": [
+      {
+        "MatchedObjectId": "21947200",
+        "MatchedObjectDescriptor": {
+          "PositionTitle": "IT Specialist <script>alert(1)</script>",
+          "PositionURI": "https://www.usajobs.gov/job/21947200",
+          "ApplyURI": [
+            "https://www.usajobs.gov/job/21947200/apply"
+          ],
+          "PositionLocationDisplay": "San Diego, California",
+          "OrganizationName": "Space and Naval Warfare Systems Command",
+          "DepartmentName": "Department of the Navy",
+          "PositionSchedule": [
+            {"Name": "Full Time", "Code": "1"}
+          ],
+          "QualificationSummary": "<p>Maintain networks</p>",
+          "PositionRemuneration": [
+            {
+              "MinimumRange": "92108",
+              "MaximumRange": "119746",
+              "RateIntervalCode": "PA",
+              "Description": "Per Year"
+            }
+          ],
+          "PublicationStartDate": "2016-06-05T00:00:00Z",
+          "RemoteIndicator": true,
+          "UserArea": {
+            "Details": {
+              "JobSummary": "<p>Protect &amp; defend federal networks</p>",
+              "Requirements": "US citizenship"
+            }
+          }
+        }
+      },
+      {
+        "MatchedObjectId": "21947200",
+        "MatchedObjectDescriptor": {
+          "PositionTitle": "Duplicate should drop",
+          "PositionURI": "https://www.usajobs.gov/job/21947200",
+          "OrganizationName": "Duplicate Agency"
+        }
+      },
+      {
+        "MatchedObjectId": "300",
+        "MatchedObjectDescriptor": {
+          "PositionTitle": "",
+          "PositionURI": "https://www.usajobs.gov/job/300",
+          "OrganizationName": "No Title Agency"
+        }
+      },
+      {
+        "MatchedObjectId": "301",
+        "MatchedObjectDescriptor": {
+          "PositionTitle": "Bad link",
+          "PositionURI": "javascript:alert(1)",
+          "OrganizationName": "Bad Link Agency"
+        }
+      },
+      "not-a-dict"
+    ],
+    "UserArea": {
+      "NumberOfPages": "2"
+    }
+  }
+}

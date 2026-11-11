@@ -13,18 +13,24 @@ logger = logging.getLogger(__name__)
 class BaseAPIClient(ABC):
     """Base class for API clients."""
     
-    def __init__(self, source_name: str, api_key: Optional[str] = None):
+    def __init__(
+        self,
+        source_name: str,
+        api_key: Optional[str] = None,
+        timeout: float = 30.0,
+    ):
         """Initialize API client.
         
         Args:
             source_name: Name of the job source
             api_key: API key for authentication
+            timeout: Per-request timeout in seconds
         """
         self.source_name = source_name
         self.api_key = api_key
         self.rate_limiter = RateLimiter()
         self.client = httpx.AsyncClient(
-            timeout=30.0,
+            timeout=timeout,
             follow_redirects=True,
         )
     

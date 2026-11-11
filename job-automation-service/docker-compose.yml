@@ -30,6 +30,11 @@ services:
       - LLM_MODEL=${LLM_MODEL:-llama3.2}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      # From the deploy environment or this directory's .env. Never commit real values.
+      - USAJOBS_API_KEY=${USAJOBS_API_KEY:-}
+      - USAJOBS_USER_AGENT_EMAIL=${USAJOBS_USER_AGENT_EMAIL:-}
+      - THEMUSE_API_KEY=${THEMUSE_API_KEY:-}
+      - THE_MUSE_API_KEY=${THE_MUSE_API_KEY:-}
     volumes:
       - .:/app
     ports:

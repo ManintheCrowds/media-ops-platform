@@ -78,9 +78,19 @@ nano .env
 
 **Required Variables:**
 - `DATABASE_URL` - PostgreSQL connection string
-- `ADZUNA_API_ID` - Adzuna API ID (get from https://developer.adzuna.com/)
-- `ADZUNA_API_KEY` - Adzuna API key
+
+**Official job-listing APIs:**
+- `USAJOBS_API_KEY` and `USAJOBS_USER_AGENT_EMAIL` - Both are required to search federal jobs via the [USAJOBS Search API](https://developer.usajobs.gov/api-reference/get-api-search). The email is the address registered with USAJOBS and is sent as the `User-Agent` header. If either value is missing or still `changeme`, USAJOBS is disabled and the service logs the variable names. The key and email are never logged.
+- `THEMUSE_API_KEY` - Optional key for [The Muse API v2](https://www.themuse.com/developers/api/v2) `/api/public/jobs`. With no key the public limit is 500 requests/hour. A real key raises it to 3,600/hour. `THE_MUSE_API_KEY` is accepted as an alias. `changeme` is treated as unset.
+
+**Legacy job-source variables:**
+- `ADZUNA_API_ID` and `ADZUNA_API_KEY` - Still honored when set. Leave them unset to keep Adzuna off. The client and default source name remain so existing deployments do not break; see `docs/AGGREGATOR_APIS.md` for the retirement note.
 - `JSEARCH_API_KEY` - JSearch API key (get from https://jsearch.app/)
+
+**Optional official-API tuning:**
+- `USAJOBS_MAX_PAGES` / `THEMUSE_MAX_PAGES` - Page cap per search (default 3, hard cap 20)
+- `OFFICIAL_API_TIMEOUT_SECONDS` - Per-request timeout (default 20)
+- `OFFICIAL_API_MIN_INTERVAL_SECONDS` - Pause between official API requests (default 0.25). HTTP 429 responses back off using `Retry-After`, capped at 30 seconds.
 
 **Optional Variables (LLM / Cover Letter):**
 - `LLM_PROVIDER` - `ollama` (local), `openai`, or `anthropic` (default: ollama)

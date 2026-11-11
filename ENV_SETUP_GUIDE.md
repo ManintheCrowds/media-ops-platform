@@ -31,8 +31,11 @@
 - ✅ `DEFAULT_LOCATION` - Default: Minneapolis, MN
 
 **Need to Set:**
-- ⚠️ `ADZUNA_API_ID` - Get from https://developer.adzuna.com/
-- ⚠️ `ADZUNA_API_KEY` - Get from https://developer.adzuna.com/
+- ⚠️ `USAJOBS_API_KEY` - Get from https://developer.usajobs.gov/ (federal listings; disabled when unset)
+- ⚠️ `USAJOBS_USER_AGENT_EMAIL` - Email registered with USAJOBS. Use `changeme` in examples, never a real address in git.
+- `THEMUSE_API_KEY` - Optional. Unset uses The Muse public limit of 500 requests/hour.
+- ⚠️ `ADZUNA_API_ID` - Legacy. Get from https://developer.adzuna.com/ only if Adzuna stays enabled.
+- ⚠️ `ADZUNA_API_KEY` - Legacy Adzuna API key. Leave unset to keep that source off.
 - ⚠️ `JSEARCH_API_KEY` - Get from https://jsearch.app/
 - ⚠️ `DATABASE_URL` - PostgreSQL connection string
 

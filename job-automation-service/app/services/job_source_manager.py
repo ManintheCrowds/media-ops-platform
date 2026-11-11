@@ -19,8 +19,15 @@ except ImportError:
     BrowserJobScraper = None
     BROWSER_AVAILABLE = False
 from app.services.api_clients.adzuna_api import AdzunaAPIClient
-from app.services.api_clients.the_muse_api import TheMuseAPIClient
 from app.services.api_clients.jsearch_api import JSearchAPIClient
+from app.services.api_clients.official_api import dedupe_jobs
+from app.services.api_clients.the_muse_api import TheMuseAPIClient
+from app.services.api_clients.usajobs_api import (
+    USAJobsAPIClient,
+    usajobs_disabled_message,
+    usajobs_is_configured,
+)
+from app.services.source_registry import OFFICIAL_API_SOURCES
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +39,14 @@ class JobSourceManager:
         """Initialize job source manager."""
         self.use_browser_scraping = getattr(settings, 'use_browser_scraping', True)
         
-        # Initialize API clients
+        # Initialize API clients. The Muse works without a key. USAJOBS does not.
+        if not usajobs_is_configured():
+            logger.warning("%s", usajobs_disabled_message())
         self.api_clients = {
             "adzuna": AdzunaAPIClient() if settings.adzuna_api_key and settings.adzuna_api_id else None,
-            "the_muse": TheMuseAPIClient() if settings.the_muse_api_key else None,
+            "the_muse": TheMuseAPIClient(),
             "jsearch": JSearchAPIClient() if settings.jsearch_api_key else None,
+            "usajobs": USAJobsAPIClient() if usajobs_is_configured() else None,
         }
         
         # Initialize HTTP scrapers
@@ -278,11 +288,31 @@ class JobSourceManager:
         
         for source in sources:
             jobs = []
-            
+            api_only = source in OFFICIAL_API_SOURCES
+
+            if api_only and not self.has_api_client(source):
+                if source == "usajobs":
+                    logger.warning("%s", usajobs_disabled_message())
+                else:
+                    logger.warning("Official API source %s is not available", source)
+                continue
+
             # Try API first
             if self.has_api_client(source):
                 logger.info(f"Searching {source} via API")
                 jobs = await self.search_via_api(source, query, location, limit)
+
+            # Official APIs never fall through to scraping.
+            if api_only:
+                if jobs:
+                    logger.info(f"Found {len(jobs)} jobs from {source}")
+                    for job in jobs:
+                        if not job.get("source"):
+                            job["source"] = source
+                    all_jobs.extend(jobs)
+                else:
+                    logger.warning(f"No jobs found from {source}")
+                continue
             
             # Fallback to browser scraping
             if not jobs and self.use_browser_scraping:
@@ -304,7 +334,7 @@ class JobSourceManager:
             else:
                 logger.warning(f"No jobs found from {source}")
         
-        return all_jobs
+        return dedupe_jobs(all_jobs)
     
     async def close(self):
         """Close all clients and scrapers."""

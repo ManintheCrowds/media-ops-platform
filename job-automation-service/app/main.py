@@ -6,6 +6,11 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
+from app.services.api_clients.the_muse_api import resolved_muse_api_key
+from app.services.api_clients.usajobs_api import (
+    missing_usajobs_env_names,
+    usajobs_disabled_message,
+)
 from app.database import Base
 from app.api import jobs, applications, matching, scheduler
 
@@ -98,6 +103,18 @@ async def startup_event():
     logger.info(f"Adzuna API ID: {settings.adzuna_api_id}")
     logger.info(f"Adzuna API Key: {'Set' if settings.adzuna_api_key else 'NOT SET'}")
     logger.info(f"JSearch API Key: {'Set' if settings.jsearch_api_key else 'NOT SET'}")
+    missing_usajobs = missing_usajobs_env_names()
+    if missing_usajobs:
+        logger.warning("%s", usajobs_disabled_message(missing_usajobs))
+    else:
+        logger.info("USAJOBS source enabled")
+    if resolved_muse_api_key():
+        logger.info("The Muse API key is set. Authenticated limit is 3600 requests/hour.")
+    else:
+        logger.info(
+            "The Muse API key is unset (THEMUSE_API_KEY or THE_MUSE_API_KEY). "
+            "Using the unauthenticated limit of 500 requests/hour."
+        )
     
     # Test JobSourceManager
     from app.services.job_source_manager import JobSourceManager
@@ -159,6 +176,11 @@ async def debug_credentials():
         "adzuna_api_key_preview": settings.adzuna_api_key[:20] + "..." if settings.adzuna_api_key else None,
         "jsearch_api_key": bool(settings.jsearch_api_key),
         "has_adzuna_client": manager.has_api_client("adzuna"),
+        "usajobs_api_key": "USAJOBS_API_KEY" not in missing_usajobs_env_names(),
+        "usajobs_user_agent_email": "USAJOBS_USER_AGENT_EMAIL" not in missing_usajobs_env_names(),
+        "themuse_api_key": bool(resolved_muse_api_key()),
+        "has_usajobs_client": manager.has_api_client("usajobs"),
+        "has_the_muse_client": manager.has_api_client("the_muse"),
         "adzuna_client": str(manager.api_clients.get("adzuna")) if manager.api_clients.get("adzuna") else None,
         "env_vars": {
             "ADZUNA_API_ID": os.getenv("ADZUNA_API_ID", "NOT SET"),
