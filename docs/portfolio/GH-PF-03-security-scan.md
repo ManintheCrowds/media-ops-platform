@@ -4,7 +4,7 @@
 
 **Repo:** `ManintheCrowds/media-ops-platform`  
 
-**Verdict:** **REMEDIATED 2026-06-04** — GitGuardian post-public alerts addressed; history rewritten on `main` (`a6b97ce`).
+**Verdict:** **REMEDIATED 2026-06-04** — GitGuardian post-public alerts addressed in `a6b97cea`. The Grafana example was replaced in HEAD and remains in history.
 
 
 
@@ -18,9 +18,15 @@
 
 | VirusTotal API Key | Literal key in `scripts/verify-virustotal-config.md`, `VIRUSTOTAL_SETUP_COMPLETE.md` | Files deleted; `git filter-repo --replace-text` on all history; force-push `main` |
 
-| Generic High Entropy Secret | Same VT key; Grafana example hash in `docs/monitoring/GRAFANA_PASSWORD_RESET.md` | History purge + placeholder hash in doc |
+| Generic High Entropy Secret | Same VT key; example admin value in `docs/monitoring/GRAFANA_PASSWORD_RESET.md` | Replaced in HEAD in `a6b97cea` with `<grafana-bcrypt-hash-for-admin>`. Still in history (`6925616b`). No rewrite. |
 
 | Generic Password | Dev literals in `docker-compose*.yml`, `job-automation-service/test_output.txt` | Env-var `${*_POSTGRES_PASSWORD:-changeme}`; untrack `test_output.txt` |
+
+
+
+The value in `docs/monitoring/GRAFANA_PASSWORD_RESET.md` is an example, not a credential and not a valid Grafana hash. Grafana uses a 100-character PBKDF2 hex hash with a separate salt. `6925616b` added the example; `a6b97cea` replaced it in HEAD. It is still reachable on `main`. No history rewrite was performed. A rewrite remains an optional owner decision.
+
+Operators: set the real Grafana admin password to a non-default value from env or secret storage, and keep it out of git.
 
 
 
