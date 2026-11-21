@@ -333,6 +333,22 @@ def test_later_closed_on_is_rejected() -> None:
         known_findings.load_baseline(_baseline(_entry(closed_on="2026-11-24")))
 
 
+def test_pull_request_and_push_job_stays_strict() -> None:
+    text = _WORKFLOW.read_text(encoding="utf-8")
+    strict, scheduled = text.split("  trufflehog-scheduled:", 1)
+    strict_job = strict.split("  trufflehog-strict:", 1)[1]
+
+    assert (
+        "github.event_name == 'pull_request' || github.event_name == 'push'"
+        in strict_job
+    )
+    assert "extra_args: --results=verified,unknown\n" in strict_job
+    assert "--exclude-paths" not in strict_job
+    assert "trufflehog-known-findings.json" not in strict_job
+    assert "trufflehog-known-findings.json" in scheduled
+    assert "trufflehog-strict:" not in scheduled
+
+
 def test_scheduled_job_uses_baseline_and_strict_job_does_not() -> None:
     text = _WORKFLOW.read_text(encoding="utf-8")
     strict, scheduled = text.split("trufflehog-scheduled:", 1)
