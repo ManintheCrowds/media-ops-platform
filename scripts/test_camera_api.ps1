@@ -21,8 +21,7 @@ try {
     Write-Host "  GET  /api/encoder/encoders - List encoders" -ForegroundColor White
     Write-Host "  POST /api/encoder/encoders/discover - Discover encoders" -ForegroundColor White
     Write-Host ""
-    Write-Host "Note: Endpoints require authentication. Use:" -ForegroundColor Yellow
-    Write-Host "  curl -H 'Authorization: Bearer YOUR_TOKEN' http://localhost:8000/api/camera/cameras" -ForegroundColor White
+    Write-Host "Note: Endpoints require authentication. Send a bearer token on the Authorization header." -ForegroundColor Yellow
 } catch {
     Write-Host "[WARNING] Server not running on port 8000" -ForegroundColor Yellow
     Write-Host "  -> Start server with: python -m uvicorn app.main:app --reload" -ForegroundColor White

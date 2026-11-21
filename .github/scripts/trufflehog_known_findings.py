@@ -35,6 +35,7 @@ class Finding:
     commit: str
     verified: bool
     line: int | None
+    verification_error: bool = False
 
 
 @dataclass(frozen=True)
@@ -73,6 +74,8 @@ class Evaluation:
     expired_count: int
     baseline_count: int
     soonest_days_to_expiry: int | None
+    unverified_count: int
+    unknown_count: int
     failures: tuple[str, ...]
     matched_entries: tuple[MatchedEntry, ...]
 
@@ -122,12 +125,15 @@ def finding_from_payload(payload: Mapping[str, object], line_number: int) -> Fin
     line = git.get("line")
     if line is not None and not isinstance(line, int):
         raise ValueError(f"finding on line {line_number} has a non-integer line")
+    verification_error = payload.get("VerificationError")
     return Finding(
         detector=detector,
         path=path,
         commit=commit.lower(),
         verified=verified,
         line=line,
+        verification_error=isinstance(verification_error, str)
+        and bool(verification_error.strip()),
     )
 
 
@@ -224,6 +230,15 @@ def load_baseline(text: str) -> list[BaselineEntry]:
     return parsed
 
 
+def finding_kind(finding: Finding) -> str:
+    """Classify a finding without reading verification-error text."""
+    if finding.verified:
+        return "verified"
+    if finding.verification_error:
+        return "unknown"
+    return "unverified"
+
+
 def evaluate(
     findings: Sequence[Finding],
     entries: Sequence[BaselineEntry],
@@ -255,24 +270,34 @@ def evaluate(
     matched_count = 0
     unmatched_count = 0
     verified_count = 0
+    unknown_count = 0
+    unverified_count = 0
     matched: dict[tuple[str, str, str, int | None], int] = {}
     for finding in findings:
         key = (finding.detector, finding.path, finding.commit, finding.line)
-        if finding.verified:
+        kind = finding_kind(finding)
+        if kind == "verified":
             verified_count += 1
             failures.append(
                 "verified result: "
                 f"{finding.detector} {finding.path} {finding.commit} "
                 f"line={finding.line}"
             )
+        elif kind == "unknown":
+            unknown_count += 1
+        elif kind == "unverified":
+            unverified_count += 1
+        else:
+            raise AssertionError(f"unhandled finding kind: {kind}")
         days = allowed.get(key)
         if days is None:
             unmatched_count += 1
-            failures.append(
-                "finding not in unexpired baseline: "
-                f"{finding.detector} {finding.path} {finding.commit} "
-                f"line={finding.line}"
-            )
+            if kind != "unverified":
+                failures.append(
+                    "finding not in unexpired baseline: "
+                    f"{finding.detector} {finding.path} {finding.commit} "
+                    f"line={finding.line}"
+                )
             continue
         matched_count += 1
         matched[key] = days
@@ -300,9 +325,44 @@ def evaluate(
         expired_count=len(expired),
         baseline_count=len(entries),
         soonest_days_to_expiry=soonest,
+        unverified_count=unverified_count,
+        unknown_count=unknown_count,
         failures=tuple(failures),
         matched_entries=matched_entries,
     )
+
+
+_NIGHTLY_RE = re.compile(
+    r"^trufflehog_nightly total=(?P<total>\d+) verified=(?P<verified>\d+) "
+    r"unverified=(?P<unverified>\d+) unknown=(?P<unknown>\d+) "
+    r"baselined=(?P<baselined>\d+) new=(?P<new>\d+)$"
+)
+
+
+def nightly_count_line(result: Evaluation) -> str:
+    """Return the single machine-readable nightly total."""
+    return (
+        "trufflehog_nightly "
+        f"total={result.finding_count} "
+        f"verified={result.verified_count} "
+        f"unverified={result.unverified_count} "
+        f"unknown={result.unknown_count} "
+        f"baselined={result.matched_count} "
+        f"new={result.unmatched_count}"
+    )
+
+
+def parse_nightly_counts(text: str) -> dict[str, int]:
+    """Parse the one nightly total line from a matcher report."""
+    matches = [
+        line for line in text.splitlines() if line.startswith("trufflehog_nightly ")
+    ]
+    if len(matches) != 1:
+        raise ValueError("expected one nightly count line")
+    match = _NIGHTLY_RE.fullmatch(matches[0])
+    if match is None:
+        raise ValueError("nightly count line is not parseable")
+    return {key: int(value) for key, value in match.groupdict().items()}
 
 
 def format_summary(result: Evaluation) -> str:
@@ -333,6 +393,7 @@ def format_summary(result: Evaluation) -> str:
         )
     else:
         lines.append("- none")
+    lines.append(nightly_count_line(result))
     return "\n".join(lines) + "\n"
 
 

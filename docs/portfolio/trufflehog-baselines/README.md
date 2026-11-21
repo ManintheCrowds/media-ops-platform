@@ -2,7 +2,7 @@
 
 ## Scheduled known findings (2026-11-09)
 
-The nightly job matches the known exposed credential to an expiring baseline instead of failing whenever verification returns a non-401. Entries expire 2026-11-23. After confirmed account closure they become revoked-history suppressions (`closed_on` plus an evidence link). Rewriting history is out of scope and needs separate owner approval. See [trufflehog-scheduled-known-findings.md](../../security/trufflehog-scheduled-known-findings.md).
+The nightly job matches the known exposed credential to an expiring baseline instead of failing whenever verification returns a non-401. Entries expire 2026-12-23. After confirmed account closure they become revoked-history suppressions (`closed_on` plus an evidence link). Rewriting history is out of scope and needs separate owner approval. See [trufflehog-scheduled-known-findings.md](../../security/trufflehog-scheduled-known-findings.md).
 
 
 

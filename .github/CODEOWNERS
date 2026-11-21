@@ -1,0 +1,6 @@
+# Security scan configuration and workflows.
+.gitleaksignore @ManintheCrowds
+.gitleaks.toml @ManintheCrowds
+.github/trufflehog-known-findings.json @ManintheCrowds
+.github/workflows/security-gitleaks.yml @ManintheCrowds
+.github/workflows/security-trufflehog.yml @ManintheCrowds
