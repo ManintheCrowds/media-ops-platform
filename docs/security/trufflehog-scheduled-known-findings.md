@@ -6,7 +6,7 @@ Pull request and push scans are unchanged. They do not read the baseline and the
 
 ## Baseline
 
-[`.github/trufflehog-known-findings.json`](../../.github/trufflehog-known-findings.json) lists detector name, file path, commit, and line. Each entry expires on **2026-11-23**. An optional `closed_on` date, when set, replaces `expires` and must be on or before that date. The scheduled job runs TruffleHog JSON into [`.github/scripts/trufflehog_known_findings.py`](../../.github/scripts/trufflehog_known_findings.py).
+[`.github/trufflehog-known-findings.json`](../../.github/trufflehog-known-findings.json) lists detector name, file path, commit, and line. Each entry expires on **2026-12-23**. An optional `closed_on` date, when set, replaces `expires` and must be on or before that date. The scheduled job runs TruffleHog JSON into [`.github/scripts/trufflehog_known_findings.py`](../../.github/scripts/trufflehog_known_findings.py).
 
 The job passes only when every finding matches an unexpired entry by detector, path, commit, and line. Line is the line number in that commit's file. Two scans of this history returned the same line for every Adzuna location. A finding on another line of the same commit fails. The job also fails when:
 
@@ -14,7 +14,7 @@ The job passes only when every finding matches an unexpired entry by detector, p
 - any result is verified, including a baselined location
 - any baseline entry is expired, even when the scan reports nothing
 
-An entry is unexpired only while the UTC date is before its effective expiry. On 2026-11-23 the nightly job fails so the exception is revisited. The matcher prints counts, matched entries, and days to expiry. It does not print secret values. Do not add raw secrets, secret substrings, or hashes of secret values to the baseline.
+An entry is unexpired only while the UTC date is before its effective expiry. On 2026-12-23 the nightly job fails so the exception is revisited. The matcher prints counts, matched entries, and days to expiry. It does not print secret values. Do not add raw secrets, secret substrings, or hashes of secret values to the baseline.
 
 The example-path exclude file used by the nightly job is unchanged. It is not a detector exclude, and it does not cover this credential.
 

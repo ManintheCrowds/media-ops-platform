@@ -300,12 +300,24 @@ def test_checked_in_baseline_shape() -> None:
     assert "redacted" not in text.lower()
     for entry in entries:
         assert entry.detector == "Adzuna"
-        assert entry.expires == date(2026, 11, 23)
+        assert entry.expires == date(2026, 12, 23)
         assert entry.closed_on is None
         assert entry.evidence is None
         assert entry.line is not None
     locations = {(entry.path, entry.commit, entry.line) for entry in entries}
     assert locations == _BASELINE_LOCATIONS
+
+
+def test_checked_in_baseline_fails_on_its_expiry_date() -> None:
+    entries = known_findings.load_baseline(_BASELINE.read_text(encoding="utf-8"))
+    day_before = known_findings.evaluate([], entries, date(2026, 12, 22))
+    expiry_day = known_findings.evaluate([], entries, date(2026, 12, 23))
+
+    assert day_before.ok is True
+    assert day_before.expired_count == 0
+    assert expiry_day.ok is False
+    assert expiry_day.finding_count == 0
+    assert expiry_day.expired_count == len(entries)
 
 
 def test_evidence_link_is_accepted_and_non_urls_are_rejected() -> None:
