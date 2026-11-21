@@ -14,7 +14,7 @@ The job passes only when every finding matches an unexpired entry by detector, p
 - any result is verified, including a baselined location
 - any baseline entry is expired, even when the scan reports nothing
 
-An entry is unexpired only while the UTC date is before its effective expiry. On 2026-12-23 the nightly job fails so the exception is revisited. The matcher prints counts, matched entries, and days to expiry. It does not print secret values. Do not add raw secrets, secret substrings, or hashes of secret values to the baseline.
+An entry is unexpired only while the UTC date is before its effective expiry. On 2026-12-23 the nightly job fails so the exception is revisited. The matcher prints counts, matched entries, and days to expiry. Its last line is the nightly total `trufflehog_nightly total=N verified=N unverified=N unknown=N baselined=N new=N`. Unverified findings are counted and do not fail the job. Unknown findings outside the baseline, and any verified result, still fail it. It does not print secret values. Do not add raw secrets, secret substrings, or hashes of secret values to the baseline.
 
 The example-path exclude file used by the nightly job is unchanged. It is not a detector exclude, and it does not cover this credential.
 

@@ -54,26 +54,28 @@ def _finding_json(
     commit: str = _COMMIT,
     detector: str = "Adzuna",
     line: int = 3,
+    verification_error: bool = False,
 ) -> str:
-    return json.dumps(
-        {
-            "DetectorName": detector,
-            "Verified": verified,
-            "Raw": _FAKE_RAW,
-            "RawV2": _FAKE_RAW,
-            "Redacted": _FAKE_RAW[:4] + "...",
-            "SourceMetadata": {
-                "Data": {
-                    "Git": {
-                        "file": _PATH,
-                        "commit": commit,
-                        "line": line,
-                        "email": "person@example.invalid",
-                    }
+    payload: dict[str, object] = {
+        "DetectorName": detector,
+        "Verified": verified,
+        "Raw": _FAKE_RAW,
+        "RawV2": _FAKE_RAW,
+        "Redacted": _FAKE_RAW[:4] + "...",
+        "SourceMetadata": {
+            "Data": {
+                "Git": {
+                    "file": _PATH,
+                    "commit": commit,
+                    "line": line,
+                    "email": "person@example.invalid",
                 }
-            },
-        }
-    )
+            }
+        },
+    }
+    if verification_error:
+        payload["VerificationError"] = "unexpected HTTP response status 429"
+    return json.dumps(payload)
 
 
 def _evaluate(
@@ -113,7 +115,7 @@ def test_empty_findings_pass() -> None:
 
 def test_same_commit_different_line_fails() -> None:
     result = _evaluate(
-        _finding_json(verified=False, line=45),
+        _finding_json(verified=False, line=45, verification_error=True),
         _baseline(_entry()),
         date(2026, 11, 9),
     )
@@ -125,10 +127,56 @@ def test_same_commit_different_line_fails() -> None:
     assert _FAKE_RAW not in "\n".join(result.failures)
 
 
-def test_new_finding_fails() -> None:
+def test_unverified_finding_outside_baseline_is_counted_and_passes() -> None:
     other_commit = "641d4f19dabfa807c70aad6fee312e8e3e0ae201"
     result = _evaluate(
         _finding_json(verified=False, commit=other_commit),
+        _baseline(_entry()),
+        date(2026, 11, 9),
+    )
+    summary = known_findings.format_summary(result)
+    counts = known_findings.parse_nightly_counts(summary)
+
+    assert result.ok is True
+    assert counts == {
+        "total": 1,
+        "verified": 0,
+        "unverified": 1,
+        "unknown": 0,
+        "baselined": 0,
+        "new": 1,
+    }
+    assert _FAKE_RAW not in summary
+
+
+def test_nightly_count_line_round_trip() -> None:
+    result = _evaluate(
+        "\n".join(
+            [
+                _finding_json(verified=False, verification_error=True),
+                _finding_json(verified=True, line=4),
+            ]
+        ),
+        _baseline(_entry()),
+        date(2026, 11, 9),
+    )
+    summary = known_findings.format_summary(result)
+    counts = known_findings.parse_nightly_counts(summary)
+
+    assert result.ok is False
+    assert counts["total"] == 2
+    assert counts["verified"] == 1
+    assert counts["unknown"] == 1
+    assert counts["unverified"] == 0
+    assert counts["baselined"] == 1
+    assert counts["new"] == 1
+    assert summary.count("trufflehog_nightly ") == 1
+
+
+def test_new_finding_fails() -> None:
+    other_commit = "641d4f19dabfa807c70aad6fee312e8e3e0ae201"
+    result = _evaluate(
+        _finding_json(verified=False, commit=other_commit, verification_error=True),
         _baseline(_entry()),
         date(2026, 11, 9),
     )
@@ -357,7 +405,8 @@ def test_scheduled_job_uses_baseline_and_strict_job_does_not() -> None:
     assert "trufflehog-known-findings.json" not in strict
     assert "trufflehog_known_findings.py" not in strict
     assert "--exclude-paths" not in strict
-    assert "--results=verified,unknown" in scheduled
+    assert "--results=verified,unknown,unverified" in scheduled
+    assert "extra_args: --results=verified,unknown\n" not in scheduled
     assert "--exclude-paths=config/trufflehog-exclude.txt" in scheduled
     assert ".github/scripts/trufflehog_known_findings.py" in scheduled
     assert ".github/trufflehog-known-findings.json" in scheduled
