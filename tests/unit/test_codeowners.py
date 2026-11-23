@@ -19,6 +19,7 @@ _PATHS = (
     ".github/trufflehog-known-findings.json",
     ".github/workflows/security-gitleaks.yml",
     ".github/gitleaks-tests-requirements.txt",
+    ".github/tomli-requirements.txt",
     ".github/workflows/security-trufflehog.yml",
     "config/trufflehog-exclude.txt",
     "tests/security/test_gitleaks_ci.py",

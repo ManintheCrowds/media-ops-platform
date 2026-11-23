@@ -8,6 +8,7 @@
 .github/trufflehog-known-findings.json @ManintheCrowds
 .github/workflows/security-gitleaks.yml @ManintheCrowds
 .github/gitleaks-tests-requirements.txt @ManintheCrowds
+.github/tomli-requirements.txt @ManintheCrowds
 .github/workflows/security-trufflehog.yml @ManintheCrowds
 config/trufflehog-exclude.txt @ManintheCrowds
 tests/security/ @ManintheCrowds

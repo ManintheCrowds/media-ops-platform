@@ -318,9 +318,13 @@ def test_trusted_python_is_isolated_from_the_checkout() -> None:
     unit_tests = (
         _WORKFLOW.parents[2] / ".github" / "workflows" / "tests.yml"
     ).read_text(encoding="utf-8")
-    assert "tomli==2.2.1" in unit_tests
+    assert ".github/tomli-requirements.txt" in unit_tests
     assert "--require-hashes" in unit_tests
-    assert "cb55c73c5f4408779d0cf3eef9f762b9c9f147a77de7b258bef0a5628adc85cc" in unit_tests
+    pinned = (
+        _WORKFLOW.parents[2] / ".github" / "tomli-requirements.txt"
+    ).read_text(encoding="utf-8")
+    assert "tomli==2.2.1" in pinned
+    assert "cb55c73c5f4408779d0cf3eef9f762b9c9f147a77de7b258bef0a5628adc85cc" in pinned
     assert "pytest" not in gate.split("  gitleaks:", 1)[1]
 
 
