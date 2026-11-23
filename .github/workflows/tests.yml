@@ -335,11 +335,7 @@ jobs:
       - name: Check requirement files for vulnerabilities
         run: |
           "$RUNNER_TEMP/safety/bin/python" -m pytest -o addopts= --noconftest tests/unit/test_safety_requirements.py -q
-          set -euo pipefail
-          mapfile -t REQ_FILES < <(find . -name requirements.txt -not -path './.git/*' | sort)
-          for req in "${REQ_FILES[@]}"; do
-            "$RUNNER_TEMP/safety/bin/python" -m safety check -r "$req" --output text
-          done
+          "$RUNNER_TEMP/safety/bin/python" .github/scripts/safety_requirements_scan.py --root "$GITHUB_WORKSPACE"
 
   coverage-report:
     needs: [changes, unit-tests, integration-tests]
