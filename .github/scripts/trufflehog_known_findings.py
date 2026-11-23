@@ -5,6 +5,9 @@ The scheduled job is the only caller. A run passes only when every finding
 matches an unexpired baseline entry by detector, path, commit, and line. Any
 verified result fails, including one whose location is in the baseline.
 An expired baseline entry fails the run even when no finding matches it.
+Four account-closed Adzuna fingerprints may omit expires. Those rows never
+expire, so the scheduled job will not ask for them again. Every other entry
+still has an expiry, and that date cannot be more than 45 days out.
 
 Scanner JSON includes secret material. This script reads detector name,
 verified flag, file path, commit, and line, and never prints anything else.
@@ -27,6 +30,37 @@ _EVIDENCE_RE = re.compile(r"^https://\S+$")
 _ENTRY_FIELDS = frozenset(
     {"detector", "path", "commit", "line", "expires", "closed_on", "reason", "evidence"}
 )
+# Account-closed Adzuna rows. These four fingerprints may omit expires.
+# Nothing in the scheduled job will ask for them to be rechecked.
+_NO_EXPIRY_REASON = "account closed"
+_NO_EXPIRY_FINGERPRINTS = frozenset(
+    {
+        (
+            "Adzuna",
+            "job-automation-service/.env.backup",
+            "726225a6c1939a4a199cea3de1b893e079193f90",
+            3,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/.env.backup",
+            "7c07e7b78403ddfed05d76cb16f445407ae93e80",
+            3,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/SERVER_DEBUG_INSTRUCTIONS.md",
+            "641d4f19dabfa807c70aad6fee312e8e3e0ae201",
+            64,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/SERVER_DEBUG_INSTRUCTIONS.md",
+            "f708e4c85c471ef9af8817362b7ff14cc09bc6b7",
+            64,
+        ),
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -44,13 +78,16 @@ class BaselineEntry:
     detector: str
     path: str
     commit: str
-    expires: date
+    expires: date | None
     closed_on: date | None
     reason: str
     line: int | None
     evidence: str | None
 
-    def effective_expiry(self) -> date:
+    def effective_expiry(self) -> date | None:
+        """Return the date this entry stops matching, or None when it does not."""
+        if self.expires is None:
+            return None
         if self.closed_on is not None:
             return self.closed_on
         return self.expires
@@ -171,17 +208,26 @@ def _entry_from_payload(payload: Mapping[str, object], index: int) -> BaselineEn
         raise ValueError(f"baseline entry {index} missing commit")
     if not isinstance(reason, str) or not reason.strip():
         raise ValueError(f"baseline entry {index} missing reason")
-    if "expires" not in payload:
-        raise ValueError(f"baseline entry {index} missing expires")
-    expires = _parse_date(payload.get("expires"), f"baseline entry {index} expires")
-    closed_on = _optional_date(
-        payload.get("closed_on"), f"baseline entry {index} closed_on"
-    )
-    if closed_on is not None and closed_on > expires:
-        raise ValueError(f"baseline entry {index} closed_on is after expires")
     line = payload.get("line")
     if line is not None and (not isinstance(line, int) or isinstance(line, bool)):
         raise ValueError(f"baseline entry {index} line must be an integer")
+    line_value = line if isinstance(line, int) else None
+    fingerprint = (detector, path, commit, line_value)
+    closed_on = _optional_date(
+        payload.get("closed_on"), f"baseline entry {index} closed_on"
+    )
+    if "expires" not in payload:
+        if fingerprint not in _NO_EXPIRY_FINGERPRINTS:
+            raise ValueError(f"baseline entry {index} missing expires")
+        if reason.strip() != _NO_EXPIRY_REASON:
+            raise ValueError(f"baseline entry {index} missing account-closed reason")
+        if closed_on is not None:
+            raise ValueError(f"baseline entry {index} closed_on requires expires")
+        expires = None
+    else:
+        expires = _parse_date(payload.get("expires"), f"baseline entry {index} expires")
+        if closed_on is not None and closed_on > expires:
+            raise ValueError(f"baseline entry {index} closed_on is after expires")
     evidence = payload.get("evidence")
     if evidence is not None:
         if (
@@ -245,34 +291,43 @@ def evaluate(
     entries: Sequence[BaselineEntry],
     today: date,
 ) -> Evaluation:
-    days_by_entry = tuple(
-        (entry, (entry.effective_expiry() - today).days) for entry in entries
+    days_by_entry: list[tuple[BaselineEntry, int | None]] = []
+    for entry in entries:
+        expiry = entry.effective_expiry()
+        days_by_entry.append(None if expiry is None else (expiry - today).days)
+    dated = tuple(
+        (entry, days)
+        for entry, days in zip(entries, days_by_entry, strict=True)
+        if days is not None
     )
-    expired = tuple(entry for entry, days in days_by_entry if days <= 0)
+    expired = tuple(entry for entry, days in dated if days <= 0)
     allowed: dict[tuple[str, str, str, int | None], int] = {}
-    for entry, days in days_by_entry:
-        if days <= 0:
+    for entry, days in zip(entries, days_by_entry, strict=True):
+        if days is not None and days <= 0:
             continue
         key = (entry.detector, entry.path, entry.commit, entry.line)
         previous = allowed.get(key)
-        if previous is None or days < previous:
-            allowed[key] = days
+        remaining = days if days is not None else _MAX_EXPIRY_DAYS + 1
+        if previous is None or remaining < previous:
+            allowed[key] = remaining
 
     failures: list[str] = []
     limit = today + timedelta(days=_MAX_EXPIRY_DAYS)
-    for entry, _days in days_by_entry:
-        if entry.expires > limit:
+    for entry, _days in dated:
+        if entry.expires is not None and entry.expires > limit:
             failures.append(
                 "baseline expiry past upper limit: "
                 f"{entry.detector} {entry.path} {entry.commit} line={entry.line} "
                 f"expires={entry.expires.isoformat()}"
             )
-    for entry, days in days_by_entry:
+    for entry, days in dated:
         if days <= 0:
+            effective = entry.effective_expiry()
+            assert effective is not None
             failures.append(
                 "expired baseline entry: "
                 f"{entry.detector} {entry.path} {entry.commit} line={entry.line} "
-                f"effective_expiry={entry.effective_expiry().isoformat()} "
+                f"effective_expiry={effective.isoformat()} "
                 f"days_to_expiry={days}"
             )
 
@@ -311,7 +366,7 @@ def evaluate(
         matched_count += 1
         matched[key] = days
 
-    soonest = min((days for _, days in days_by_entry), default=None)
+    soonest = min((days for days in days_by_entry if days is not None), default=None)
     matched_entries = tuple(
         MatchedEntry(detector, path, commit, line, days)
         for (detector, path, commit, line), days in sorted(
