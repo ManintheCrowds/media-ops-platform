@@ -622,13 +622,28 @@ def _opaque(path: str, blob: bytes, allow_paths: Sequence[str] = ()) -> bool:
 
 
 def _decode_opaque(blob: bytes) -> str:
-    if blob.startswith(b"\xff\xfe"):
-        return blob.decode("utf-16-le", errors="ignore").replace("\x00", "")
-    if blob.startswith(b"\xfe\xff"):
-        return blob.decode("utf-16-be", errors="ignore").replace("\x00", "")
-    if blob.count(b"\x00") > max(1, len(blob) // 4):
-        return blob.decode("utf-16", errors="ignore")
-    return blob.replace(b"\x00", b"").decode("utf-8", errors="ignore")
+    """Decode UTF-8, UTF-16, and UTF-32, including big-endian text with no BOM.
+
+    NUL-stripping keeps an ASCII secret when the width-specific decode is the
+    wrong endianness. Every candidate is scanned.
+    """
+    decoded: dict[str, None] = {}
+    for encoding in (
+        "utf-8",
+        "utf-16",
+        "utf-16-le",
+        "utf-16-be",
+        "utf-32",
+        "utf-32-le",
+        "utf-32-be",
+    ):
+        text = blob.decode(encoding, errors="ignore")
+        if text:
+            decoded.setdefault(text, None)
+    stripped = blob.replace(b"\x00", b"").decode("utf-8", errors="ignore")
+    if stripped:
+        decoded.setdefault(stripped, None)
+    return "\n".join(decoded)
 
 
 def _blobs_in_range(repo: Path, base: str, head: str) -> list[tuple[str, str]]:
@@ -683,7 +698,9 @@ def prescan_opaque_files(
     try:
         for commit, path in blobs:
             blob = git_show_bytes(repo, commit, path)
-            if blob is None or not _opaque(path, blob, allow_paths):
+            if blob is None:
+                raise ScanError("prescan failed", 2)
+            if not _opaque(path, blob, allow_paths):
                 continue
             text = _decode_opaque(blob)
             sample = parent / "sample.txt"

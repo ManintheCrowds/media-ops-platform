@@ -401,6 +401,60 @@ def test_text_in_an_allowlisted_name_is_scanned(tmp_path: Path, name: str) -> No
     assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
 
 
+@pytest.mark.parametrize(
+    "encoding",
+    ["utf-16-be", "utf-32-le", "utf-32-be"],
+)
+def test_wide_text_without_a_bom_is_scanned(tmp_path: Path, encoding: str) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    (repo / "wide.txt").write_bytes(f'key = "{token}"\n'.encode(encoding))
+    _git(repo, "add", "wide.txt")
+    _git(repo, "commit", "-q", "-m", "wide")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+def test_c_quoted_path_is_scanned(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    name = "tab\tname.txt"
+    (repo / name).write_bytes(f'key = "{token}"\n'.encode("utf-16-be"))
+    _git(repo, "add", "--", name)
+    _git(repo, "commit", "-q", "-m", "quoted name")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+def test_unreadable_listed_path_fails_closed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    (repo / "wide.txt").write_bytes(f'key = "{token}"\n'.encode("utf-16"))
+    _git(repo, "add", "wide.txt")
+    _git(repo, "commit", "-q", "-m", "wide")
+    head = _head(repo)
+    real_show = gitleaks_ci.git_show_bytes
+
+    def hide_wide(repo_path: Path, sha: str, path: str) -> bytes | None:
+        if path == "wide.txt":
+            return None
+        return real_show(repo_path, sha, path)
+
+    monkeypatch.setattr(gitleaks_ci, "git_show_bytes", hide_wide)
+    with pytest.raises(gitleaks_ci.ScanError) as caught:
+        gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks())
+    assert caught.value.code == 2
+    assert "prescan failed" in str(caught.value)
+
+
 def test_utf16_secret_added_then_deleted_is_scanned(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)
