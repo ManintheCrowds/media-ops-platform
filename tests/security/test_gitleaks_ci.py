@@ -344,6 +344,24 @@ def _extend_only() -> str:
     return 'title = "weak"\n\n[extend]\nuseDefault = true\n'
 
 
+def test_replaced_slack_rule_fails_the_self_check(tmp_path: Path) -> None:
+    config = _POLICY.read_text(encoding="utf-8") + (
+        '\n[[rules]]\n'
+        'id = "slack-bot-token"\n'
+        'description = "replaced"\n'
+        'regex = "NOMATCHSLACKTOKENNEVER"\n'
+        'keywords = ["xoxb"]\n'
+    )
+    _expect_policy_failure(tmp_path, config)
+
+
+def test_extra_rule_fails_the_default_rule_count(tmp_path: Path) -> None:
+    config = _POLICY.read_text(encoding="utf-8") + (
+        '\n[[rules]]\nid = "extra-dummy"\ndescription = "d"\nregex = "NOMATCHEXTRA"\n'
+    )
+    _expect_policy_failure(tmp_path, config)
+
+
 def test_gate_script_calls_the_policy_self_check(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
