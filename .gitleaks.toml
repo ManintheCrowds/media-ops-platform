@@ -6,13 +6,10 @@ useDefault = true
 [allowlist]
 description = "Binary and documentation files that often trigger false positives."
 paths = [
-  '''.*\.lock$''',
-  '''.*\.svg$''',
+  '''(?:^|/)poetry\.lock$''',
+  '''(?:^|/)package-lock\.json$''',
   '''.*\.png$''',
   '''.*\.jpg$''',
   '''.*\.jpeg$''',
-  '''.*\.gif$''',
-  '''.*\.pdf$''',
-  '''.*\.min\.js$''',
-  '''.*\.map$'''
+  '''.*\.gif$'''
 ]

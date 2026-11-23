@@ -259,6 +259,81 @@ def assert_policy_canaries(gitleaks: str, config: Path) -> None:
         shutil.rmtree(parent, ignore_errors=True)
 
 
+def _opaque(path: str, blob: bytes) -> bool:
+    name = path.rsplit("/", 1)[-1]
+    if path.startswith("node_modules/") or "/node_modules/" in path:
+        return True
+    if path.endswith((".svg", ".map", ".pdf", ".min.js")):
+        return True
+    if path.endswith(".lock") and name not in {"poetry.lock", "package-lock.json"}:
+        return True
+    if blob.startswith((b"\xff\xfe", b"\xfe\xff")) or b"\x00" in blob:
+        return True
+    return False
+
+
+def _decode_opaque(blob: bytes) -> str:
+    if blob.startswith(b"\xff\xfe"):
+        return blob.decode("utf-16-le", errors="ignore").replace("\x00", "")
+    if blob.startswith(b"\xfe\xff"):
+        return blob.decode("utf-16-be", errors="ignore").replace("\x00", "")
+    if blob.count(b"\x00") > max(1, len(blob) // 4):
+        return blob.decode("utf-16", errors="ignore")
+    return blob.replace(b"\x00", b"").decode("utf-8", errors="ignore")
+
+
+def prescan_opaque_files(
+    repo: Path, base: str, head: str, gitleaks: str, config: Path
+) -> int:
+    """Scan UTF-16, NUL, and allowlisted-extension text the git diff would skip."""
+    listed = _git(repo, ["diff", "--name-only", "--diff-filter=AM", f"{base}..{head}"])
+    if listed.returncode != 0:
+        raise ScanError("missing revision", 2)
+    parent = Path(tempfile.mkdtemp(prefix="gitleaks-opaque-"))
+    try:
+        for raw_path in listed.stdout.splitlines():
+            path = raw_path.strip()
+            if not path:
+                continue
+            blob = git_show_bytes(repo, head, path)
+            if blob is None or not _opaque(path, blob):
+                continue
+            text = _decode_opaque(blob)
+            sample = parent / "sample.txt"
+            sample.write_text(text, encoding="utf-8")
+            report = parent / "report.json"
+            scanned = subprocess.run(
+                [
+                    gitleaks,
+                    "detect",
+                    "--no-git",
+                    "--source",
+                    str(parent),
+                    "--config",
+                    str(config),
+                    "--redact",
+                    "--no-banner",
+                    "--report-format",
+                    "json",
+                    "--report-path",
+                    str(report),
+                    "--exit-code",
+                    "0",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            if scanned.returncode != 0:
+                raise ScanError("prescan failed", 2)
+            findings = json.loads(report.read_text(encoding="utf-8") or "[]")
+            if findings:
+                return 1
+        return 0
+    finally:
+        shutil.rmtree(parent, ignore_errors=True)
+
+
 def _scan_range(repo: Path, policy_sha: str, head: str, gitleaks: str) -> int:
     require_commit(repo, head)
     if commit_count(repo, f"{policy_sha}..{head}") == 0:
@@ -267,6 +342,8 @@ def _scan_range(repo: Path, policy_sha: str, head: str, gitleaks: str) -> int:
     try:
         config, ignore = materialize_policy(repo, policy_sha, parent)
         assert_policy_canaries(gitleaks, config)
+        if prescan_opaque_files(repo, policy_sha, head, gitleaks, config) != 0:
+            return 1
         command = gitleaks_command(
             gitleaks,
             repo,

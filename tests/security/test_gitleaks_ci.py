@@ -221,6 +221,25 @@ def test_scan_output_does_not_contain_the_canary(tmp_path: Path) -> None:
     assert completed.returncode == 1
 
 
+def test_utf16_and_nul_and_node_modules_are_scanned(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    (repo / "wide.txt").write_bytes(f"token={token}\n".encode("utf-16"))
+    (repo / "nul.bin").write_bytes(b"\x00token=" + token.encode("ascii") + b"\n")
+    nested = repo / "node_modules" / "pkg"
+    nested.mkdir(parents=True)
+    (nested / "index.js").write_text(f"token={token}\n", encoding="utf-8")
+    _git(repo, "add", "wide.txt", "nul.bin", "node_modules")
+    _git(repo, "commit", "-q", "-m", "opaque")
+    head = subprocess.check_output(
+        ["git", "-C", str(repo), "rev-parse", "HEAD"], text=True
+    ).strip()
+    code = gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks())
+    assert code == 1
+
+
 def test_path_only_base_fingerprint_does_not_suppress(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)
