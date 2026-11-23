@@ -1,7 +1,5 @@
 [submodule "plans"]
 	path = plans
 	url = https://github.com/ManintheCrowds/Planswithinplans.git
-[submodule "reference/CL4R1T4S"]
-	path = reference/CL4R1T4S
-	url = https://github.com/ManintheCrowds/media-ops-platform-unfetched-gitlink.git
-	update = none
+# reference/CL4R1T4S must never be created. An unregistered gitlink at that
+# path makes actions/checkout fail while it removes credentials.

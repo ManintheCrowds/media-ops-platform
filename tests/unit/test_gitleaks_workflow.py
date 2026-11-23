@@ -88,8 +88,39 @@ def _run_block(text: str, step_name: str) -> str:
     raise AssertionError(step_name)
 
 
+def test_gitleaks_pytest_install_is_hash_locked() -> None:
+    text = _WORKFLOW.read_text(encoding="utf-8")
+    tests = text.split("  gitleaks-tests:", 1)[1]
+    assert "--require-hashes" in tests
+    assert "--only-binary=:all:" in tests
+    requirements = (
+        _WORKFLOW.parents[2] / ".github" / "gitleaks-tests-requirements.txt"
+    ).read_text(encoding="utf-8")
+    assert "pytest==9.1.1" in requirements
+    for line in requirements.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        assert "--hash=sha256:" in stripped or stripped.endswith("\\")
+
+
+def test_orphan_gitlink_is_not_in_the_tree() -> None:
+    root = _WORKFLOW.parents[2]
+    listed = subprocess.run(
+        ["git", "-C", str(root), "ls-files", "-s", "--", "reference/CL4R1T4S"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert listed.returncode == 0
+    assert listed.stdout.strip() == ""
+    modules = (root / ".gitmodules").read_text(encoding="utf-8")
+    assert "media-ops-platform-unfetched-gitlink" not in modules
+    assert "reference/CL4R1T4S must never be created" in modules
+
+
 def test_checkout_can_list_submodules() -> None:
-    """The unregistered gitlink makes credential cleanup fail the checkout action."""
+    """Credential cleanup lists submodules. reference/CL4R1T4S must not be a gitlink."""
     completed = subprocess.run(
         ["git", "submodule", "foreach", "--recursive", ":"],
         cwd=_WORKFLOW.parents[2],
@@ -112,7 +143,8 @@ def test_gate_job_runs_no_checkout_tests() -> None:
     assert "GITLEAKS_BIN=" not in gate_job
     assert "GITLEAKS_BIN:" not in gate_job
     assert "/usr/local/bin/gitleaks" in gate_job
-    assert "pytest==9.1.1" in tests
+    assert "--require-hashes" in tests
+    assert ".github/gitleaks-tests-requirements.txt" in tests
 
 
 def test_materialize_executes_the_base_script(tmp_path: Path) -> None:
