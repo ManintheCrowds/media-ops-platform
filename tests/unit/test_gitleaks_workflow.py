@@ -178,6 +178,69 @@ def test_run_step_checks_the_absolute_binary_before_scan(tmp_path: Path) -> None
     ) < trace.index("+ /usr/local/bin/gitleaks version")
 
 
+def test_bootstrap_is_only_the_known_base(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.check_call(["git", "-C", str(repo), "init", "-q"])
+    subprocess.check_call(
+        ["git", "-C", str(repo), "config", "user.email", "dev@example.invalid"]
+    )
+    subprocess.check_call(["git", "-C", str(repo), "config", "user.name", "dev"])
+    script_dir = repo / ".github" / "scripts"
+    script_dir.mkdir(parents=True)
+    (script_dir / "gitleaks_ci.py").write_text("print('head-script')\n", encoding="utf-8")
+    (repo / ".gitleaks.toml").write_text("title = \"head\"\n", encoding="utf-8")
+    subprocess.check_call(["git", "-C", str(repo), "add", "."])
+    subprocess.check_call(["git", "-C", str(repo), "commit", "-q", "-m", "head"])
+    body = _run_block(_WORKFLOW.read_text(encoding="utf-8"), "Materialize base scan gate")
+    other = tmp_path / "other"
+    other.mkdir()
+    refused = subprocess.run(
+        ["bash", "-euo", "pipefail", "-c", body],
+        cwd=repo,
+        check=False,
+        capture_output=True,
+        text=True,
+        env={**os.environ, "GATE_SHA": "a" * 40, "RUNNER_TEMP": str(other)},
+    )
+    assert refused.returncode == 2
+    allowed = tmp_path / "allowed"
+    allowed.mkdir()
+    accepted = subprocess.run(
+        ["bash", "-euo", "pipefail", "-c", body],
+        cwd=repo,
+        check=False,
+        capture_output=True,
+        text=True,
+        env={
+            **os.environ,
+            "GATE_SHA": "f3559cbb2677eb72088bec7c56d541f0aa78a41e",
+            "RUNNER_TEMP": str(allowed),
+        },
+    )
+    assert "bootstrap: base has no scan script" in accepted.stdout
+    assert (allowed / "scan" / "gitleaks_ci.py").read_text(encoding="utf-8") == (
+        "print('head-script')\n"
+    )
+    assert not (other / "scan" / "gitleaks_ci.py").exists()
+
+
+def test_push_gate_sha_is_the_parent_not_the_pushed_commit() -> None:
+    text = _WORKFLOW.read_text(encoding="utf-8")
+    assert (
+        "GATE_SHA: ${{ github.event_name == 'pull_request' && "
+        "github.event.pull_request.base.sha || github.event.before }}"
+    ) in text
+    gate_lines = [
+        line.strip()
+        for line in text.split("  gitleaks-tests:", 1)[0].splitlines()
+        if line.strip().startswith("GATE_SHA:")
+    ]
+    assert gate_lines
+    assert all("github.sha" not in line for line in gate_lines)
+    assert all("github.event.before" in line for line in gate_lines)
+
+
 def test_binary_resolver_ignores_overrides(tmp_path: Path) -> None:
     scanner = _scanner()
     blob = tmp_path / "gitleaks"
