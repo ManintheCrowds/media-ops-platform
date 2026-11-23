@@ -285,6 +285,7 @@ def safety_check_command(python: str, requirement_file: Path) -> list[str]:
     """
     return [
         python,
+        "-I",
         "-m",
         "safety",
         "check",
@@ -300,6 +301,8 @@ def run_safety_check(
     requirement_file: Path, python: str
 ) -> subprocess.CompletedProcess[str]:
     """Run Safety against one requirement file."""
+    env = os.environ.copy()
+    env["PYTHONSAFEPATH"] = "1"
     return subprocess.run(
         safety_check_command(python, requirement_file),
         check=False,
@@ -307,6 +310,8 @@ def run_safety_check(
         text=True,
         encoding="utf-8",
         errors="replace",
+        cwd=Path(tempfile.gettempdir()),
+        env=env,
     )
 
 

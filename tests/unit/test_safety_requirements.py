@@ -302,6 +302,7 @@ def test_safety_command_checks_unpinned_requirements() -> None:
         "python3",
         Path("requirements.txt"),
     )
+    assert command[1] == "-I"
     assert "--check-unpinned-requirements" in command
     assert command[command.index("--output") + 1] == "json"
     assert "--ignore" not in command
@@ -572,6 +573,113 @@ def test_self_test_is_outside_the_scan_environment() -> None:
     assert "pytest" in self_test
     assert "!cancelled()" in self_test
     assert "safety_requirements_scan.py" not in self_test
+
+
+@pytest.mark.unit
+def test_security_scan_python_is_isolated_from_the_checkout() -> None:
+    job = _workflow_job("security-scan")
+    assert 'PYTHONSAFEPATH: "1"' in job
+    assert job.count("working-directory: ${{ runner.temp }}") == 2
+    invocations = [
+        line.strip()
+        for line in job.splitlines()
+        if re.search(r"\bpython3?\b", line)
+        and "python-version" not in line
+        and "setup-python" not in line
+    ]
+    assert invocations
+    assert all("-I" in line for line in invocations)
+
+
+@pytest.mark.unit
+def test_checkout_json_cannot_shadow_isolated_python(tmp_path: Path) -> None:
+    checkout = tmp_path / "checkout"
+    scripts = checkout / ".github" / "scripts"
+    scripts.mkdir(parents=True)
+    shadow = 'raise RuntimeError("shadowed stdlib json")\n'
+    (checkout / "json.py").write_text(shadow, encoding="utf-8")
+    (scripts / "json.py").write_text(shadow, encoding="utf-8")
+    probe = scripts / "probe.py"
+    probe.write_text(
+        "import json\nprint(json.loads('{\"ok\": 1}')['ok'])\n",
+        encoding="utf-8",
+    )
+    unsafe_env = os.environ.copy()
+    unsafe_env.pop("PYTHONSAFEPATH", None)
+    unsafe_env.pop("PYTHONPATH", None)
+    safe_env = dict(unsafe_env)
+    safe_env["PYTHONSAFEPATH"] = "1"
+
+    module_shadow = subprocess.run(
+        [sys.executable, "-c", "import json"],
+        cwd=checkout,
+        env=unsafe_env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    module_isolated = subprocess.run(
+        [
+            sys.executable,
+            "-I",
+            "-c",
+            "import json; print(json.loads('{\"ok\": 1}')['ok'])",
+        ],
+        cwd=checkout,
+        env=safe_env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    script_shadow = subprocess.run(
+        [sys.executable, str(probe)],
+        cwd=checkout,
+        env=unsafe_env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    script_isolated = subprocess.run(
+        [sys.executable, "-I", str(probe)],
+        cwd=checkout,
+        env=safe_env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert "shadowed stdlib json" in module_shadow.stderr
+    assert module_isolated.returncode == 0
+    assert module_isolated.stdout.strip() == "1"
+    assert "shadowed stdlib json" in script_shadow.stderr
+    assert script_isolated.returncode == 0
+    assert script_isolated.stdout.strip() == "1"
+
+
+@pytest.mark.unit
+def test_safety_subprocess_uses_isolated_python(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_run(args: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        captured["args"] = args
+        captured["cwd"] = kwargs.get("cwd")
+        captured["env"] = kwargs.get("env")
+        return _completed(0, stdout=_CLEAN_JSON)
+
+    monkeypatch.setattr(safety_requirements_scan.subprocess, "run", fake_run)
+    requirement = tmp_path / "requirements.txt"
+    requirement.write_text("requests==2.32.4\n", encoding="utf-8")
+    safety_requirements_scan.run_safety_check(requirement, sys.executable)
+    args = captured["args"]
+    assert isinstance(args, list)
+    assert args[1] == "-I"
+    env = captured["env"]
+    assert isinstance(env, dict)
+    assert env["PYTHONSAFEPATH"] == "1"
+    assert Path(str(captured["cwd"])) == Path(
+        safety_requirements_scan.tempfile.gettempdir()
+    )
 
 
 @pytest.mark.safety_cli
