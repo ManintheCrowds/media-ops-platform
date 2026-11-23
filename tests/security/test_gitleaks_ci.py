@@ -378,6 +378,44 @@ def test_stopwords_allowlist_without_paths_fails_the_self_check(tmp_path: Path) 
     _expect_policy_failure(tmp_path, config)
 
 
+@pytest.mark.parametrize(
+    "name",
+    [
+        "logo.png",
+        "a.gif",
+        "font.woff2",
+        "go.sum",
+        "poetry.lock",
+        "package-lock.json",
+    ],
+)
+def test_text_in_an_allowlisted_name_is_scanned(tmp_path: Path, name: str) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    (repo / name).write_text(f'key = "{token}"\n', encoding="utf-8")
+    _git(repo, "add", name)
+    _git(repo, "commit", "-q", "-m", "disguised text")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+def test_real_image_magic_stays_allowlisted(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    payload = f'key = "{token}"\n'.encode("utf-8")
+    (repo / "logo.png").write_bytes(b"\x89PNG\r\n\x1a\n" + payload)
+    (repo / "a.gif").write_bytes(b"GIF89a" + payload)
+    (repo / "photo.jpg").write_bytes(b"\xff\xd8\xff" + payload)
+    _git(repo, "add", "logo.png", "a.gif", "photo.jpg")
+    _git(repo, "commit", "-q", "-m", "real images")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 0
+
+
 def test_write_nofollow_refuses_a_symlinked_directory(tmp_path: Path) -> None:
     root = tmp_path / "root"
     root.mkdir()

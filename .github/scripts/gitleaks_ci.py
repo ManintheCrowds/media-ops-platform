@@ -494,15 +494,129 @@ def assert_policy_canaries(gitleaks: str, config: Path, repo: Path) -> None:
         shutil.rmtree(parent, ignore_errors=True)
 
 
-def _opaque(path: str, blob: bytes) -> bool:
-    name = path.rsplit("/", 1)[-1]
+# Path patterns from the gitleaks 8.30.1 default allowlist. useDefault merges
+# these with the repo allowlist, so the main scan never opens the blobs.
+_DEFAULT_ALLOW_PATHS: tuple[str, ...] = (
+    r"gitleaks\.toml",
+    r"(?i)\.(?:bmp|gif|jpe?g|png|svg|tiff?)$",
+    r"(?i)\.(?:eot|[ot]tf|woff2?)$",
+    r"(?i)\.(?:docx?|xlsx?|pdf|bin|socket|vsidx|v2|suo|wsuo|.dll|pdb|exe|gltf)$",
+    r"go\.(?:mod|sum|work(?:\.sum)?)$",
+    r"(?:^|/)vendor/modules\.txt$",
+    r"(?:^|/)vendor/(?:github\.com|golang\.org/x|google\.golang\.org|gopkg\.in|"
+    r"istio\.io|k8s\.io|sigs\.k8s\.io)(?:/.*)?$",
+    r"(?:^|/)gradlew(?:\.bat)?$",
+    r"(?:^|/)gradle\.lockfile$",
+    r"(?:^|/)mvnw(?:\.cmd)?$",
+    r"(?:^|/)\.mvn/wrapper/MavenWrapperDownloader\.java$",
+    r"(?:^|/)node_modules(?:/.*)?$",
+    r"(?:^|/)(?:deno\.lock|npm-shrinkwrap\.json|package-lock\.json|pnpm-lock\.yaml|yarn\.lock)$",
+    r"(?:^|/)bower_components(?:/.*)?$",
+    r"(?:^|/)(?:angular|bootstrap|jquery(?:-?ui)?|plotly|swagger-?ui)[a-zA-Z0-9.-]*(?:\.min)?\.js(?:\.map)?$",
+    r"(?:^|/)javascript\.json$",
+    r"(?:^|/)(?:Pipfile|poetry)\.lock$",
+    r"(?i)(?:^|/)(?:v?env|virtualenv)/lib(?:64)?(?:/.*)?$",
+    r"(?i)(?:^|/)(?:lib(?:64)?/python[23](?:\.\d{1,2})+|python/[23](?:\.\d{1,2})+/lib(?:64)?)(?:/.*)?$",
+    r"(?i)(?:^|/)[a-z0-9_.]+-[0-9.]+\.dist-info(?:/.+)?$",
+    r"(?:^|/)vendor/(?:bundle|ruby)(?:/.*?)?$",
+    r"\.gem$",
+    r"verification-metadata\.xml",
+    r"Database.refactorlog",
+    r"(?:^|/)\.git$",
+)
+_LOCKFILE_NAMES = frozenset(
+    {
+        "poetry.lock",
+        "package-lock.json",
+        "go.sum",
+        "go.work.sum",
+        "yarn.lock",
+        "pnpm-lock.yaml",
+        "npm-shrinkwrap.json",
+        "cargo.lock",
+        "composer.lock",
+        "gemfile.lock",
+        "packages.lock.json",
+        "gradle.lockfile",
+        "pipfile.lock",
+        "deno.lock",
+    }
+)
+
+
+def _is_lockfile(path: str) -> bool:
+    name = path.rsplit("/", 1)[-1].lower()
+    return name in _LOCKFILE_NAMES or name.endswith(".lock")
+
+
+def _image_path(path: str) -> bool:
+    lowered = path.lower()
+    return lowered.endswith((".png", ".gif", ".jpg", ".jpeg"))
+
+
+def _has_image_magic(blob: bytes) -> bool:
+    return blob.startswith((b"\x89PNG\r\n\x1a\n", b"GIF87a", b"GIF89a", b"\xff\xd8\xff"))
+
+
+def _text_like(blob: bytes) -> bool:
+    sample = blob[:8192].replace(b"\x00", b"")
+    if not sample:
+        return False
+    printable = sum(byte in (9, 10, 13) or 32 <= byte < 127 for byte in sample)
+    return printable / len(sample) >= 0.85
+
+
+def _configured_allow_paths(config: Path) -> list[str]:
+    try:
+        parsed = tomllib.loads(config.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, tomllib.TOMLDecodeError):
+        return []
+    lowered = _lower_keys(parsed)
+    if not isinstance(lowered, dict):
+        return []
+    found: list[str] = []
+    for key in ("allowlist", "allowlists"):
+        try:
+            tables = _as_tables(lowered.get(key))
+        except ScanError:
+            continue
+        for table in tables:
+            paths = table.get("paths")
+            if isinstance(paths, list):
+                found.extend(str(item) for item in paths)
+    return found
+
+
+def _allowlisted(path: str, extra: Sequence[str]) -> bool:
+    for pattern in (*_DEFAULT_ALLOW_PATHS, *extra):
+        try:
+            matched = re.search(pattern, path) is not None
+        except re.error:
+            continue
+        if matched:
+            return True
+    return False
+
+
+def _opaque(path: str, blob: bytes, allow_paths: Sequence[str] = ()) -> bool:
+    """True when the git diff would skip a blob the prescan still has to read.
+
+    Real PNG, GIF, and JPEG bytes keep the allowlist. Text in an image name,
+    a font name, or a lockfile does not.
+    """
+    if _image_path(path) and _has_image_magic(blob):
+        return False
+    if _is_lockfile(path):
+        return True
     if path.startswith("node_modules/") or "/node_modules/" in path:
         return True
     if path.endswith((".svg", ".map", ".pdf", ".min.js")):
         return True
-    if path.endswith(".lock") and name not in {"poetry.lock", "package-lock.json"}:
+    if blob.startswith((b"\xff\xfe", b"\xfe\xff", b"\xff\xfe\x00\x00", b"\x00\x00\xfe\xff")):
         return True
-    if blob.startswith((b"\xff\xfe", b"\xfe\xff")) or b"\x00" in blob:
+    if b"\x00" in blob:
+        return True
+    if _allowlisted(path, allow_paths) and _text_like(blob):
         return True
     return False
 
@@ -524,6 +638,7 @@ def prescan_opaque_files(
     listed = _git(repo, ["diff", "--name-only", "--diff-filter=AM", f"{base}..{head}"])
     if listed.returncode != 0:
         raise ScanError("missing revision", 2)
+    allow_paths = _configured_allow_paths(config)
     parent = Path(tempfile.mkdtemp(prefix="gitleaks-opaque-"))
     try:
         for raw_path in listed.stdout.splitlines():
@@ -531,7 +646,7 @@ def prescan_opaque_files(
             if not path:
                 continue
             blob = git_show_bytes(repo, head, path)
-            if blob is None or not _opaque(path, blob):
+            if blob is None or not _opaque(path, blob, allow_paths):
                 continue
             text = _decode_opaque(blob)
             sample = parent / "sample.txt"
