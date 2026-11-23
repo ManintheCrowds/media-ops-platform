@@ -333,8 +333,19 @@ jobs:
       
       - name: Check for dependency vulnerabilities
         run: |
-          safety check --json || true
-          safety check
+          # Scan tracked requirement files. An environment scan also sees
+          # Safety's own filelock install, and filelock has no fixed release
+          # through 4.2.0 in the open database.
+          mapfile -t reqs < <(git ls-files '*requirements*.txt')
+          args=()
+          for req in "${reqs[@]}"; do
+            args+=(-r "$req")
+          done
+          safety check --json --policy-file .safety-policy.yml "${args[@]}" || true
+          safety check --policy-file .safety-policy.yml "${args[@]}"
+
+      - name: Prove the python-jose Safety ignore is scoped and expiring
+        run: PYTHONSAFEPATH=1 python3 -I .github/scripts/safety_python_jose_ignore.py --check-policy --execute
 
   coverage-report:
     needs: [changes, unit-tests, integration-tests]

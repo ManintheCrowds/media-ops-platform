@@ -16,13 +16,16 @@ alembic==1.12.1
 
 # HTTP Clients
 # Hold httpx: 0.28 breaks RESPX mocks in integration/e2e (follow-up).
-# Hold requests: arlo pins urllib3==1.24; requests>=2.34 needs urllib3>=1.26
+# requests 2.33.0 fixes Safety 90553 / CVE-2026-25645 / GHSA-gc5v-m9x4-r6x2.
+# 2.33.0 requires urllib3>=1.26. PyPI arlo pins urllib3==1.24, so that
+# distribution cannot be installed beside this pin. Camera code vendors
+# arlo_module.py and treats a missing Arlo import as optional.
 httpx==0.25.2
 aiohttp==3.14.4
-requests==2.32.4
+requests==2.33.0
 
 # Camera Integration
-arlo>=1.2.62
+# arlo>=1.2.62 is omitted: it pins urllib3==1.24 (see HTTP Clients note).
 
 # Monitoring & Metrics
 prometheus-client==0.19.0
