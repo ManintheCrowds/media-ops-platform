@@ -30,6 +30,8 @@ _ZERO_SHA = "0" * 40
 # sha256 of the gitleaks binary inside the 8.30.1 linux_x64 tarball.
 # The tarball itself is 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb.
 GITLEAKS_SHA256 = "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509"
+# sha256 of the approved .gitleaks.toml. A policy change has to change this pin.
+APPROVED_CONFIG_SHA256 = "c46800467f8d1f3ec8019bfd0d693bb169b7fbe12ec37ae32f619289961ee6be"
 GITLEAKS_BINARY = Path("/usr/local/bin/gitleaks")
 BOOTSTRAP_SHA = "f3559cbb2677eb72088bec7c56d541f0aa78a41e"
 # Rule count in the gitleaks 8.30.1 default pack.
@@ -400,6 +402,17 @@ def _canary_lines() -> dict[str, str]:
     return lines
 
 
+def assert_approved_config(config: Path) -> None:
+    """Fail unless the materialized config is the pinned approved file.
+
+    The bootstrap base reads the checkout file. That file has to be this
+    exact document too. Any other bytes fail closed.
+    """
+    digest = hashlib.sha256(config.read_bytes()).hexdigest()
+    if digest != APPROVED_CONFIG_SHA256:
+        raise _policy_failure()
+
+
 def assert_policy_canaries(gitleaks: str, config: Path, repo: Path) -> None:
     """Fail unless the materialized config still matches the approved policy.
 
@@ -407,6 +420,7 @@ def assert_policy_canaries(gitleaks: str, config: Path, repo: Path) -> None:
     with the same directory layout. Nothing is written into ``repo``, and
     symlinks are not followed.
     """
+    assert_approved_config(config)
     validate_policy_config(config)
     if _paths_match_canary(APPROVED_ALLOW_PATHS):
         raise _policy_failure()

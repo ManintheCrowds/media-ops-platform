@@ -381,6 +381,78 @@ def test_gate_script_calls_the_policy_self_check(
     assert seen
 
 
+def _approved_plus(extra: str) -> str:
+    return _POLICY.read_text(encoding="utf-8") + "\n" + extra
+
+
+def test_same_id_stripe_rule_fails_the_pin(tmp_path: Path) -> None:
+    extra = (
+        '[[rules]]\nid = "stripe-access-token"\n'
+        'description = "replaced"\nregex = \'\'\'zzneverzz\'\'\'\n'
+    )
+    _expect_policy_failure(tmp_path, _approved_plus(extra))
+
+
+def test_same_id_pypi_rule_fails_the_pin(tmp_path: Path) -> None:
+    extra = (
+        '[[rules]]\nid = "pypi-upload-token"\n'
+        'description = "replaced"\nregex = \'\'\'zzneverzz\'\'\'\n'
+    )
+    _expect_policy_failure(tmp_path, _approved_plus(extra))
+
+
+def test_same_id_rule_path_fails_the_pin(tmp_path: Path) -> None:
+    extra = (
+        '[[rules]]\nid = "stripe-access-token"\n'
+        'description = "replaced"\nregex = \'\'\'zzneverzz\'\'\'\n'
+        "path = '''^never/'''\n"
+    )
+    _expect_policy_failure(tmp_path, _approved_plus(extra))
+
+
+def test_allowlist_case_variant_before_the_real_table_fails_the_pin(
+    tmp_path: Path,
+) -> None:
+    approved = _POLICY.read_text(encoding="utf-8")
+    for index, name in enumerate(("AllowList", "Allowlist")):
+        prefix = f"[{name}]\nregexTarget = \"line\"\nregexes = ['''^prod''']\n\n"
+        repo = tmp_path / f"repo-{index}"
+        _init_repo(repo, prefix + approved)
+        base = _head(repo)
+        head = _commit_file(repo, "note.txt", "hello\n", "note")
+        with pytest.raises(gitleaks_ci.ScanError) as caught:
+            gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks())
+        assert caught.value.code == 2
+
+
+def test_quoted_allowlist_keys_fail_the_pin(tmp_path: Path) -> None:
+    extra = (
+        '"allowlist.regexTarget" = "line"\n'
+        "\"allowlist.regexes\" = ['''^prod''']\n"
+    )
+    _expect_policy_failure(tmp_path, _approved_plus(extra))
+
+
+def test_bootstrap_checkout_must_match_the_pinned_config(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    approved = (repo / ".gitleaks.toml").read_bytes()
+    assert gitleaks_ci.policy_config_bytes(repo, gitleaks_ci.BOOTSTRAP_SHA) == approved
+    assert (
+        __import__("hashlib").sha256(approved).hexdigest()
+        == gitleaks_ci.APPROVED_CONFIG_SHA256
+    )
+    (repo / ".gitleaks.toml").write_text('title = "weak"\n', encoding="utf-8")
+    weakened = tmp_path / "weak.toml"
+    weakened.write_bytes(
+        gitleaks_ci.policy_config_bytes(repo, gitleaks_ci.BOOTSTRAP_SHA) or b""
+    )
+    with pytest.raises(gitleaks_ci.ScanError) as caught:
+        gitleaks_ci.assert_approved_config(weakened)
+    assert caught.value.code == 2
+    assert gitleaks_ci.policy_config_bytes(repo, "a" * 40) is None
+
+
 def test_root_path_allowlist_fails_the_self_check(tmp_path: Path) -> None:
     config = _extend_only() + "\n[allowlist]\npaths = ['''^[^/]''']\n"
     _expect_policy_failure(tmp_path, config)
