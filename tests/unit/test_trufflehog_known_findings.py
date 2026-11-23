@@ -349,6 +349,7 @@ def test_checked_in_baseline_shape() -> None:
     for entry in entries:
         assert entry.detector == "Adzuna"
         assert entry.expires == date(2026, 12, 23)
+        assert "Re-triaged 2026-11-23" in entry.reason
         assert entry.closed_on is None
         assert entry.evidence is None
         assert entry.line is not None
@@ -366,6 +367,29 @@ def test_checked_in_baseline_fails_on_its_expiry_date() -> None:
     assert expiry_day.ok is False
     assert expiry_day.finding_count == 0
     assert expiry_day.expired_count == len(entries)
+
+
+def test_baseline_expiry_has_an_upper_limit() -> None:
+    today = date(2026, 11, 23)
+    allowed = _evaluate("", _baseline(_entry(expires="2026-12-23")), today)
+    too_far = _evaluate("", _baseline(_entry(expires="2099-01-01")), today)
+    assert allowed.ok is True
+    assert too_far.ok is False
+    assert any("upper limit" in item for item in too_far.failures)
+
+
+def test_trufflehog_action_is_pinned_to_a_full_sha() -> None:
+    uses = []
+    for raw in _WORKFLOW.read_text(encoding="utf-8").splitlines():
+        stripped = raw.strip()
+        if stripped.startswith("#") or not stripped.startswith("uses:"):
+            continue
+        uses.append(stripped.split("uses:", 1)[1].strip().split()[0])
+    assert (
+        "trufflesecurity/trufflehog@ea68ca03c865c5f324e86e849ced20ed3cf9dbbb" in uses
+    )
+    assert all(not item.endswith("@main") for item in uses)
+    assert all("@v" not in item for item in uses)
 
 
 def test_evidence_link_is_accepted_and_non_urls_are_rejected() -> None:

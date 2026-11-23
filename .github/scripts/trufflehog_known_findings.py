@@ -17,11 +17,12 @@ import json
 import re
 import sys
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Mapping, Sequence, TextIO
 
 _COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_MAX_EXPIRY_DAYS = 45
 _EVIDENCE_RE = re.compile(r"^https://\S+$")
 _ENTRY_FIELDS = frozenset(
     {"detector", "path", "commit", "line", "expires", "closed_on", "reason", "evidence"}
@@ -258,6 +259,14 @@ def evaluate(
             allowed[key] = days
 
     failures: list[str] = []
+    limit = today + timedelta(days=_MAX_EXPIRY_DAYS)
+    for entry, _days in days_by_entry:
+        if entry.expires > limit:
+            failures.append(
+                "baseline expiry past upper limit: "
+                f"{entry.detector} {entry.path} {entry.commit} line={entry.line} "
+                f"expires={entry.expires.isoformat()}"
+            )
     for entry, days in days_by_entry:
         if days <= 0:
             failures.append(
