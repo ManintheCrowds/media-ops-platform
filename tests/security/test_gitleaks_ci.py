@@ -24,9 +24,9 @@ _spec.loader.exec_module(gitleaks_ci)
 
 
 def _gitleaks() -> str:
-    fallback = Path("/tmp/gl-bin/gitleaks")
-    if fallback.is_file():
-        return str(fallback)
+    for candidate in (Path("/usr/local/bin/gitleaks"), Path("/tmp/gl-bin/gitleaks")):
+        if candidate.is_file():
+            return str(candidate)
     return "gitleaks"
 
 

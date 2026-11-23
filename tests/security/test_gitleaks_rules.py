@@ -16,12 +16,12 @@ _CONFIG = _ROOT / ".gitleaks.toml"
 
 
 def _gitleaks() -> str:
+    for candidate in (Path("/usr/local/bin/gitleaks"), Path("/tmp/gl-bin/gitleaks")):
+        if candidate.is_file():
+            return str(candidate)
     found = shutil.which("gitleaks")
     if found:
         return found
-    fallback = Path("/tmp/gl-bin/gitleaks")
-    if fallback.is_file():
-        return str(fallback)
     pytest.fail("gitleaks is not installed")
     return ""
 

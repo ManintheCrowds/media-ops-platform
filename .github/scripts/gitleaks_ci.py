@@ -16,8 +16,12 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import tomllib
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10
+    import tomli as tomllib  # type: ignore[no-redef,import-not-found]
 from typing import Mapping, Sequence
 
 _EXACT_FINGERPRINT = re.compile(r"^[0-9a-f]{40}:[^:\s]+:[A-Za-z0-9_.-]+:[0-9]+$")
