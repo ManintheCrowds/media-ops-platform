@@ -167,31 +167,15 @@ def run_pull_request_scan(repo: Path, base: str, head: str, gitleaks: str) -> in
 
 
 def run_push_scan(repo: Path, before: str, sha: str, gitleaks: str) -> int:
-    """Scan a push range with the checked-out config.
+    """Scan before..sha with the parent revision's config and ignore file.
 
-    Replaced in the following commit so the parent revision is the policy.
+    An all-zero or unfetchable ``before`` fails closed. The pushed commit's
+    policy files are never read.
     """
-    require_commit(repo, sha)
-    if not before or before == _ZERO_SHA:
-        log_opts = "-1"
-    else:
-        require_commit(repo, before)
-        if commit_count(repo, f"{before}..{sha}") == 0:
-            raise ScanError("empty range", 3)
-        log_opts = revision_log_opts(before, sha)
-    config = repo / ".gitleaks.toml"
-    if not config.is_file():
+    if not before or before == _ZERO_SHA or set(before) == {"0"}:
         raise ScanError("missing revision", 2)
-    if (repo / ".gitleaksignore").is_file():
-        command = gitleaks_command(
-            gitleaks, repo, config, repo / ".gitleaksignore", log_opts
-        )
-        return _run_gitleaks(repo, command, repo / ".gitleaksignore")
-    with tempfile.TemporaryDirectory(prefix="gitleaks-ignore-") as empty:
-        ignore = Path(empty) / ".gitleaksignore"
-        ignore.write_text("", encoding="utf-8")
-        command = gitleaks_command(gitleaks, repo, config, ignore, log_opts)
-        return _run_gitleaks(repo, command, ignore)
+    require_commit(repo, before)
+    return _scan_range(repo, before, sha, gitleaks)
 
 
 def main() -> int:

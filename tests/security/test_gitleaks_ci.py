@@ -223,3 +223,69 @@ def test_scan_output_does_not_contain_the_canary(tmp_path: Path) -> None:
     leaked = token in completed.stdout or token in completed.stderr
     assert leaked is False
     assert completed.returncode == 1
+
+
+def test_push_ignore_on_the_pushed_commit_still_fails(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    before = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    head = _commit_file(repo, "secret.txt", f"token={token}\n", "add token")
+    report = tmp_path / "report.json"
+    listed = subprocess.run(
+        [
+            _gitleaks(),
+            "detect",
+            "--source",
+            str(repo),
+            "--config",
+            str(repo / ".gitleaks.toml"),
+            "--log-opts",
+            f"{before}..{head}",
+            "--redact",
+            "--no-banner",
+            "--report-format",
+            "json",
+            "--report-path",
+            str(report),
+            "--exit-code",
+            "0",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert listed.returncode == 0
+    findings = json.loads(report.read_text(encoding="utf-8"))
+    fingerprints = [item["Fingerprint"] for item in findings if item.get("Fingerprint")]
+    assert fingerprints
+    (repo / ".gitleaksignore").write_text(
+        "\n".join(fingerprints) + "\n", encoding="utf-8"
+    )
+    (repo / ".gitleaks.toml").write_text('title = "no rules"\n', encoding="utf-8")
+    _git(repo, "add", ".gitleaksignore", ".gitleaks.toml")
+    _git(repo, "commit", "-q", "-m", "push ignore and empty config")
+    pushed = subprocess.check_output(
+        ["git", "-C", str(repo), "rev-parse", "HEAD"], text=True
+    ).strip()
+    code = gitleaks_ci.run_push_scan(repo, before, pushed, _gitleaks())
+    assert code == 1
+
+
+def test_push_all_zero_before_fails(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    head = _commit_file(repo, "readme.txt", "ok\n", "base")
+    with pytest.raises(gitleaks_ci.ScanError) as caught:
+        gitleaks_ci.run_push_scan(repo, "0" * 40, head, _gitleaks())
+    assert caught.value.code == 2
+
+
+def test_push_unfetchable_before_fails(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    head = _commit_file(repo, "readme.txt", "ok\n", "base")
+    missing = "0123456789abcdef0123456789abcdef01234567"
+    with pytest.raises(gitleaks_ci.ScanError) as caught:
+        gitleaks_ci.run_push_scan(repo, missing, head, _gitleaks())
+    assert caught.value.code == 2
