@@ -90,7 +90,7 @@ def test_use_default_loads_a_nonzero_rule_count(tmp_path: Path) -> None:
     assert completed.returncode == 0, "gitleaks did not finish"
     report = json.loads(sarif.read_text(encoding="utf-8"))
     rules = report["runs"][0]["tool"]["driver"].get("rules") or []
-    assert len(rules) >= 200
+    assert len(rules) == 222
 
 
 def test_runtime_canaries_match_default_rules(tmp_path: Path) -> None:
@@ -98,10 +98,14 @@ def test_runtime_canaries_match_default_rules(tmp_path: Path) -> None:
     pat = "ghp_" + "".join(
         ["Ab3Cd", "Ef7Gh", "Jk2Lm", "Np5Qr", "St8Vw", "Xy1Za", "Bc4De", "F"]
     )
+    slack = "".join(
+        ["xoxb-", "2468013579", "-", "135792468013", "-", "Ab9Cd8Ef7Gh6Ij5Kl4Mn3"]
+    )
     source = tmp_path / "src"
     source.mkdir()
-    (source / "aws.txt").write_text(f"token={aws}\n", encoding="utf-8")
-    (source / "pat.txt").write_text(f"github={pat}\n", encoding="utf-8")
+    (source / "aws.txt").write_text(f'key = "{aws}"\n', encoding="utf-8")
+    (source / "pat.txt").write_text(f'key = "{pat}"\n', encoding="utf-8")
+    (source / "slack.txt").write_text(f'key = "{slack}"\n', encoding="utf-8")
     findings = _detect(source, tmp_path / "canary.json")
     # Re-run with captured logs so a dropped --redact would show the canary.
     completed = subprocess.run(
@@ -125,8 +129,10 @@ def test_runtime_canaries_match_default_rules(tmp_path: Path) -> None:
     rules = {item.get("RuleID") for item in findings}
     assert "github-pat" in rules
     assert "aws-access-token" in rules
+    assert "slack-bot-token" in rules
     leaked = aws in completed.stdout or aws in completed.stderr
     leaked = leaked or pat in completed.stdout or pat in completed.stderr
+    leaked = leaked or slack in completed.stdout or slack in completed.stderr
     assert leaked is False
 
 

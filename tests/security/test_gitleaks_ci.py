@@ -13,7 +13,9 @@ import pytest
 
 pytestmark = pytest.mark.security
 
-_SCRIPT = Path(__file__).resolve().parents[2] / ".github" / "scripts" / "gitleaks_ci.py"
+_ROOT = Path(__file__).resolve().parents[2]
+_SCRIPT = _ROOT / ".github" / "scripts" / "gitleaks_ci.py"
+_POLICY = _ROOT / ".gitleaks.toml"
 _spec = importlib.util.spec_from_file_location("gitleaks_ci", _SCRIPT)
 assert _spec is not None and _spec.loader is not None
 gitleaks_ci = importlib.util.module_from_spec(_spec)
@@ -38,17 +40,32 @@ def _git(repo: Path, *args: str) -> None:
     assert completed.returncode == 0, completed.stderr
 
 
-def _init_repo(repo: Path) -> None:
+def _init_repo(repo: Path, config: str | None = None) -> None:
     repo.mkdir()
     _git(repo, "init", "-q")
     _git(repo, "config", "user.email", "dev@example.invalid")
     _git(repo, "config", "user.name", "dev")
-    (repo / ".gitleaks.toml").write_text(
-        'title = "test"\n\n[extend]\nuseDefault = true\n',
-        encoding="utf-8",
-    )
+    text = _POLICY.read_text(encoding="utf-8") if config is None else config
+    (repo / ".gitleaks.toml").write_text(text, encoding="utf-8")
     _git(repo, "add", ".gitleaks.toml")
     _git(repo, "commit", "-q", "-m", "config")
+
+
+def _head(repo: Path) -> str:
+    return subprocess.check_output(
+        ["git", "-C", str(repo), "rev-parse", "HEAD"], text=True
+    ).strip()
+
+
+def _expect_policy_failure(tmp_path: Path, config: str) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo, config)
+    base = _head(repo)
+    head = _commit_file(repo, "note.txt", "hello\n", "note")
+    with pytest.raises(gitleaks_ci.ScanError) as caught:
+        gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks())
+    assert caught.value.code == 2
+    assert "policy canary failed" in str(caught.value)
 
 
 def _runtime_token() -> str:
@@ -321,3 +338,72 @@ def test_push_unfetchable_before_fails(tmp_path: Path) -> None:
     with pytest.raises(gitleaks_ci.ScanError) as caught:
         gitleaks_ci.run_push_scan(repo, missing, head, _gitleaks())
     assert caught.value.code == 2
+
+
+def _extend_only() -> str:
+    return 'title = "weak"\n\n[extend]\nuseDefault = true\n'
+
+
+def test_root_path_allowlist_fails_the_self_check(tmp_path: Path) -> None:
+    config = _extend_only() + "\n[allowlist]\npaths = ['''^[^/]''']\n"
+    _expect_policy_failure(tmp_path, config)
+
+
+def test_line_regex_allowlist_fails_the_self_check(tmp_path: Path) -> None:
+    config = (
+        _extend_only()
+        + "\n[allowlist]\nregexTarget = \"line\"\nregexes = ['''^t=''']\n"
+    )
+    _expect_policy_failure(tmp_path, config)
+
+
+def test_disabled_slack_rule_fails_the_self_check(tmp_path: Path) -> None:
+    config = _extend_only().replace(
+        "useDefault = true\n",
+        'useDefault = true\ndisabledRules = ["slack-bot-token"]\n',
+    )
+    _expect_policy_failure(tmp_path, config)
+
+
+def test_dummy_rules_without_defaults_fail_the_self_check(tmp_path: Path) -> None:
+    rules = "\n".join(
+        f'[[rules]]\nid = "dummy-{index}"\ndescription = "d"\nregex = "NOMATCH{index:04d}"\n'
+        for index in range(200)
+    )
+    _expect_policy_failure(tmp_path, 'title = "dummy"\n\n' + rules + "\n")
+
+
+def test_stopwords_allowlist_without_paths_fails_the_self_check(tmp_path: Path) -> None:
+    config = _extend_only() + '\n[allowlist]\nstopwords = ["example"]\n'
+    _expect_policy_failure(tmp_path, config)
+
+
+def test_write_nofollow_refuses_a_symlinked_directory(tmp_path: Path) -> None:
+    root = tmp_path / "root"
+    root.mkdir()
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    secret = outside / "secret.txt"
+    secret.write_text("untouched\n", encoding="utf-8")
+    (root / "nested").symlink_to(outside, target_is_directory=True)
+    with pytest.raises(gitleaks_ci.ScanError):
+        gitleaks_ci._write_nofollow(root, "nested/github-canary.txt", 'key = "x"\n')
+    assert secret.read_text(encoding="utf-8") == "untouched\n"
+    assert not (outside / "github-canary.txt").exists()
+
+
+def test_canary_tree_does_not_follow_symlinks(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    secret = outside / "secret.txt"
+    secret.write_text("untouched\n", encoding="utf-8")
+    (repo / "nested").symlink_to(outside, target_is_directory=True)
+    (repo / "aws-canary.txt").symlink_to(secret)
+    base = _head(repo)
+    policy = tmp_path / "policy"
+    config, _ignore = gitleaks_ci.materialize_policy(repo, base, policy)
+    gitleaks_ci.assert_policy_canaries(_gitleaks(), config, repo)
+    assert secret.read_text(encoding="utf-8") == "untouched\n"
+    assert (repo / "aws-canary.txt").is_symlink()

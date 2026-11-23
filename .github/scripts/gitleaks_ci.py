@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 from pathlib import Path
 from typing import Mapping, Sequence
 
@@ -27,6 +28,23 @@ _ZERO_SHA = "0" * 40
 GITLEAKS_SHA256 = "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509"
 GITLEAKS_BINARY = Path("/usr/local/bin/gitleaks")
 BOOTSTRAP_SHA = "f3559cbb2677eb72088bec7c56d541f0aa78a41e"
+# Rule count in the gitleaks 8.30.1 default pack.
+GITLEAKS_DEFAULT_RULES = 222
+# The only path patterns the gate accepts in a global allowlist.
+APPROVED_ALLOW_PATHS: tuple[str, ...] = (
+    r"(?:^|/)poetry\.lock$",
+    r"(?:^|/)package-lock\.json$",
+    r".*\.png$",
+    r".*\.jpg$",
+    r".*\.jpeg$",
+    r".*\.gif$",
+)
+# Repo-relative canary paths. Approved patterns must not match these.
+_CANARY_RELATIVE_PATHS: tuple[str, ...] = (
+    "aws-canary.txt",
+    "nested/github-canary.txt",
+    "nested/deep/slack-canary.txt",
+)
 
 
 def verified_gitleaks_binary(
@@ -195,10 +213,205 @@ def _run_gitleaks(source: Path, command: list[str], ignore: Path) -> int:
             held.replace(source_ignore)
 
 
-def assert_policy_canaries(gitleaks: str, config: Path) -> None:
-    """Fail unless the materialized config still detects runtime canaries."""
+def _policy_failure() -> ScanError:
+    return ScanError("policy canary failed", 2)
+
+
+def _lower_keys(value: object) -> object:
+    """Lowercase TOML keys so viper's case-insensitive names cannot sneak through."""
+    if isinstance(value, dict):
+        return {str(key).lower(): _lower_keys(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_lower_keys(item) for item in value]
+    return value
+
+
+def _as_tables(raw: object) -> list[dict[str, object]]:
+    if raw is None:
+        return []
+    tables = raw if isinstance(raw, list) else [raw]
+    parsed: list[dict[str, object]] = []
+    for table in tables:
+        if not isinstance(table, dict):
+            raise _policy_failure()
+        parsed.append(table)
+    return parsed
+
+
+def _paths_match_canary(patterns: Sequence[str]) -> bool:
+    for pattern in patterns:
+        try:
+            compiled = re.compile(pattern)
+        except re.error as exc:
+            raise _policy_failure() from exc
+        for relative in _CANARY_RELATIVE_PATHS:
+            if compiled.search(relative):
+                return True
+    return False
+
+
+def validate_policy_config(config: Path) -> None:
+    """Reject a config that weakens the default pack or widens the allowlist.
+
+    ``[extend]`` must set ``useDefault = true`` and nothing else: no
+    ``disabledRules``, and no ``path`` or ``url``. The only global allowlist
+    is the approved path list. Regexes, ``regexTarget``, stopwords, commits,
+    and per-rule allowlists are rejected, including a path pattern that would
+    match a canary's repo-relative path.
+    """
+    try:
+        parsed = tomllib.loads(config.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, tomllib.TOMLDecodeError) as exc:
+        raise _policy_failure() from exc
+    if not isinstance(parsed, dict):
+        raise _policy_failure()
+    data = _lower_keys(parsed)
+    if not isinstance(data, dict):
+        raise _policy_failure()
+    extend = data.get("extend")
+    if not isinstance(extend, dict) or extend.get("usedefault") is not True:
+        raise _policy_failure()
+    if set(extend) != {"usedefault"}:
+        raise _policy_failure()
+    if "disabledrules" in data:
+        raise _policy_failure()
+    tables = _as_tables(data.get("allowlist")) + _as_tables(data.get("allowlists"))
+    if len(tables) != 1:
+        raise _policy_failure()
+    allow = tables[0]
+    if set(allow) - {"description", "paths"}:
+        raise _policy_failure()
+    paths = allow.get("paths")
+    if not isinstance(paths, list) or [str(item) for item in paths] != list(
+        APPROVED_ALLOW_PATHS
+    ):
+        raise _policy_failure()
+    if _paths_match_canary([str(item) for item in paths]):
+        raise _policy_failure()
+    rules = data.get("rules", [])
+    if rules is None:
+        rules = []
+    if not isinstance(rules, list):
+        raise _policy_failure()
+    for rule in rules:
+        if not isinstance(rule, dict):
+            raise _policy_failure()
+        if "allowlist" in rule or "allowlists" in rule:
+            raise _policy_failure()
+
+
+def _mkdir_nofollow(root: Path, relative: Path) -> None:
+    cursor = root
+    for part in relative.parts:
+        if part in {"", ".", ".."}:
+            raise _policy_failure()
+        cursor = cursor / part
+        if cursor.is_symlink():
+            raise _policy_failure()
+        if not cursor.exists():
+            cursor.mkdir()
+        elif not cursor.is_dir():
+            raise _policy_failure()
+
+
+def _write_nofollow(root: Path, relative: str, content: str) -> None:
+    """Write ``content`` under ``root`` and refuse to follow a symlink."""
+    path = Path(relative)
+    if path.is_absolute() or ".." in path.parts:
+        raise _policy_failure()
+    _mkdir_nofollow(root, path.parent)
+    destination = root.joinpath(*path.parts)
+    if destination.is_symlink() or destination.exists():
+        raise _policy_failure()
+    flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(destination, flags, 0o644)
+    with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+        handle.write(content)
+
+
+def _clean_git_env() -> dict[str, str]:
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if not key.startswith(("GIT_", "PYTHON", "LD_"))
+    }
+    env["PATH"] = "/usr/bin:/bin"
+    env["HOME"] = os.environ.get("HOME", "/tmp")
+    env["GIT_AUTHOR_NAME"] = "canary"
+    env["GIT_AUTHOR_EMAIL"] = "canary@example.invalid"
+    env["GIT_COMMITTER_NAME"] = "canary"
+    env["GIT_COMMITTER_EMAIL"] = "canary@example.invalid"
+    return env
+
+
+def _git_clean(repo: Path, args: Sequence[str]) -> None:
+    completed = subprocess.run(
+        ["git", "-C", str(repo), *args],
+        check=False,
+        capture_output=True,
+        env=_clean_git_env(),
+    )
+    if completed.returncode != 0:
+        raise _policy_failure()
+
+
+def _mirror_relative_dirs(repo: Path, dest: Path) -> None:
+    """Recreate the checkout's directories in ``dest`` without following links."""
+    listed = subprocess.run(
+        ["git", "-C", str(repo), "ls-files", "-z", "-s"],
+        check=False,
+        capture_output=True,
+        env=_clean_git_env(),
+    )
+    if listed.returncode != 0:
+        raise _policy_failure()
+    for record in listed.stdout.split(b"\x00"):
+        if not record:
+            continue
+        mode, _, rest = record.partition(b" ")
+        if mode == b"120000":
+            continue
+        tab = rest.find(b"\t")
+        if tab < 0:
+            continue
+        relative = rest[tab + 1 :].decode("utf-8", "surrogateescape")
+        parent = Path(relative).parent
+        if parent.parts and parent.parts != (".",):
+            _mkdir_nofollow(dest, parent)
+
+
+def _canary_lines() -> dict[str, str]:
+    aws = "AKIA" + "".join(["M7NP", "Q2RS", "T4VW", "X5YZ"])
+    pat = "ghp_" + "".join(
+        ["Ab3Cd", "Ef7Gh", "Jk2Lm", "Np5Qr", "St8Vw", "Xy1Za", "Bc4De", "F"]
+    )
+    slack = "".join(
+        ["xoxb-", "2468013579", "-", "135792468013", "-", "Ab9Cd8Ef7Gh6Ij5Kl4Mn3"]
+    )
+    values = (aws, pat, slack)
+    lines = {
+        relative: f'key = "{value}"\n'
+        for relative, value in zip(_CANARY_RELATIVE_PATHS, values, strict=True)
+    }
+    return lines
+
+
+def assert_policy_canaries(gitleaks: str, config: Path, repo: Path) -> None:
+    """Fail unless the materialized config still matches the approved policy.
+
+    Canaries are written at repo-relative paths in a separate temp git tree
+    with the same directory layout. Nothing is written into ``repo``, and
+    symlinks are not followed.
+    """
+    validate_policy_config(config)
+    if _paths_match_canary(APPROVED_ALLOW_PATHS):
+        raise _policy_failure()
     parent = Path(tempfile.mkdtemp(prefix="gitleaks-canary-"))
     try:
+        if parent.resolve() == repo.resolve() or repo.resolve() in parent.resolve().parents:
+            raise _policy_failure()
+        if parent.resolve() in repo.resolve().parents:
+            raise _policy_failure()
         empty = parent / "empty"
         empty.mkdir()
         sarif = parent / "rules.sarif"
@@ -225,29 +438,29 @@ def assert_policy_canaries(gitleaks: str, config: Path) -> None:
             text=True,
         )
         if counted.returncode != 0 or not sarif.is_file():
-            raise ScanError("policy canary failed", 2)
+            raise _policy_failure()
         rules = (
-            json.loads(sarif.read_text(encoding="utf-8"))["runs"][0]["tool"][
-                "driver"
-            ].get("rules")
+            json.loads(sarif.read_text(encoding="utf-8"))["runs"][0]["tool"]["driver"].get(
+                "rules"
+            )
             or []
         )
-        if len(rules) < 200:
-            raise ScanError("policy canary failed", 2)
-        aws = "AKIA" + "".join(["M7NP", "Q2RS", "T4VW", "X5YZ"])
-        pat = "ghp_" + "".join(
-            ["Ab3Cd", "Ef7Gh", "Jk2Lm", "Np5Qr", "St8Vw", "Xy1Za", "Bc4De", "F"]
-        )
+        if len(rules) != GITLEAKS_DEFAULT_RULES:
+            raise _policy_failure()
         source = parent / "src"
         source.mkdir()
-        (source / "aws.txt").write_text(f"token={aws}\n", encoding="utf-8")
-        (source / "github.txt").write_text(f"github={pat}\n", encoding="utf-8")
+        _git_clean(source, ["init", "-q"])
+        _mirror_relative_dirs(repo, source)
+        lines = _canary_lines()
+        for relative, content in lines.items():
+            _write_nofollow(source, relative, content)
+            _git_clean(source, ["add", "--", relative])
+        _git_clean(source, ["commit", "-q", "-m", "canary"])
         report = parent / "canary.json"
         scanned = subprocess.run(
             [
                 gitleaks,
                 "detect",
-                "--no-git",
                 "--source",
                 str(source),
                 "--config",
@@ -264,13 +477,19 @@ def assert_policy_canaries(gitleaks: str, config: Path) -> None:
             check=False,
             capture_output=True,
             text=True,
+            env=_clean_git_env(),
         )
+        if not report.is_file():
+            raise _policy_failure()
         found = json.loads(report.read_text(encoding="utf-8") or "[]")
         rule_ids = {item.get("RuleID") for item in found}
-        leaked = aws in scanned.stdout or aws in scanned.stderr
-        leaked = leaked or pat in scanned.stdout or pat in scanned.stderr
-        if "aws-access-token" not in rule_ids or "github-pat" not in rule_ids or leaked:
-            raise ScanError("policy canary failed", 2)
+        required = {"aws-access-token", "github-pat", "slack-bot-token"}
+        secrets = [line.split('"', 2)[1] for line in lines.values()]
+        leaked = any(
+            secret in scanned.stdout or secret in scanned.stderr for secret in secrets
+        )
+        if not required <= rule_ids or leaked:
+            raise _policy_failure()
     finally:
         shutil.rmtree(parent, ignore_errors=True)
 
@@ -357,7 +576,7 @@ def _scan_range(repo: Path, policy_sha: str, head: str, gitleaks: str) -> int:
     parent = Path(tempfile.mkdtemp(prefix="gitleaks-policy-"))
     try:
         config, ignore = materialize_policy(repo, policy_sha, parent)
-        assert_policy_canaries(gitleaks, config)
+        assert_policy_canaries(gitleaks, config, repo)
         if prescan_opaque_files(repo, policy_sha, head, gitleaks, config) != 0:
             return 1
         command = gitleaks_command(
