@@ -40,7 +40,7 @@ jobs:
           echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  /tmp/gitleaks.tar.gz" | sha256sum -c -
           tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
           sudo mv /tmp/gitleaks /usr/local/bin/gitleaks
-          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  /usr/local/bin/gitleaks" | sha256sum -c -
+          echo "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509  /usr/local/bin/gitleaks" | sha256sum -c -
 
       - name: Materialize base scan gate
         env:
@@ -81,7 +81,7 @@ jobs:
           unset GITLEAKS_CONFIG
           unset GITLEAKS_CONFIG_TOML
           export PATH="/usr/bin:/bin"
-          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  /usr/local/bin/gitleaks" | sha256sum -c -
+          echo "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509  /usr/local/bin/gitleaks" | sha256sum -c -
           /usr/local/bin/gitleaks version
           python3 "${RUNNER_TEMP}/scan/gitleaks_ci.py"
 

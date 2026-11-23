@@ -22,7 +22,9 @@ from typing import Mapping, Sequence
 _EXACT_FINGERPRINT = re.compile(r"^[0-9a-f]{40}:[^:\s]+:[A-Za-z0-9_.-]+:[0-9]+$")
 
 _ZERO_SHA = "0" * 40
-GITLEAKS_SHA256 = "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+# sha256 of the gitleaks binary inside the 8.30.1 linux_x64 tarball.
+# The tarball itself is 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb.
+GITLEAKS_SHA256 = "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509"
 GITLEAKS_BINARY = Path("/usr/local/bin/gitleaks")
 BOOTSTRAP_SHA = "f3559cbb2677eb72088bec7c56d541f0aa78a41e"
 

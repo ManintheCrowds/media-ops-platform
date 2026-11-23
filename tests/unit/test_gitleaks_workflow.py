@@ -34,6 +34,7 @@ def test_pull_request_gate_is_materialized_from_the_base() -> None:
     assert "||  true" not in text
     assert "continue-on-error" not in text
     assert "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb" in text
+    assert "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509" in text
     assert "gitleaks_8.30.1_linux_x64.tar.gz" in text
 
 
