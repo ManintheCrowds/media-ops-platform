@@ -66,5 +66,5 @@ jobs:
             --results=verified,unknown,unverified \
             --no-ignore-tag \
             --exclude-paths=config/trufflehog-exclude.txt \
-            | python3 .github/scripts/trufflehog_known_findings.py \
+            | PYTHONSAFEPATH=1 python3 -I .github/scripts/trufflehog_known_findings.py \
                 --baseline .github/trufflehog-known-findings.json

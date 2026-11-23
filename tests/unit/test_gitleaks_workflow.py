@@ -194,6 +194,45 @@ def test_run_step_checks_the_absolute_binary_before_scan(tmp_path: Path) -> None
     assert "python3" not in trace
 
 
+def _run_in_mount_namespace(script: str, cwd: Path) -> subprocess.CompletedProcess[str]:
+    command = ["unshare", "--user", "--map-root-user", "--mount", "bash", "-c", script]
+    completed = subprocess.run(
+        command,
+        cwd=cwd,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0 and "uid_map" in completed.stderr:
+        completed = subprocess.run(
+            ["sudo", "-n", "unshare", "--mount", "bash", "-c", script],
+            cwd=cwd,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    return completed
+
+
+def test_trusted_python_is_isolated_from_the_checkout() -> None:
+    text = _WORKFLOW.read_text(encoding="utf-8")
+    gate, tests = text.split("  gitleaks-tests:", 1)
+    run = _run_block(text, "Run gitleaks")
+    forwarded = run.split("env -i", 1)[1]
+    assert "env -i" in run
+    assert "PATH=/usr/bin:/bin" in run
+    assert 'HOME="$HOME"' in run
+    assert "PYTHONSAFEPATH=1" in run
+    assert 'python3 -I "${RUNNER_TEMP}/scan/gitleaks_ci.py"' in run
+    assert "PYTHONPATH" not in forwarded
+    assert "LD_PRELOAD" not in forwarded
+    assert "GIT_DIR" not in forwarded
+    assert "python3 -I" in tests
+    assert "PYTHONSAFEPATH=1" in tests
+    assert 'cd "${RUNNER_TEMP}"' in tests
+    assert "pytest" not in gate.split("  gitleaks:", 1)[1]
+
+
 def test_run_step_executes_the_materialized_script(tmp_path: Path) -> None:
     """Import-time checkout code must not replace the script the gate runs."""
     runner = tmp_path / "runner"
@@ -246,26 +285,88 @@ def test_run_step_executes_the_materialized_script(tmp_path: Path) -> None:
             body,
         ]
     )
-    command = ["unshare", "--user", "--map-root-user", "--mount", "bash", "-c", script]
-    completed = subprocess.run(
-        command,
-        cwd=tmp_path,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if completed.returncode != 0 and "uid_map" in completed.stderr:
-        completed = subprocess.run(
-            ["sudo", "-n", "unshare", "--mount", "bash", "-c", script],
-            cwd=tmp_path,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
+    completed = _run_in_mount_namespace(script, tmp_path)
     assert completed.returncode == 0, completed.stderr
     assert "materialized-scan" in completed.stdout
     assert "checkout-scan" not in completed.stdout
     assert "overwritten" not in completed.stdout
+
+
+def test_checkout_json_module_cannot_exit_zero_or_replace_the_binary(
+    tmp_path: Path,
+) -> None:
+    """A repo-root or script-dir json.py must not run inside the gate."""
+    runner = tmp_path / "runner"
+    scan = runner / "scan"
+    scan.mkdir(parents=True)
+    marker = tmp_path / "shadowed"
+    note = tmp_path / "binary-note"
+    (scan / "gitleaks_ci.py").write_text(
+        "import json\n"
+        "import os\n"
+        "print('materialized-scan')\n"
+        "print('GIT_DIR=' + os.environ.get('GIT_DIR', ''))\n"
+        "print('PYTHONPATH=' + os.environ.get('PYTHONPATH', ''))\n"
+        "print('LD_PRELOAD=' + os.environ.get('LD_PRELOAD', ''))\n"
+        "print('PYTHONSAFEPATH=' + os.environ.get('PYTHONSAFEPATH', ''))\n",
+        encoding="utf-8",
+    )
+    shadow = (
+        "from pathlib import Path\n"
+        f"Path({str(marker)!r}).write_text('shadowed\\n')\n"
+        "target = Path('/usr/local/bin/gitleaks')\n"
+        "try:\n"
+        "    target.write_text('overwritten\\n')\n"
+        f"    Path({str(note)!r}).write_text('overwritten\\n')\n"
+        "except OSError:\n"
+        f"    Path({str(note)!r}).write_text('blocked\\n')\n"
+        "raise SystemExit(0)\n"
+    )
+    (tmp_path / "json.py").write_text(shadow, encoding="utf-8")
+    (scan / "json.py").write_text(shadow, encoding="utf-8")
+    sha_stub = tmp_path / "sha256sum"
+    leaks_stub = tmp_path / "gitleaks"
+    sha_stub.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    leaks_stub.write_text("#!/bin/sh\nprintf sentinel\nexit 0\n", encoding="utf-8")
+    sha_stub.chmod(0o755)
+    leaks_stub.chmod(0o755)
+    body = _run_block(_WORKFLOW.read_text(encoding="utf-8"), "Run gitleaks")
+    exports = "\n".join(
+        [
+            f"export RUNNER_TEMP={shlex.quote(str(runner))}",
+            "export GITHUB_EVENT_NAME=push",
+            "export PR_BASE_SHA=",
+            "export PR_HEAD_SHA=",
+            f"export PUSH_BEFORE={shlex.quote('b' * 40)}",
+            f"export PUSH_SHA={shlex.quote('c' * 40)}",
+            f"export HOME={shlex.quote(str(tmp_path))}",
+            "export GIT_DIR=/tmp/evil-git",
+            f"export PYTHONPATH={shlex.quote(str(tmp_path))}",
+            "export LD_PRELOAD=/tmp/evil.so",
+            "export PYTHONSAFEPATH=0",
+        ]
+    )
+    script = "\n".join(
+        [
+            "set -euo pipefail",
+            exports,
+            f"mount --bind {shlex.quote(str(sha_stub))} /usr/bin/sha256sum",
+            "mount -t tmpfs tmpfs /usr/local",
+            "mkdir -p /usr/local/bin",
+            f"cp {shlex.quote(str(leaks_stub))} /usr/local/bin/gitleaks",
+            "chmod +x /usr/local/bin/gitleaks",
+            body,
+        ]
+    )
+    completed = _run_in_mount_namespace(script, tmp_path)
+    assert completed.returncode == 0, completed.stderr
+    assert "materialized-scan" in completed.stdout
+    assert "GIT_DIR=\n" in completed.stdout
+    assert "PYTHONPATH=\n" in completed.stdout
+    assert "LD_PRELOAD=\n" in completed.stdout
+    assert "PYTHONSAFEPATH=1" in completed.stdout
+    assert not marker.exists()
+    assert not note.exists()
 
 
 def test_bootstrap_is_only_the_known_base(tmp_path: Path) -> None:

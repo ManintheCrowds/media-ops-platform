@@ -446,6 +446,7 @@ def test_scheduled_job_uses_baseline_and_strict_job_does_not() -> None:
     assert "extra_args: --results=verified,unknown\n" not in scheduled
     assert "--exclude-paths=config/trufflehog-exclude.txt" in scheduled
     assert ".github/scripts/trufflehog_known_findings.py" in scheduled
+    assert "PYTHONSAFEPATH=1 python3 -I .github/scripts/trufflehog_known_findings.py" in scheduled
     assert ".github/trufflehog-known-findings.json" in scheduled
     digest = (
         "ghcr.io/trufflesecurity/trufflehog:3.99.8"
