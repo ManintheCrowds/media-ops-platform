@@ -54,8 +54,11 @@ def _init_repo(repo: Path) -> None:
 
 def _runtime_token() -> str:
     alphabet = string.ascii_uppercase + string.digits
-    body = "".join(secrets.choice(alphabet) for _ in range(16))
-    return "AKIA" + body
+    while True:
+        body = "".join(secrets.choice(alphabet) for _ in range(16))
+        token = "AKIA" + body
+        if "EXAMPLE" not in token:
+            return token
 
 
 def _commit_file(repo: Path, name: str, content: str, message: str) -> str:
@@ -168,3 +171,55 @@ def test_fingerprint_added_on_the_pull_request_still_fails(tmp_path: Path) -> No
     assert suppressed.returncode == 0
     code = gitleaks_ci.run_pull_request_scan(repo, base, head_with_ignore, _gitleaks())
     assert code == 1
+
+
+def test_pull_request_config_change_still_fails(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    (repo / "secret.txt").write_text(f"token={token}\n", encoding="utf-8")
+    (repo / ".gitleaks.toml").write_text('title = "no rules"\n', encoding="utf-8")
+    _git(repo, "add", "secret.txt", ".gitleaks.toml")
+    _git(repo, "commit", "-q", "-m", "empty config and token")
+    head = subprocess.check_output(
+        ["git", "-C", str(repo), "rev-parse", "HEAD"], text=True
+    ).strip()
+    code = gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks())
+    assert code == 1
+
+
+def test_gitleaks_allow_comment_still_fails(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    head = _commit_file(
+        repo,
+        "secret.txt",
+        f"token={token} # gitleaks:allow\n",
+        "allow comment",
+    )
+    code = gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks())
+    assert code == 1
+
+
+def test_scan_output_does_not_contain_the_canary(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    head = _commit_file(repo, "secret.txt", f"token={token}\n", "add token")
+    policy = tmp_path / "policy"
+    config, ignore = gitleaks_ci.materialize_policy(repo, base, policy)
+    command = gitleaks_ci.gitleaks_command(
+        _gitleaks(),
+        repo,
+        config,
+        ignore,
+        gitleaks_ci.revision_log_opts(base, head),
+    )
+    completed = subprocess.run(command, check=False, capture_output=True, text=True)
+    leaked = token in completed.stdout or token in completed.stderr
+    assert leaked is False
+    assert completed.returncode == 1

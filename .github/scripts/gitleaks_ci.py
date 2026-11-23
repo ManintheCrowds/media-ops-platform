@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Run gitleaks for pull requests and pushes.
 
-On pull_request the config and ignore file come from a worktree of the base
-SHA. The scan uses that base, ``--ignore-gitleaks-allow``, and fails when the
-base or head revision is missing or the commit range is empty.
+Policy files are read with ``git show`` from the base revision (pull request)
+or from ``github.event.before`` (push). The checkout's script, config, and
+ignore file are not the gate.
 """
 
 from __future__ import annotations
@@ -37,8 +37,8 @@ def _git(repo: Path, args: Sequence[str]) -> subprocess.CompletedProcess[str]:
 
 
 def require_commit(repo: Path, sha: str) -> None:
-    """Fail when sha is missing or not a commit."""
-    if not sha or sha == _ZERO_SHA:
+    """Fail when sha is missing, all-zero, or not a commit."""
+    if not sha or set(sha) == {"0"} or sha == _ZERO_SHA:
         raise ScanError("missing revision", 2)
     probe = _git(repo, ["cat-file", "-e", f"{sha}^{{commit}}"])
     if probe.returncode != 0:
@@ -52,35 +52,40 @@ def commit_count(repo: Path, revision_range: str) -> int:
     return int(listed.stdout.strip() or "0")
 
 
-def _ignore_file(worktree: Path) -> Path:
-    ignore = worktree / ".gitleaksignore"
-    if not ignore.is_file():
-        ignore.write_text("", encoding="utf-8")
-    return ignore
+def git_show_bytes(repo: Path, sha: str, path: str) -> bytes | None:
+    """Return a blob from sha, or None when that path is absent."""
+    shown = subprocess.run(
+        ["git", "-C", str(repo), "show", f"{sha}:{path}"],
+        check=False,
+        capture_output=True,
+    )
+    if shown.returncode != 0:
+        return None
+    return shown.stdout
 
 
-def _run_gitleaks(
-    source: Path,
-    command: list[str],
-    ignore: Path,
-) -> int:
-    """Run gitleaks without also reading the checkout's ignore file.
+def materialize_policy(repo: Path, sha: str, dest: Path) -> tuple[Path, Path]:
+    """Write the config and ignore file from sha into dest.
 
-    Gitleaks loads ``source/.gitleaksignore`` even when ``--gitleaks-ignore-path``
-    points somewhere else. A pull request can add fingerprints there. Move that
-    file aside so only the supplied ignore file is used.
+    The ignore file is whatever that revision stored. A missing ignore file
+    becomes an empty file so the checkout's ignore file is not a fallback.
     """
-    source_ignore = source / ".gitleaksignore"
-    held: Path | None = None
-    if source_ignore.is_file() and source_ignore.resolve() != ignore.resolve():
-        held = source / ".gitleaksignore.held"
-        source_ignore.replace(held)
-    try:
-        completed = subprocess.run(command, check=False)
-        return completed.returncode
-    finally:
-        if held is not None and held.is_file():
-            held.replace(source_ignore)
+    require_commit(repo, sha)
+    dest.mkdir(parents=True, exist_ok=True)
+    config_bytes = git_show_bytes(repo, sha, ".gitleaks.toml")
+    if config_bytes is None:
+        raise ScanError("missing revision", 2)
+    config = dest / ".gitleaks.toml"
+    config.write_bytes(config_bytes)
+    ignore = dest / ".gitleaksignore"
+    ignore_bytes = git_show_bytes(repo, sha, ".gitleaksignore")
+    ignore.write_bytes(b"" if ignore_bytes is None else ignore_bytes)
+    return config, ignore
+
+
+def revision_log_opts(base: str, head: str) -> str:
+    """Git log options for the scan range. This is not ``--all``."""
+    return f"{base}..{head}"
 
 
 def gitleaks_command(
@@ -91,6 +96,8 @@ def gitleaks_command(
     log_opts: str,
 ) -> list[str]:
     """Build the gitleaks invocation. Secrets stay redacted."""
+    if "--all" in log_opts.split():
+        raise ScanError("refusing --all", 2)
     return [
         gitleaks,
         "detect",
@@ -111,37 +118,59 @@ def gitleaks_command(
     ]
 
 
-def run_pull_request_scan(repo: Path, base: str, head: str, gitleaks: str) -> int:
-    """Scan base..head using the base revision's config and ignore file."""
-    require_commit(repo, base)
-    require_commit(repo, head)
-    if commit_count(repo, f"{base}..{head}") == 0:
-        raise ScanError("empty range", 3)
-    parent = Path(tempfile.mkdtemp(prefix="gitleaks-base-"))
-    worktree = parent / "base"
-    added = _git(repo, ["worktree", "add", "--detach", str(worktree), base])
-    if added.returncode != 0:
-        shutil.rmtree(parent, ignore_errors=True)
-        raise ScanError("missing revision", 2)
+def _run_gitleaks(source: Path, command: list[str], ignore: Path) -> int:
+    """Run gitleaks without also reading the checkout's ignore file.
+
+    Gitleaks loads ``source/.gitleaksignore`` even when ``--gitleaks-ignore-path``
+    points somewhere else. Move that checkout file aside for the scan.
+    """
+    source_ignore = source / ".gitleaksignore"
+    held: Path | None = None
+    if source_ignore.is_file() and source_ignore.resolve() != ignore.resolve():
+        held = source / ".gitleaksignore.held"
+        source_ignore.replace(held)
     try:
-        config = worktree / ".gitleaks.toml"
-        if not config.is_file():
-            raise ScanError("missing revision", 2)
+        completed = subprocess.run(command, check=False, capture_output=True, text=True)
+        if completed.stdout:
+            sys.stdout.write(completed.stdout)
+        if completed.stderr:
+            sys.stderr.write(completed.stderr)
+        return completed.returncode
+    finally:
+        if held is not None and held.is_file():
+            held.replace(source_ignore)
+
+
+def _scan_range(repo: Path, policy_sha: str, head: str, gitleaks: str) -> int:
+    require_commit(repo, head)
+    if commit_count(repo, f"{policy_sha}..{head}") == 0:
+        raise ScanError("empty range", 3)
+    parent = Path(tempfile.mkdtemp(prefix="gitleaks-policy-"))
+    try:
+        config, ignore = materialize_policy(repo, policy_sha, parent)
         command = gitleaks_command(
             gitleaks,
             repo,
             config,
-            _ignore_file(worktree),
-            f"{base}..{head}",
+            ignore,
+            revision_log_opts(policy_sha, head),
         )
-        return _run_gitleaks(repo, command, _ignore_file(worktree))
+        return _run_gitleaks(repo, command, ignore)
     finally:
-        _git(repo, ["worktree", "remove", "--force", str(worktree)])
         shutil.rmtree(parent, ignore_errors=True)
 
 
+def run_pull_request_scan(repo: Path, base: str, head: str, gitleaks: str) -> int:
+    """Scan base..head with the base revision's config and ignore file."""
+    require_commit(repo, base)
+    return _scan_range(repo, base, head, gitleaks)
+
+
 def run_push_scan(repo: Path, before: str, sha: str, gitleaks: str) -> int:
-    """Scan a push range with the checked-out config."""
+    """Scan a push range with the checked-out config.
+
+    Replaced in the following commit so the parent revision is the policy.
+    """
     require_commit(repo, sha)
     if not before or before == _ZERO_SHA:
         log_opts = "-1"
@@ -149,12 +178,14 @@ def run_push_scan(repo: Path, before: str, sha: str, gitleaks: str) -> int:
         require_commit(repo, before)
         if commit_count(repo, f"{before}..{sha}") == 0:
             raise ScanError("empty range", 3)
-        log_opts = f"{before}..{sha}"
+        log_opts = revision_log_opts(before, sha)
     config = repo / ".gitleaks.toml"
     if not config.is_file():
         raise ScanError("missing revision", 2)
     if (repo / ".gitleaksignore").is_file():
-        command = gitleaks_command(gitleaks, repo, config, _ignore_file(repo), log_opts)
+        command = gitleaks_command(
+            gitleaks, repo, config, repo / ".gitleaksignore", log_opts
+        )
         return _run_gitleaks(repo, command, repo / ".gitleaksignore")
     with tempfile.TemporaryDirectory(prefix="gitleaks-ignore-") as empty:
         ignore = Path(empty) / ".gitleaksignore"
