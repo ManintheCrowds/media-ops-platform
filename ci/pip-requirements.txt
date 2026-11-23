@@ -1,0 +1,5 @@
+# Pinned pip for the isolated Safety virtualenv.
+# Install with: python -m pip install --require-hashes --only-binary=:all: --no-deps -r ci/pip-requirements.txt
+
+pip==26.3 \
+    --hash=sha256:f3b60b20ffaadd4415ed7957212a38ac63fa4c5fa375bd0f4a797777940fad13

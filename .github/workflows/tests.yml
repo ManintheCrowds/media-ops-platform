@@ -65,7 +65,7 @@ jobs:
             echo "pi_client=false" >> "$GITHUB_OUTPUT"
             echo 'services_json=[]' >> "$GITHUB_OUTPUT"
             exit 0
-          elif grep -Eq '^(app|services|tests|frontend|alembic|scripts|config|nginx|monitoring|security-service|home-cyber-risk|job-automation-service|pi-client|education-service)/|^(Dockerfile|requirements\.txt|pytest\.ini|alembic\.ini|coverage\.ini|docker-compose.*\.yml|\.github/workflows/.*|\.github/scripts/.*)$' relevant_files.txt; then
+          elif grep -Eq '^(app|services|tests|frontend|alembic|scripts|config|nginx|monitoring|security-service|home-cyber-risk|job-automation-service|pi-client|education-service|ci)/|^(Dockerfile|requirements\.txt|pytest\.ini|alembic\.ini|coverage\.ini|docker-compose.*\.yml|\.github/workflows/.*|\.github/scripts/.*)$' relevant_files.txt; then
             echo "code_changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "code_changed=false" >> "$GITHUB_OUTPUT"
@@ -310,6 +310,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.code_changed == 'true'
     runs-on: ubuntu-latest
+    env:
+      PYTHONSAFEPATH: "1"
     steps:
       - uses: actions/checkout@v7
       
@@ -320,21 +322,31 @@ jobs:
       
       - name: Install security tools
         run: |
-          python -m pip install --upgrade pip
-          # Runner-bundled setuptools can lag Safety advisories (e.g. CVE-2026-59890 <83).
-          python -m pip install --upgrade "setuptools>=83.0.0"
-          pip install bandit safety
-          python -m pip install --upgrade "setuptools>=83.0.0"
+          python3 -I -m pip install --require-hashes --only-binary=:all: --no-deps --force-reinstall -r ci/pip-requirements.txt
+          python3 -I -m pip install --upgrade "setuptools>=83.0.0"
+          python3 -I -m pip install bandit==1.8.6
+          python3 -I -m venv "$RUNNER_TEMP/safety"
+          python3 -I -m venv "$RUNNER_TEMP/safety-self-test"
+          "$RUNNER_TEMP/safety/bin/python" -I -m pip install --require-hashes --only-binary=:all: --no-deps --force-reinstall -r ci/pip-requirements.txt
+          "$RUNNER_TEMP/safety/bin/python" -I -m pip install --require-hashes --only-binary=:all: --no-deps --force-reinstall -r ci/safety-requirements.txt
+          "$RUNNER_TEMP/safety-self-test/bin/python" -I -m pip install --require-hashes --only-binary=:all: --no-deps --force-reinstall -r ci/pip-requirements.txt
+          "$RUNNER_TEMP/safety-self-test/bin/python" -I -m pip install --require-hashes --only-binary=:all: --no-deps --force-reinstall -r ci/safety-requirements.txt -r ci/safety-pytest-requirements.txt
       
       - name: Run Bandit security scan
         run: |
-          bandit -r app services -f json -o bandit-report.json --exclude services/camera/arlo_module.py || true
-          bandit -r app services -ll --exclude services/camera/arlo_module.py
+          python3 -I -m bandit -r app services -f json -o bandit-report.json --exclude services/camera/arlo_module.py || true
+          python3 -I -m bandit -r app services -ll --exclude services/camera/arlo_module.py
       
-      - name: Check for dependency vulnerabilities
+      - name: Check requirement files for vulnerabilities
+        working-directory: ${{ runner.temp }}
         run: |
-          safety check --json || true
-          safety check
+          "$RUNNER_TEMP/safety/bin/python" -I "$GITHUB_WORKSPACE/.github/scripts/safety_requirements_scan.py" --root "$GITHUB_WORKSPACE"
+
+      - name: Run Safety self-test
+        if: ${{ !cancelled() }}
+        working-directory: ${{ runner.temp }}
+        run: |
+          "$RUNNER_TEMP/safety-self-test/bin/python" -I -m pytest -o addopts= --noconftest "$GITHUB_WORKSPACE/tests/unit/test_safety_requirements.py" -q
 
   coverage-report:
     needs: [changes, unit-tests, integration-tests]
