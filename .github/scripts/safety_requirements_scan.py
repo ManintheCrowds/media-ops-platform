@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -40,21 +41,43 @@ _EXCLUDED_DIRECTORIES = frozenset(
         "venv",
     }
 )
+_REQUIREMENT_FILENAME = re.compile(r"^(requirements.*|constraints.*)\.txt$")
+_LOCK_FILENAMES = frozenset(
+    {
+        "Pipfile.lock",
+        "pdm.lock",
+        "poetry.lock",
+        "pylock.toml",
+        "uv.lock",
+    }
+)
 
 
 def discover_dependency_files(root: Path) -> list[Path]:
-    """Return ``requirements.txt`` files under ``root``, in stable order.
+    """Return requirement files and known lockfiles under ``root``.
 
-    ``.git`` and local virtualenv directories are skipped. Other requirement
-    names are intentionally not included yet.
+    Matches ``requirements*.txt`` and ``constraints*.txt``, plus the lockfiles
+    this repository would treat as pinned dependency manifests. ``.git`` and
+    local virtualenv directories are skipped. An empty result is a failure at
+    the command entrypoint.
     """
     found: list[Path] = []
     for directory, dirnames, filenames in os.walk(root):
         dirnames[:] = [name for name in dirnames if name not in _EXCLUDED_DIRECTORIES]
         for filename in filenames:
-            if filename == "requirements.txt":
+            if _REQUIREMENT_FILENAME.match(filename) or filename in _LOCK_FILENAMES:
                 found.append(Path(directory) / filename)
     return sorted(found, key=lambda path: path.as_posix())
+
+
+def requirement_files_for_safety(files: Sequence[Path]) -> list[Path]:
+    """Return the files Safety can scan, excluding lockfiles it would skip."""
+    return [path for path in files if path.name not in _LOCK_FILENAMES]
+
+
+def unscanned_lockfiles(files: Sequence[Path]) -> list[Path]:
+    """Return lockfiles that must fail the scan instead of being ignored."""
+    return [path for path in files if path.name in _LOCK_FILENAMES]
 
 
 def safety_check_command(python: str, requirement_file: Path) -> list[str]:
@@ -110,10 +133,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(list(argv) if argv is not None else None)
     root = args.root.resolve()
     files = discover_dependency_files(root)
-    return scan_requirement_files(
-        files,
+    if not files:
+        print(f"error: no dependency files found under {root}", file=sys.stderr)
+        return 1
+    code = scan_requirement_files(
+        requirement_files_for_safety(files),
         lambda path: run_safety_check(path, args.python),
     )
+    for lockfile in unscanned_lockfiles(files):
+        print(
+            f"error: refusing to skip unscanned dependency file {lockfile.as_posix()}",
+            file=sys.stderr,
+        )
+        code = 1
+    return code
 
 
 if __name__ == "__main__":

@@ -103,12 +103,18 @@ def test_scan_succeeds_only_when_every_file_succeeds() -> None:
 
 
 @pytest.mark.unit
-def test_discovery_matches_only_exact_requirements_txt(tmp_path: Path) -> None:
+def test_discovery_includes_requirement_variants_and_lockfiles(tmp_path: Path) -> None:
     nested = tmp_path / "service"
     nested.mkdir()
     exact = nested / "requirements.txt"
     exact.write_text("requests==2.32.4\n", encoding="utf-8")
-    (tmp_path / "requirements-dev.txt").write_text("pytest==9.1.1\n", encoding="utf-8")
+    development = tmp_path / "requirements-dev.txt"
+    development.write_text("pytest==9.1.1\n", encoding="utf-8")
+    constraints = tmp_path / "constraints.txt"
+    constraints.write_text("urllib3==2.8.0\n", encoding="utf-8")
+    lockfile = tmp_path / "poetry.lock"
+    lockfile.write_text("# lock\n", encoding="utf-8")
+    (tmp_path / "notes.txt").write_text("not a manifest\n", encoding="utf-8")
     git_dir = tmp_path / ".git"
     git_dir.mkdir()
     (git_dir / "requirements.txt").write_text("requests==2.19.1\n", encoding="utf-8")
@@ -117,7 +123,71 @@ def test_discovery_matches_only_exact_requirements_txt(tmp_path: Path) -> None:
     (venv_dir / "requirements.txt").write_text("filelock==3.32.7\n", encoding="utf-8")
 
     found = safety_requirements_scan.discover_dependency_files(tmp_path)
-    assert found == [exact]
+    assert found == [constraints, lockfile, development, exact]
+
+
+@pytest.mark.unit
+def test_repository_requirement_files_are_discovered() -> None:
+    found = {
+        path.relative_to(_ROOT).as_posix()
+        for path in safety_requirements_scan.discover_dependency_files(_ROOT)
+    }
+    assert found == {
+        "education-service/requirements.txt",
+        "home-cyber-risk/requirements.txt",
+        "job-automation-service/requirements.txt",
+        "monitoring/cursor-exporter/requirements.txt",
+        "pi-client/requirements.txt",
+        "requirements.txt",
+        "security-service/requirements.txt",
+    }
+
+
+@pytest.mark.unit
+def test_empty_dependency_list_fails_closed(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    (tmp_path / "README.md").write_text("no dependencies\n", encoding="utf-8")
+    code = safety_requirements_scan.main(["--root", str(tmp_path)])
+    captured = capsys.readouterr()
+    assert code == 1
+    assert "no dependency files found" in captured.err
+
+
+@pytest.mark.unit
+def test_lockfile_is_not_silently_skipped(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    lockfile = tmp_path / "uv.lock"
+    lockfile.write_text("# lock\n", encoding="utf-8")
+
+    def fail_if_called(path: Path, python: str) -> subprocess.CompletedProcess[str]:
+        raise AssertionError(f"Safety should not be asked to ignore {path}")
+
+    monkeypatch.setattr(safety_requirements_scan, "run_safety_check", fail_if_called)
+    code = safety_requirements_scan.main(["--root", str(tmp_path)])
+    captured = capsys.readouterr()
+    assert code == 1
+    assert "refusing to skip unscanned dependency file" in captured.err
+    assert "uv.lock" in captured.err
+
+
+@pytest.mark.unit
+def test_variant_requirement_file_is_scanned(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    requirement = tmp_path / "requirements-dev.txt"
+    requirement.write_text("pytest==9.1.1\n", encoding="utf-8")
+    seen: list[Path] = []
+
+    def runner(path: Path, python: str) -> subprocess.CompletedProcess[str]:
+        seen.append(path)
+        return _completed(0, stdout="ok\n")
+
+    monkeypatch.setattr(safety_requirements_scan, "run_safety_check", runner)
+    code = safety_requirements_scan.main(["--root", str(tmp_path)])
+    assert code == 0
+    assert seen == [requirement.resolve()]
 
 
 @pytest.mark.unit
