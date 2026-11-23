@@ -86,13 +86,27 @@ def _run_block(text: str, step_name: str) -> str:
     raise AssertionError(step_name)
 
 
+def test_checkout_can_list_submodules() -> None:
+    """The unregistered gitlink makes credential cleanup fail the checkout action."""
+    completed = subprocess.run(
+        ["git", "submodule", "foreach", "--recursive", ":"],
+        cwd=_WORKFLOW.parents[2],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert completed.returncode == 0, completed.stderr
+
+
 def test_gate_job_runs_no_checkout_tests() -> None:
     text = _WORKFLOW.read_text(encoding="utf-8")
     gate, tests = text.split("  gitleaks-tests:", 1)
     gate_job = gate.split("  gitleaks:", 1)[1]
     assert "pytest" not in gate_job
     assert "tests/security" not in gate_job
-    assert "persist-credentials: false" in gate_job
+    assert gate_job.count("persist-credentials: false") == 1
+    assert gate_job.count("submodules: false") == 1
+    assert tests.count("submodules: false") == 1
     assert "GITLEAKS_BIN=" not in gate_job
     assert "GITLEAKS_BIN:" not in gate_job
     assert "/usr/local/bin/gitleaks" in gate_job
