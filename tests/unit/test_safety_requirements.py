@@ -436,6 +436,117 @@ def test_editable_requirement_is_not_silently_ignored(
     assert "UNSUPPORTED -e ." in captured.out
 
 
+def _locked_packages(text: str) -> dict[str, tuple[str, tuple[str, ...]]]:
+    packages: dict[str, tuple[str, tuple[str, ...]]] = {}
+    name: str | None = None
+    version = ""
+    hashes: list[str] = []
+
+    def finish() -> None:
+        if name is not None:
+            packages[name.lower()] = (version, tuple(hashes))
+
+    for raw in text.splitlines():
+        stripped = raw.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        continued = stripped.endswith("\\")
+        body = stripped[:-1].strip() if continued else stripped
+        if body.startswith("--hash="):
+            hashes.append(body.split("=", 1)[1])
+        else:
+            finish()
+            parsed_name, version = body.split("==")
+            name = parsed_name.strip()
+            hashes = []
+        if not continued:
+            finish()
+            name = None
+            hashes = []
+    finish()
+    return packages
+
+
+def _assert_every_distribution_is_hash_locked(
+    packages: dict[str, tuple[str, tuple[str, ...]]],
+) -> None:
+    assert packages
+    for package_name, (version, hashes) in packages.items():
+        assert version
+        assert hashes, package_name
+        for digest in hashes:
+            assert digest.startswith("sha256:")
+            assert len(digest) == len("sha256:") + 64
+
+
+@pytest.mark.unit
+def test_safety_tooling_is_hash_locked() -> None:
+    pip_packages = _locked_packages(
+        (_ROOT / "ci" / "pip-requirements.txt").read_text(encoding="utf-8")
+    )
+    safety_packages = _locked_packages(
+        (_ROOT / "ci" / "safety-requirements.txt").read_text(encoding="utf-8")
+    )
+    pytest_packages = _locked_packages(
+        (_ROOT / "ci" / "safety-pytest-requirements.txt").read_text(encoding="utf-8")
+    )
+    _assert_every_distribution_is_hash_locked(pip_packages)
+    _assert_every_distribution_is_hash_locked(safety_packages)
+    _assert_every_distribution_is_hash_locked(pytest_packages)
+    assert pip_packages["pip"][0] == "26.3"
+    assert safety_packages["safety"][0] == "3.6.2"
+    assert safety_packages["filelock"][0] == "3.32.7"
+    assert "pytest" not in safety_packages
+    assert pytest_packages["pytest"][0] == "9.1.1"
+    assert "safety" not in pytest_packages
+
+
+@pytest.mark.unit
+def test_scanner_lockfiles_are_not_application_manifests(tmp_path: Path) -> None:
+    tooling = tmp_path / "ci"
+    tooling.mkdir()
+    (tooling / "safety-requirements.txt").write_text(
+        "filelock==3.32.7\n",
+        encoding="utf-8",
+    )
+    (tooling / "pip-requirements.txt").write_text("pip==26.3\n", encoding="utf-8")
+    application = tmp_path / "requirements.txt"
+    application.write_text("requests==2.32.4\n", encoding="utf-8")
+    found = safety_requirements_scan.discover_dependency_files(tmp_path)
+    assert found == [application]
+    repo_files = {
+        path.relative_to(_ROOT).as_posix()
+        for path in safety_requirements_scan.discover_dependency_files(_ROOT)
+    }
+    assert "ci/safety-requirements.txt" not in repo_files
+    assert "ci/pip-requirements.txt" not in repo_files
+    assert "ci/safety-pytest-requirements.txt" not in repo_files
+
+
+@pytest.mark.unit
+def test_self_test_is_outside_the_scan_environment() -> None:
+    job = _workflow_job("security-scan")
+    assert "--require-hashes" in job
+    assert "--only-binary=:all:" in job
+    assert "--no-deps" in job
+    assert "--upgrade pip" not in job
+    assert "install safety==" not in job
+    assert "ci/safety-requirements.txt" in job
+    assert "ci/pip-requirements.txt" in job
+    scan_at = job.index("Check requirement files for vulnerabilities")
+    self_test_at = job.index("Run Safety self-test")
+    assert scan_at < self_test_at
+    scan_step = job[scan_at:self_test_at]
+    assert "pytest" not in scan_step
+    assert "safety_requirements_scan.py" in scan_step
+    assert "RUNNER_TEMP/safety/bin/python" in scan_step
+    self_test = job[self_test_at:]
+    assert "safety-self-test" in self_test
+    assert "pytest" in self_test
+    assert "!cancelled()" in self_test
+    assert "safety_requirements_scan.py" not in self_test
+
+
 @pytest.mark.safety_cli
 def test_second_planted_file_is_scanned_when_only_it_is_vulnerable(
     tmp_path: Path,
