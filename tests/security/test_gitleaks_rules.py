@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 import subprocess
@@ -15,12 +16,25 @@ _ROOT = Path(__file__).resolve().parents[2]
 _CONFIG = _ROOT / ".gitleaks.toml"
 
 
+_GITLEAKS_SHA256 = "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509"
+
+
+def _pinned_gitleaks(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    if digest != _GITLEAKS_SHA256:
+        return None
+    return str(path)
+
+
 def _gitleaks() -> str:
     for candidate in (Path("/usr/local/bin/gitleaks"), Path("/tmp/gl-bin/gitleaks")):
-        if candidate.is_file():
-            return str(candidate)
+        pinned = _pinned_gitleaks(candidate)
+        if pinned is not None:
+            return pinned
     found = shutil.which("gitleaks")
-    if found:
+    if found is not None and _pinned_gitleaks(Path(found)) is not None:
         return found
     pytest.fail("gitleaks is not installed")
     return ""
@@ -56,6 +70,12 @@ def _detect(source: Path, report: Path) -> list[dict[str, object]]:
     payload = json.loads(report.read_text(encoding="utf-8"))
     assert isinstance(payload, list)
     return payload
+
+
+def test_pinned_gitleaks_rejects_a_different_file(tmp_path: Path) -> None:
+    fake = tmp_path / "gitleaks"
+    fake.write_bytes(b"not-the-pinned-binary")
+    assert _pinned_gitleaks(fake) is None
 
 
 def test_use_default_loads_a_nonzero_rule_count(tmp_path: Path) -> None:

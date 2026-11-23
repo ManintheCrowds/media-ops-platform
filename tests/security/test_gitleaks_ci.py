@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import random
@@ -23,10 +24,20 @@ sys.modules[_spec.name] = gitleaks_ci
 _spec.loader.exec_module(gitleaks_ci)
 
 
+def _pinned_gitleaks(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    if digest != gitleaks_ci.GITLEAKS_SHA256:
+        return None
+    return str(path)
+
+
 def _gitleaks() -> str:
     for candidate in (Path("/usr/local/bin/gitleaks"), Path("/tmp/gl-bin/gitleaks")):
-        if candidate.is_file():
-            return str(candidate)
+        pinned = _pinned_gitleaks(candidate)
+        if pinned is not None:
+            return pinned
     return "gitleaks"
 
 
@@ -675,6 +686,36 @@ def test_write_nofollow_refuses_a_symlinked_directory(tmp_path: Path) -> None:
         gitleaks_ci._write_nofollow(root, "nested/github-canary.txt", 'key = "x"\n')
     assert secret.read_text(encoding="utf-8") == "untouched\n"
     assert not (outside / "github-canary.txt").exists()
+
+
+def test_gitleaks_pin_rejects_a_different_file(tmp_path: Path) -> None:
+    fake = tmp_path / "gitleaks"
+    fake.write_bytes(b"not-the-pinned-binary")
+    assert _pinned_gitleaks(fake) is None
+
+
+def test_wide_decoder_names_stay_in_the_script() -> None:
+    """ASCII wide text also survives NUL stripping. The codecs stay anyway."""
+    source = _SCRIPT.read_text(encoding="utf-8")
+    body = source.split("def _decode_opaque", 1)[1].split("\ndef ", 1)[0]
+    for name in ("utf-16-le", "utf-16-be", "utf-32-le", "utf-32-be"):
+        assert f'"{name}"' in body
+    assert 'replace(b"\\x00"' in body
+
+
+def test_checkout_directory_at_a_canary_path_does_not_fail_the_scan(
+    tmp_path: Path,
+) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    blocked = repo / "nested" / "deep" / "slack-canary.txt"
+    blocked.mkdir(parents=True)
+    (blocked / "keep.txt").write_text("ok\n", encoding="utf-8")
+    _git(repo, "add", "nested")
+    _git(repo, "commit", "-q", "-m", "directory at canary path")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 0
 
 
 def test_canary_tree_does_not_follow_symlinks(tmp_path: Path) -> None:

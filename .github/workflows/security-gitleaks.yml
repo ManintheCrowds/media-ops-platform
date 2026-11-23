@@ -121,7 +121,14 @@ jobs:
           python3 -I -m pip install --target "${RUNNER_TEMP}/gitleaks-pytest" \
             --require-hashes --only-binary=:all: \
             -r .github/gitleaks-tests-requirements.txt
+          printf '%s\n' \
+            'import sys' \
+            'sys.path.insert(0, sys.argv[1])' \
+            'import pytest' \
+            'raise SystemExit(pytest.main(sys.argv[2:]))' \
+            > "${RUNNER_TEMP}/run_gitleaks_tests.py"
           cd "${RUNNER_TEMP}"
-          PYTHONSAFEPATH=1 PYTHONPATH="${RUNNER_TEMP}/gitleaks-pytest" \
-            python3 -m pytest -o addopts= --noconftest --rootdir="${RUNNER_TEMP}" \
+          python3 -I "${RUNNER_TEMP}/run_gitleaks_tests.py" \
+            "${RUNNER_TEMP}/gitleaks-pytest" \
+            -o addopts= --noconftest --rootdir="${RUNNER_TEMP}" \
             "${GITHUB_WORKSPACE}/tests/security" -q

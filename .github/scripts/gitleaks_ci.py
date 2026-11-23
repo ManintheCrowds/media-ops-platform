@@ -361,31 +361,6 @@ def _git_clean(repo: Path, args: Sequence[str]) -> None:
         raise _policy_failure()
 
 
-def _mirror_relative_dirs(repo: Path, dest: Path) -> None:
-    """Recreate the checkout's directories in ``dest`` without following links."""
-    listed = subprocess.run(
-        ["git", "-C", str(repo), "ls-files", "-z", "-s"],
-        check=False,
-        capture_output=True,
-        env=_clean_git_env(),
-    )
-    if listed.returncode != 0:
-        raise _policy_failure()
-    for record in listed.stdout.split(b"\x00"):
-        if not record:
-            continue
-        mode, _, rest = record.partition(b" ")
-        if mode == b"120000":
-            continue
-        tab = rest.find(b"\t")
-        if tab < 0:
-            continue
-        relative = rest[tab + 1 :].decode("utf-8", "surrogateescape")
-        parent = Path(relative).parent
-        if parent.parts and parent.parts != (".",):
-            _mkdir_nofollow(dest, parent)
-
-
 def _canary_lines() -> dict[str, str]:
     aws = "AKIA" + "".join(["M7NP", "Q2RS", "T4VW", "X5YZ"])
     pat = "ghp_" + "".join(
@@ -416,9 +391,9 @@ def assert_approved_config(config: Path) -> None:
 def assert_policy_canaries(gitleaks: str, config: Path, repo: Path) -> None:
     """Fail unless the materialized config still matches the approved policy.
 
-    Canaries are written at repo-relative paths in a separate temp git tree
-    with the same directory layout. Nothing is written into ``repo``, and
-    symlinks are not followed.
+    Canaries are written at repo-relative paths in an empty temp git tree.
+    The checkout's directories are not copied, so a directory at a canary
+    path cannot fail the self-check. Nothing is written into ``repo``.
     """
     assert_approved_config(config)
     validate_policy_config(config)
@@ -468,7 +443,6 @@ def assert_policy_canaries(gitleaks: str, config: Path, repo: Path) -> None:
         source = parent / "src"
         source.mkdir()
         _git_clean(source, ["init", "-q"])
-        _mirror_relative_dirs(repo, source)
         lines = _canary_lines()
         for relative, content in lines.items():
             _write_nofollow(source, relative, content)
@@ -565,23 +539,6 @@ _LOCKFILE_NAMES = frozenset(
 def _is_lockfile(path: str) -> bool:
     name = path.rsplit("/", 1)[-1].lower()
     return name in _LOCKFILE_NAMES or name.endswith(".lock")
-
-
-def _image_path(path: str) -> bool:
-    lowered = path.lower()
-    return lowered.endswith((".png", ".gif", ".jpg", ".jpeg"))
-
-
-def _has_image_magic(blob: bytes) -> bool:
-    return blob.startswith((b"\x89PNG\r\n\x1a\n", b"GIF87a", b"GIF89a", b"\xff\xd8\xff"))
-
-
-def _text_like(blob: bytes) -> bool:
-    sample = blob[:8192].replace(b"\x00", b"")
-    if not sample:
-        return False
-    printable = sum(byte in (9, 10, 13) or 32 <= byte < 127 for byte in sample)
-    return printable / len(sample) >= 0.85
 
 
 def _configured_allow_paths(config: Path) -> list[str]:

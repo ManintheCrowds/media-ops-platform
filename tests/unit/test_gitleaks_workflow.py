@@ -46,15 +46,28 @@ def _gate_and_tests(text: str) -> tuple[str, str]:
     return gate.split("  gitleaks:", 1)[1], tests
 
 
+def _uncommented(text: str) -> str:
+    return "\n".join(
+        line for line in text.splitlines() if not line.strip().startswith("#")
+    )
+
+
 def test_gate_job_pins_tarball_and_both_binary_hashes() -> None:
-    """The pin checks have to match the gate job, not the tests job's copy."""
+    """Commented pin lines do not count. The live sha256sum lines do."""
     gate, tests = _gate_and_tests(_WORKFLOW.read_text(encoding="utf-8"))
-    assert gate.count(_TARBALL_SHA) == 1
-    assert gate.count(_BINARY_SHA) == 2
-    assert f"{_BINARY_SHA}  /usr/local/bin/gitleaks" in gate
-    assert tests.count(_TARBALL_SHA) == 1
-    assert tests.count(_BINARY_SHA) == 1
-    assert f"{_BINARY_SHA}  /usr/local/bin/gitleaks" in tests
+    active_gate = _uncommented(gate)
+    active_tests = _uncommented(tests)
+    assert active_gate.count(_TARBALL_SHA) == 1
+    assert active_gate.count(_BINARY_SHA) == 2
+    assert f"{_BINARY_SHA}  /usr/local/bin/gitleaks" in active_gate
+    assert active_tests.count(_TARBALL_SHA) == 1
+    assert active_tests.count(_BINARY_SHA) == 1
+    assert f"{_BINARY_SHA}  /usr/local/bin/gitleaks" in active_tests
+    gate_checks = [
+        line for line in active_gate.splitlines() if "sha256sum -c" in line
+    ]
+    assert sum(_TARBALL_SHA in line for line in gate_checks) == 1
+    assert sum(_BINARY_SHA in line for line in gate_checks) == 2
 
 
 def test_find_and_loop_step_cannot_be_skipped() -> None:
@@ -300,8 +313,14 @@ def test_trusted_python_is_isolated_from_the_checkout() -> None:
     assert "LD_PRELOAD" not in forwarded
     assert "GIT_DIR" not in forwarded
     assert "python3 -I" in tests
-    assert "PYTHONSAFEPATH=1" in tests
+    assert 'python3 -I "${RUNNER_TEMP}/run_gitleaks_tests.py"' in tests
     assert 'cd "${RUNNER_TEMP}"' in tests
+    unit_tests = (
+        _WORKFLOW.parents[2] / ".github" / "workflows" / "tests.yml"
+    ).read_text(encoding="utf-8")
+    assert "tomli==2.2.1" in unit_tests
+    assert "--require-hashes" in unit_tests
+    assert "cb55c73c5f4408779d0cf3eef9f762b9c9f147a77de7b258bef0a5628adc85cc" in unit_tests
     assert "pytest" not in gate.split("  gitleaks:", 1)[1]
 
 
