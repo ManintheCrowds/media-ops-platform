@@ -321,20 +321,22 @@ jobs:
       - name: Install security tools
         run: |
           python -m pip install --upgrade pip
-          # Runner-bundled setuptools can lag Safety advisories (e.g. CVE-2026-59890 <83).
           python -m pip install --upgrade "setuptools>=83.0.0"
-          pip install bandit safety
-          python -m pip install --upgrade "setuptools>=83.0.0"
+          python -m pip install bandit==1.8.6 safety==3.6.2 pytest==9.1.1
       
       - name: Run Bandit security scan
         run: |
           bandit -r app services -f json -o bandit-report.json --exclude services/camera/arlo_module.py || true
           bandit -r app services -ll --exclude services/camera/arlo_module.py
       
-      - name: Check for dependency vulnerabilities
+      - name: Check requirement files for vulnerabilities
         run: |
-          safety check --json || true
-          safety check
+          python -m pytest -o addopts= --noconftest tests/unit/test_safety_requirements.py -q
+          set -euo pipefail
+          mapfile -t REQ_FILES < <(find . -name requirements.txt -not -path './.git/*' | sort)
+          for req in "${REQ_FILES[@]}"; do
+            python -m safety check -r "$req" --output text
+          done
 
   coverage-report:
     needs: [changes, unit-tests, integration-tests]
