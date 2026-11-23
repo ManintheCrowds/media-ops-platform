@@ -524,6 +524,7 @@ def test_safety_tooling_is_hash_locked() -> None:
     assert pip_packages["pip"][0] == "26.3"
     assert safety_packages["safety"][0] == "3.6.2"
     assert safety_packages["filelock"][0] == "3.32.7"
+    assert safety_packages["pygments"][0] == "2.21.0"
     assert "pytest" not in safety_packages
     assert pytest_packages["pytest"][0] == "9.1.1"
     assert "safety" not in pytest_packages
