@@ -684,9 +684,9 @@ def _decode_opaque(blob: bytes) -> str:
 def _blobs_in_range(repo: Path, base: str, head: str) -> list[tuple[str, str]]:
     """Return ``(commit, path)`` for every added, modified, or renamed blob.
 
-    ``git log --format=`` drops the commit id, so the format is ``%H`` and the
-    other flags are ``--name-only --diff-filter=AMR -z``. A rename contributes
-    the path that exists in that commit.
+    ``git log --format=`` drops the commit id, so the format is ``%H``.
+    ``--diff-merges=first-parent`` lists files that exist only in a merge.
+    The other flags are ``--name-only --diff-filter=AMR -z``.
     """
     listed = subprocess.run(
         [
@@ -698,6 +698,7 @@ def _blobs_in_range(repo: Path, base: str, head: str) -> list[tuple[str, str]]:
             "--format=%H",
             "--name-only",
             "--diff-filter=AMR",
+            "--diff-merges=first-parent",
             "-z",
             f"{base}..{head}",
         ],

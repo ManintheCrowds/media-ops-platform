@@ -578,6 +578,28 @@ def test_utf16_secret_added_then_deleted_is_scanned(tmp_path: Path) -> None:
     assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
 
 
+def test_merge_only_utf16_file_is_scanned(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    _git(repo, "checkout", "-q", "-b", "side")
+    _commit_file(repo, "side.txt", "side\n", "side")
+    _git(repo, "checkout", "-q", "-")
+    merge = subprocess.run(
+        ["git", "-C", str(repo), "merge", "--no-ff", "--no-commit", "side"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert merge.returncode == 0, merge.stderr
+    token = _runtime_token()
+    (repo / "app.py").write_bytes(f'key = "{token}"\n'.encode("utf-16-le"))
+    _git(repo, "add", "app.py")
+    _git(repo, "commit", "-q", "-m", "merge")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
 def test_renamed_utf16_secret_deleted_later_is_scanned(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)
