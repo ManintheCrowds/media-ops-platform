@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import os
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -222,38 +223,45 @@ def test_run_step_executes_the_materialized_script(tmp_path: Path) -> None:
     leaks_stub.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
     sha_stub.chmod(0o755)
     leaks_stub.chmod(0o755)
+    exports = "\n".join(
+        [
+            f"export RUNNER_TEMP={shlex.quote(str(runner))}",
+            "export GITHUB_EVENT_NAME=push",
+            "export PR_BASE_SHA=",
+            "export PR_HEAD_SHA=",
+            f"export PUSH_BEFORE={shlex.quote('b' * 40)}",
+            f"export PUSH_SHA={shlex.quote('c' * 40)}",
+            f"export HOME={shlex.quote(str(tmp_path))}",
+        ]
+    )
     script = "\n".join(
         [
             "set -euo pipefail",
-            f"mount --bind {sha_stub} /usr/bin/sha256sum",
+            exports,
+            f"mount --bind {shlex.quote(str(sha_stub))} /usr/bin/sha256sum",
             "mount -t tmpfs tmpfs /usr/local",
             "mkdir -p /usr/local/bin",
-            f"cp {leaks_stub} /usr/local/bin/gitleaks",
+            f"cp {shlex.quote(str(leaks_stub))} /usr/local/bin/gitleaks",
             "chmod +x /usr/local/bin/gitleaks",
             body,
         ]
     )
     command = ["unshare", "--user", "--map-root-user", "--mount", "bash", "-c", script]
-    probe = subprocess.run(command, cwd=tmp_path, check=False, capture_output=True, text=True)
-    if probe.returncode != 0 and "uid_map" in probe.stderr:
-        command = ["sudo", "-n", "unshare", "--mount", "bash", "-c", script]
     completed = subprocess.run(
         command,
         cwd=tmp_path,
         check=False,
         capture_output=True,
         text=True,
-        env={
-            "PATH": "/usr/bin:/bin",
-            "RUNNER_TEMP": str(runner),
-            "HOME": str(tmp_path),
-            "GITHUB_EVENT_NAME": "push",
-            "PR_BASE_SHA": "",
-            "PR_HEAD_SHA": "",
-            "PUSH_BEFORE": "b" * 40,
-            "PUSH_SHA": "c" * 40,
-        },
     )
+    if completed.returncode != 0 and "uid_map" in completed.stderr:
+        completed = subprocess.run(
+            ["sudo", "-n", "unshare", "--mount", "bash", "-c", script],
+            cwd=tmp_path,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
     assert completed.returncode == 0, completed.stderr
     assert "materialized-scan" in completed.stdout
     assert "checkout-scan" not in completed.stdout
