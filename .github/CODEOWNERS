@@ -1,6 +1,15 @@
-# Security scan configuration and workflows.
+# Security scan configuration, scripts, and workflows.
+# The last matching pattern wins, so this file has no catch-all override.
 .gitleaksignore @ManintheCrowds
 .gitleaks.toml @ManintheCrowds
+.github/CODEOWNERS @ManintheCrowds
+.github/scripts/gitleaks_ci.py @ManintheCrowds
+.github/scripts/trufflehog_known_findings.py @ManintheCrowds
 .github/trufflehog-known-findings.json @ManintheCrowds
 .github/workflows/security-gitleaks.yml @ManintheCrowds
 .github/workflows/security-trufflehog.yml @ManintheCrowds
+config/trufflehog-exclude.txt @ManintheCrowds
+tests/security/ @ManintheCrowds
+tests/unit/test_codeowners.py @ManintheCrowds
+tests/unit/test_gitleaks_workflow.py @ManintheCrowds
+tests/unit/test_trufflehog_known_findings.py @ManintheCrowds
