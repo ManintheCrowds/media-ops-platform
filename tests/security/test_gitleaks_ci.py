@@ -401,6 +401,36 @@ def test_text_in_an_allowlisted_name_is_scanned(tmp_path: Path, name: str) -> No
     assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
 
 
+def test_utf16_secret_added_then_deleted_is_scanned(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    (repo / "wide.txt").write_bytes(f'key = "{token}"\n'.encode("utf-16"))
+    _git(repo, "add", "wide.txt")
+    _git(repo, "commit", "-q", "-m", "add wide")
+    _git(repo, "rm", "-q", "wide.txt")
+    _git(repo, "commit", "-q", "-m", "delete wide")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+def test_renamed_utf16_secret_deleted_later_is_scanned(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "plain.txt", "ok\n", "base")
+    token = _runtime_token()
+    (repo / "nested").mkdir()
+    (repo / "plain.txt").write_bytes(f'key = "{token}"\n'.encode("utf-16"))
+    _git(repo, "add", "plain.txt")
+    _git(repo, "mv", "plain.txt", "nested/hidden.txt")
+    _git(repo, "commit", "-q", "-m", "rename wide")
+    _git(repo, "rm", "-q", "nested/hidden.txt")
+    _git(repo, "commit", "-q", "-m", "delete renamed")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
 def test_real_image_magic_stays_allowlisted(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)

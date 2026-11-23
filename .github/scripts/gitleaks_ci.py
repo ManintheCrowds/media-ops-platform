@@ -631,21 +631,58 @@ def _decode_opaque(blob: bytes) -> str:
     return blob.replace(b"\x00", b"").decode("utf-8", errors="ignore")
 
 
+def _blobs_in_range(repo: Path, base: str, head: str) -> list[tuple[str, str]]:
+    """Return ``(commit, path)`` for every added, modified, or renamed blob.
+
+    ``git log --format=`` drops the commit id, so the format is ``%H`` and the
+    other flags are ``--name-only --diff-filter=AMR -z``. A rename contributes
+    the path that exists in that commit.
+    """
+    listed = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repo),
+            "log",
+            "--reverse",
+            "--format=%H",
+            "--name-only",
+            "--diff-filter=AMR",
+            "-z",
+            f"{base}..{head}",
+        ],
+        check=False,
+        capture_output=True,
+    )
+    if listed.returncode != 0:
+        raise ScanError("missing revision", 2)
+    pairs: list[tuple[str, str]] = []
+    commit: str | None = None
+    for part in listed.stdout.split(b"\x00"):
+        if part.startswith(b"\n"):
+            part = part[1:]
+        if not part:
+            continue
+        text = part.decode("utf-8", "surrogateescape")
+        if len(text) == 40 and set(text) <= set("0123456789abcdef"):
+            commit = text
+            continue
+        if commit is None:
+            raise ScanError("prescan failed", 2)
+        pairs.append((commit, text))
+    return pairs
+
+
 def prescan_opaque_files(
     repo: Path, base: str, head: str, gitleaks: str, config: Path
 ) -> int:
     """Scan UTF-16, NUL, and allowlisted-extension text the git diff would skip."""
-    listed = _git(repo, ["diff", "--name-only", "--diff-filter=AM", f"{base}..{head}"])
-    if listed.returncode != 0:
-        raise ScanError("missing revision", 2)
+    blobs = _blobs_in_range(repo, base, head)
     allow_paths = _configured_allow_paths(config)
     parent = Path(tempfile.mkdtemp(prefix="gitleaks-opaque-"))
     try:
-        for raw_path in listed.stdout.splitlines():
-            path = raw_path.strip()
-            if not path:
-                continue
-            blob = git_show_bytes(repo, head, path)
+        for commit, path in blobs:
+            blob = git_show_bytes(repo, commit, path)
             if blob is None or not _opaque(path, blob, allow_paths):
                 continue
             text = _decode_opaque(blob)
