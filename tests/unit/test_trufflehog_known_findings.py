@@ -390,8 +390,14 @@ def test_pull_request_and_push_job_stays_strict() -> None:
         "github.event_name == 'pull_request' || github.event_name == 'push'"
         in strict_job
     )
-    assert "extra_args: --results=verified,unknown\n" in strict_job
+    assert "extra_args: --results=verified,unknown --no-ignore-tag\n" in strict_job
     assert "--exclude-paths" not in strict_job
+    assert "--no-ignore-tag" in strict_job
+    assert (
+        "3.99.8@sha256:674b2f187620a19df77f44cf9a7d77efcc581a5662accef2f2739cbb46ba4a3a"
+        in strict_job
+    )
+    assert "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" in text
     assert "trufflehog-known-findings.json" not in strict_job
     assert "trufflehog-known-findings.json" in scheduled
     assert "trufflehog-strict:" not in scheduled
@@ -401,11 +407,13 @@ def test_scheduled_job_uses_baseline_and_strict_job_does_not() -> None:
     text = _WORKFLOW.read_text(encoding="utf-8")
     strict, scheduled = text.split("trufflehog-scheduled:", 1)
 
-    assert "extra_args: --results=verified,unknown\n" in strict
+    assert "extra_args: --results=verified,unknown --no-ignore-tag\n" in strict
     assert "trufflehog-known-findings.json" not in strict
     assert "trufflehog_known_findings.py" not in strict
     assert "--exclude-paths" not in strict
     assert "--results=verified,unknown,unverified" in scheduled
+    assert "--no-ignore-tag" in scheduled
+    assert "pull-requests: write" not in text
     assert "extra_args: --results=verified,unknown\n" not in scheduled
     assert "--exclude-paths=config/trufflehog-exclude.txt" in scheduled
     assert ".github/scripts/trufflehog_known_findings.py" in scheduled
