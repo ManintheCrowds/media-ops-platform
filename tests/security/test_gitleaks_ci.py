@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
-import secrets
-import string
+import random
 import subprocess
 import sys
 from pathlib import Path
@@ -53,12 +52,9 @@ def _init_repo(repo: Path) -> None:
 
 
 def _runtime_token() -> str:
-    alphabet = string.ascii_uppercase + string.digits
-    while True:
-        body = "".join(secrets.choice(alphabet) for _ in range(16))
-        token = "AKIA" + body
-        if "EXAMPLE" not in token:
-            return token
+    rng = random.Random(20261123)
+    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    return "AKIA" + "".join(rng.choice(alphabet) for _ in range(16))
 
 
 def _commit_file(repo: Path, name: str, content: str, message: str) -> str:
@@ -241,7 +237,7 @@ def test_push_ignore_on_the_pushed_commit_still_fails(tmp_path: Path) -> None:
             "--config",
             str(repo / ".gitleaks.toml"),
             "--log-opts",
-            f"{before}..{head}",
+            gitleaks_ci.revision_log_opts(before, head),
             "--redact",
             "--no-banner",
             "--report-format",
