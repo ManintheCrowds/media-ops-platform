@@ -594,17 +594,49 @@ def test_renamed_utf16_secret_deleted_later_is_scanned(tmp_path: Path) -> None:
     assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
 
 
-def test_real_image_magic_stays_allowlisted(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    ("name", "prefix"),
+    [
+        ("logo.png", b"\x89PNG\r\n\x1a\n"),
+        ("a.gif", b"GIF89a"),
+        ("photo.jpg", b"\xff\xd8\xff\xe0"),
+    ],
+)
+def test_plaintext_after_image_magic_is_scanned(
+    tmp_path: Path, name: str, prefix: bytes
+) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)
     base = _commit_file(repo, "readme.txt", "ok\n", "base")
     token = _runtime_token()
-    payload = f'key = "{token}"\n'.encode("utf-8")
-    (repo / "logo.png").write_bytes(b"\x89PNG\r\n\x1a\n" + payload)
-    (repo / "a.gif").write_bytes(b"GIF89a" + payload)
-    (repo / "photo.jpg").write_bytes(b"\xff\xd8\xff" + payload)
-    _git(repo, "add", "logo.png", "a.gif", "photo.jpg")
-    _git(repo, "commit", "-q", "-m", "real images")
+    (repo / name).write_bytes(prefix + f'key = "{token}"\n'.encode("utf-8"))
+    _git(repo, "add", name)
+    _git(repo, "commit", "-q", "-m", "magic plus text")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+@pytest.mark.parametrize("name", ["data.bin", "font.woff2"])
+def test_high_byte_padding_is_scanned(tmp_path: Path, name: str) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    padding = bytes(range(128, 256)) * 8
+    (repo / name).write_bytes(padding + f'key = "{token}"\n'.encode("utf-8"))
+    _git(repo, "add", name)
+    _git(repo, "commit", "-q", "-m", "padded")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+def test_image_magic_without_a_token_is_not_a_finding(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    (repo / "logo.png").write_bytes(b"\x89PNG\r\n\x1a\n" + bytes(range(128, 256)))
+    _git(repo, "add", "logo.png")
+    _git(repo, "commit", "-q", "-m", "image only")
     head = _head(repo)
     assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 0
 

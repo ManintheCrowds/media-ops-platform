@@ -616,14 +616,28 @@ def _allowlisted(path: str, extra: Sequence[str]) -> bool:
     return False
 
 
+def _printable_runs(blob: bytes) -> str:
+    """Return ASCII runs long enough for a token to survive binary padding."""
+    runs: list[str] = []
+    current: list[str] = []
+    for byte in blob:
+        if byte in (9, 10, 13) or 32 <= byte < 127:
+            current.append(chr(byte))
+            continue
+        if len(current) >= 8:
+            runs.append("".join(current))
+        current = []
+    if len(current) >= 8:
+        runs.append("".join(current))
+    return "\n".join(runs)
+
+
 def _opaque(path: str, blob: bytes, allow_paths: Sequence[str] = ()) -> bool:
     """True when the git diff would skip a blob the prescan still has to read.
 
-    Real PNG, GIF, and JPEG bytes keep the allowlist. Text in an image name,
-    a font name, or a lockfile does not.
+    Allowlisted names are always read. Image magic and high-byte padding do
+    not hide a following plaintext token.
     """
-    if _image_path(path) and _has_image_magic(blob):
-        return False
     if _is_lockfile(path):
         return True
     if path.startswith("node_modules/") or "/node_modules/" in path:
@@ -634,7 +648,7 @@ def _opaque(path: str, blob: bytes, allow_paths: Sequence[str] = ()) -> bool:
         return True
     if b"\x00" in blob:
         return True
-    if _allowlisted(path, allow_paths) and _text_like(blob):
+    if _allowlisted(path, allow_paths):
         return True
     return False
 
@@ -661,6 +675,9 @@ def _decode_opaque(blob: bytes) -> str:
     stripped = blob.replace(b"\x00", b"").decode("utf-8", errors="ignore")
     if stripped:
         decoded.setdefault(stripped, None)
+    runs = _printable_runs(blob)
+    if runs:
+        decoded.setdefault(runs, None)
     return "\n".join(decoded)
 
 
