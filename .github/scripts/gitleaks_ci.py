@@ -8,6 +8,7 @@ ignore file are not the gate.
 
 from __future__ import annotations
 
+import hashlib
 import os
 import re
 import shutil
@@ -15,11 +16,29 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Sequence
+from typing import Mapping, Sequence
 
 _EXACT_FINGERPRINT = re.compile(r"^[0-9a-f]{40}:[^:\s]+:[A-Za-z0-9_.-]+:[0-9]+$")
 
 _ZERO_SHA = "0" * 40
+GITLEAKS_SHA256 = "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+GITLEAKS_BINARY = Path("/usr/local/bin/gitleaks")
+BOOTSTRAP_SHA = "f3559cbb2677eb72088bec7c56d541f0aa78a41e"
+
+
+def verified_gitleaks_binary(
+    binary: Path = GITLEAKS_BINARY,
+    expected_sha: str = GITLEAKS_SHA256,
+    environ: Mapping[str, str] | None = None,
+) -> Path:
+    """Return the pinned binary. Environment overrides and PATH are ignored."""
+    del environ
+    if not binary.is_file():
+        raise ScanError("gitleaks checksum mismatch", 2)
+    digest = hashlib.sha256(binary.read_bytes()).hexdigest()
+    if digest != expected_sha:
+        raise ScanError("gitleaks checksum mismatch", 2)
+    return binary
 
 
 class ScanError(Exception):
@@ -199,7 +218,7 @@ def run_push_scan(repo: Path, before: str, sha: str, gitleaks: str) -> int:
 def main() -> int:
     event = os.environ.get("GITHUB_EVENT_NAME", "")
     repo = Path.cwd()
-    gitleaks = os.environ.get("GITLEAKS_BIN", "gitleaks")
+    gitleaks = str(verified_gitleaks_binary())
     try:
         if event == "pull_request":
             return run_pull_request_scan(
