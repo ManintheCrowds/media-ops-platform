@@ -244,7 +244,7 @@ def test_path_only_base_fingerprint_does_not_suppress(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)
     (repo / ".gitleaksignore").write_text(
-        "secret.txt:aws-access-token:1\n", encoding="utf-8"
+        "secret.txt:generic-api-key:1\n", encoding="utf-8"
     )
     _git(repo, "add", ".gitleaksignore")
     _git(repo, "commit", "-q", "-m", "path-only ignore")

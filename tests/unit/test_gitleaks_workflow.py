@@ -187,9 +187,72 @@ def test_run_step_checks_the_absolute_binary_before_scan(tmp_path: Path) -> None
     assert "FAKE" not in completed.stdout
     assert "+ sha256sum -c -" in trace
     assert "+ gitleaks version" not in trace
-    assert "+ /usr/local/bin/gitleaks version" not in trace or trace.index(
-        "+ sha256sum -c -"
-    ) < trace.index("+ /usr/local/bin/gitleaks version")
+    # A trailing `|| true` would keep going after the checksum fails.
+    assert "+ /usr/local/bin/gitleaks version" not in trace
+    assert "python3" not in trace
+
+
+def test_run_step_executes_the_materialized_script(tmp_path: Path) -> None:
+    """Import-time checkout code must not replace the script the gate runs."""
+    runner = tmp_path / "runner"
+    scan = runner / "scan"
+    scan.mkdir(parents=True)
+    (scan / "gitleaks_ci.py").write_text(
+        "print('materialized-scan')\n", encoding="utf-8"
+    )
+    checkout = tmp_path / ".github" / "scripts"
+    checkout.mkdir(parents=True)
+    (checkout / "gitleaks_ci.py").write_text(
+        "print('checkout-scan')\n", encoding="utf-8"
+    )
+    evil = tmp_path / "tests" / "security"
+    evil.mkdir(parents=True)
+    (evil / "overwrite.py").write_text(
+        "from pathlib import Path\n"
+        "import os\n"
+        "Path(os.environ['RUNNER_TEMP'], 'scan', 'gitleaks_ci.py').write_text("
+        "'print(\"overwritten\")\\n')\n",
+        encoding="utf-8",
+    )
+    body = _run_block(_WORKFLOW.read_text(encoding="utf-8"), "Run gitleaks")
+    sha_stub = tmp_path / "sha256sum"
+    leaks_stub = tmp_path / "gitleaks"
+    sha_stub.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    leaks_stub.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    sha_stub.chmod(0o755)
+    leaks_stub.chmod(0o755)
+    script = "\n".join(
+        [
+            "set -euo pipefail",
+            f"mount --bind {sha_stub} /usr/bin/sha256sum",
+            "mount -t tmpfs tmpfs /usr/local",
+            "mkdir -p /usr/local/bin",
+            f"cp {leaks_stub} /usr/local/bin/gitleaks",
+            "chmod +x /usr/local/bin/gitleaks",
+            body,
+        ]
+    )
+    completed = subprocess.run(
+        ["unshare", "--user", "--map-root-user", "--mount", "bash", "-c", script],
+        cwd=tmp_path,
+        check=False,
+        capture_output=True,
+        text=True,
+        env={
+            "PATH": "/usr/bin:/bin",
+            "RUNNER_TEMP": str(runner),
+            "HOME": str(tmp_path),
+            "GITHUB_EVENT_NAME": "push",
+            "PR_BASE_SHA": "",
+            "PR_HEAD_SHA": "",
+            "PUSH_BEFORE": "b" * 40,
+            "PUSH_SHA": "c" * 40,
+        },
+    )
+    assert completed.returncode == 0, completed.stderr
+    assert "materialized-scan" in completed.stdout
+    assert "checkout-scan" not in completed.stdout
+    assert "overwritten" not in completed.stdout
 
 
 def test_bootstrap_is_only_the_known_base(tmp_path: Path) -> None:
@@ -233,6 +296,7 @@ def test_bootstrap_is_only_the_known_base(tmp_path: Path) -> None:
         },
     )
     assert "bootstrap: base has no scan script" in accepted.stdout
+    assert accepted.returncode != 0
     assert (allowed / "scan" / "gitleaks_ci.py").read_text(encoding="utf-8") == (
         "print('head-script')\n"
     )
