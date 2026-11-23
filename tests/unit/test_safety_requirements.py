@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 import re
 import subprocess
 import sys
@@ -42,9 +43,35 @@ def _completed(
     )
 
 
+def _continuous_integration() -> bool:
+    """Return whether this process is a CI run."""
+    return any(
+        os.environ.get(name, "").lower() == "true" for name in ("CI", "GITHUB_ACTIONS")
+    )
+
+
+def safety_missing_action(*, continuous_integration: bool) -> str:
+    """Fail when CI has no Safety. Skip only outside CI."""
+    if continuous_integration:
+        return "fail"
+    return "skip"
+
+
+def _safety_installed() -> bool:
+    return importlib.util.find_spec("safety") is not None
+
+
 def _require_safety() -> None:
-    if importlib.util.find_spec("safety") is None:
-        pytest.skip("safety is installed in the security-scan job")
+    if _safety_installed():
+        return
+    if (
+        safety_missing_action(continuous_integration=_continuous_integration())
+        == "fail"
+    ):
+        pytest.fail(
+            "Safety is absent in CI; the planted-vulnerability test must fail, not skip"
+        )
+    pytest.skip("Safety is not installed outside CI")
 
 
 @pytest.mark.unit
@@ -593,8 +620,38 @@ def test_scan_continues_after_a_real_vulnerability(
     assert "filelock" not in combined.lower()
 
 
+@pytest.mark.unit
+def test_absent_safety_fails_in_ci(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(sys.modules[__name__], "_safety_installed", lambda: False)
+    monkeypatch.setenv("CI", "true")
+    with pytest.raises(pytest.fail.Exception, match="must fail, not skip"):
+        _require_safety()
+
+
+@pytest.mark.unit
+def test_absent_safety_skips_outside_ci(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(sys.modules[__name__], "_safety_installed", lambda: False)
+    monkeypatch.delenv("CI", raising=False)
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    with pytest.raises(pytest.skip.Exception):
+        _require_safety()
+
+
+@pytest.mark.unit
+def test_github_actions_counts_as_ci_for_a_missing_safety(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(sys.modules[__name__], "_safety_installed", lambda: False)
+    monkeypatch.delenv("CI", raising=False)
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    assert safety_missing_action(continuous_integration=True) == "fail"
+    with pytest.raises(pytest.fail.Exception, match="must fail, not skip"):
+        _require_safety()
+
+
 @pytest.mark.safety_cli
 def test_planted_vulnerable_requirement_fails(tmp_path: Path) -> None:
+    _require_safety()
     requirement = tmp_path / "requirements.txt"
     requirement.write_text("requests==2.19.1\n", encoding="utf-8")
     completed = subprocess.run(
@@ -612,8 +669,6 @@ def test_planted_vulnerable_requirement_fails(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
     )
-    if completed.returncode != 0 and "No module named safety" in completed.stderr:
-        pytest.skip("safety is installed in the security-scan job")
     assert completed.returncode != 0
     combined = completed.stdout + completed.stderr
     assert "requests" in combined
