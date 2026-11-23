@@ -107,6 +107,7 @@ def test_security_scan_runs_the_policy_gate() -> None:
     )
     assert command in text
     assert "safety check --policy-file .safety-policy.yml" in text
+    assert "git ls-files '*requirements*.txt'" in text
 
 
 @pytest.mark.skipif(
