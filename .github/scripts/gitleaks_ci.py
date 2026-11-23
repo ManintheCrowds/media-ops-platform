@@ -101,6 +101,20 @@ def exact_ignore_text(raw: bytes) -> bytes:
     return ("\n".join(kept) + "\n").encode("utf-8")
 
 
+def policy_config_bytes(repo: Path, sha: str) -> bytes | None:
+    """Return the config for sha.
+
+    The one known base that has no scan script also has a config with no
+    rules. For that revision only, the checkout config is the policy so the
+    self-check can run. Every other revision is read with git show.
+    """
+    if sha == BOOTSTRAP_SHA:
+        checkout = repo / ".gitleaks.toml"
+        if checkout.is_file():
+            return checkout.read_bytes()
+    return git_show_bytes(repo, sha, ".gitleaks.toml")
+
+
 def materialize_policy(repo: Path, sha: str, dest: Path) -> tuple[Path, Path]:
     """Write the config and ignore file from sha into dest.
 
@@ -109,7 +123,7 @@ def materialize_policy(repo: Path, sha: str, dest: Path) -> tuple[Path, Path]:
     """
     require_commit(repo, sha)
     dest.mkdir(parents=True, exist_ok=True)
-    config_bytes = git_show_bytes(repo, sha, ".gitleaks.toml")
+    config_bytes = policy_config_bytes(repo, sha)
     if config_bytes is None:
         raise ScanError("missing revision", 2)
     config = dest / ".gitleaks.toml"

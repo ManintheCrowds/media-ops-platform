@@ -233,8 +233,12 @@ def test_run_step_executes_the_materialized_script(tmp_path: Path) -> None:
             body,
         ]
     )
+    command = ["unshare", "--user", "--map-root-user", "--mount", "bash", "-c", script]
+    probe = subprocess.run(command, cwd=tmp_path, check=False, capture_output=True, text=True)
+    if probe.returncode != 0 and "uid_map" in probe.stderr:
+        command = ["sudo", "-n", "unshare", "--mount", "bash", "-c", script]
     completed = subprocess.run(
-        ["unshare", "--user", "--map-root-user", "--mount", "bash", "-c", script],
+        command,
         cwd=tmp_path,
         check=False,
         capture_output=True,
@@ -331,6 +335,17 @@ def test_binary_resolver_ignores_overrides(tmp_path: Path) -> None:
     assert resolved == blob
     with pytest.raises(scanner.ScanError):
         scanner.verified_gitleaks_binary(blob, "0" * 64, {"GITLEAKS_BIN": "/bin/true"})
+
+
+def test_bootstrap_sha_reads_the_checkout_config(tmp_path: Path) -> None:
+    scanner = _scanner()
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / ".gitleaks.toml").write_text('title = "checkout"\n', encoding="utf-8")
+    assert scanner.policy_config_bytes(repo, scanner.BOOTSTRAP_SHA) == (
+        b'title = "checkout"\n'
+    )
+    assert scanner.policy_config_bytes(repo, "a" * 40) is None
 
 
 def test_ignore_entries_must_be_exact_commit_fingerprints() -> None:
