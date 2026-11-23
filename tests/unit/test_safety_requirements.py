@@ -138,6 +138,7 @@ def test_repository_requirement_files_are_discovered() -> None:
         "job-automation-service/requirements.txt",
         "monitoring/cursor-exporter/requirements.txt",
         "pi-client/requirements.txt",
+        "pi-client/setup.py",
         "requirements.txt",
         "security-service/requirements.txt",
     }
@@ -182,7 +183,10 @@ def test_variant_requirement_file_is_scanned(
 
     def runner(path: Path, python: str) -> subprocess.CompletedProcess[str]:
         seen.append(path)
-        return _completed(0, stdout="ok\n")
+        return _completed(
+            0,
+            stdout='{"vulnerabilities": [], "ignored_vulnerabilities": []}\n',
+        )
 
     monkeypatch.setattr(safety_requirements_scan, "run_safety_check", runner)
     code = safety_requirements_scan.main(["--root", str(tmp_path)])
@@ -198,6 +202,238 @@ def test_security_scan_uses_the_collector_script() -> None:
     scan_step = job.split("Check requirement files for vulnerabilities", 1)[1]
     assert "|| true" not in scan_step
     assert "safety_requirements_scan.py" in scan_step
+
+
+_CLEAN_JSON = '{"vulnerabilities": [], "ignored_vulnerabilities": []}\n'
+_REPOSITORY_UNPINNED = {
+    "education-service/requirements.txt": (
+        "fastapi",
+        "psycopg2-binary",
+        "pydantic",
+        "pydantic-settings",
+    ),
+    "home-cyber-risk/requirements.txt": ("psycopg2-binary",),
+    "job-automation-service/requirements.txt": (
+        "fastapi",
+        "psycopg2-binary",
+        "openai",
+        "anthropic",
+        "pydantic",
+        "pydantic-settings",
+    ),
+    "monitoring/cursor-exporter/requirements.txt": ("prometheus-client",),
+    "pi-client/requirements.txt": (
+        "httpx",
+        "aiofiles",
+        "pyyaml",
+        "pydantic",
+        "fastapi",
+        "uvicorn",
+        "jinja2",
+        "websockets",
+        "cryptography",
+        "pyjwt",
+        "pytest",
+        "pytest-asyncio",
+        "pytest-cov",
+    ),
+    "requirements.txt": (
+        "fastapi",
+        "psycopg2-binary",
+        "arlo",
+        "pydantic",
+        "pydantic-settings",
+    ),
+    "security-service/requirements.txt": (
+        "fastapi",
+        "psycopg2-binary",
+        "pydantic",
+        "pydantic-settings",
+    ),
+}
+_SETUP_UNPINNED = (
+    "httpx",
+    "aiofiles",
+    "pyyaml",
+    "pydantic",
+    "fastapi",
+    "uvicorn",
+    "jinja2",
+    "websockets",
+    "cryptography",
+    "pyjwt",
+    "RPi.GPIO",
+    "gpiozero",
+    "picamera2",
+    "pygame",
+)
+
+
+@pytest.mark.unit
+def test_safety_command_checks_unpinned_requirements() -> None:
+    command = safety_requirements_scan.safety_check_command(
+        "python3",
+        Path("requirements.txt"),
+    )
+    assert "--check-unpinned-requirements" in command
+    assert command[command.index("--output") + 1] == "json"
+    assert "--ignore" not in command
+
+
+@pytest.mark.unit
+def test_repository_unpinned_packages_are_explicit() -> None:
+    for relative, expected in _REPOSITORY_UNPINNED.items():
+        text = (_ROOT / relative).read_text(encoding="utf-8")
+        problems = safety_requirements_scan.requirement_problems(text)
+        assert problems.unsupported == ()
+        assert problems.unpinned == expected
+    pinned_sources = (
+        "education-service/requirements.txt",
+        "job-automation-service/requirements.txt",
+        "requirements.txt",
+    )
+    for relative in pinned_sources:
+        problems = safety_requirements_scan.requirement_problems(
+            (_ROOT / relative).read_text(encoding="utf-8")
+        )
+        assert "python-jose" not in problems.unpinned
+        assert "requests" not in problems.unpinned
+
+
+@pytest.mark.unit
+def test_setup_py_install_requires_and_extras_are_unpinned() -> None:
+    source = (_ROOT / "pi-client" / "setup.py").read_text(encoding="utf-8")
+    requirements = safety_requirements_scan.extract_setup_requirements(source)
+    problems = safety_requirements_scan.requirement_problems("\n".join(requirements))
+    assert problems.unsupported == ()
+    assert problems.unpinned == _SETUP_UNPINNED
+
+
+@pytest.mark.unit
+def test_setup_py_is_scanned_without_being_executed(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    marker = tmp_path / "executed"
+    setup = tmp_path / "setup.py"
+    setup.write_text(
+        "from pathlib import Path\n"
+        f"Path({str(marker)!r}).write_text('ran', encoding='utf-8')\n"
+        "from setuptools import setup\n"
+        "setup(\n"
+        "    install_requires=['requests==2.19.1'],\n"
+        "    extras_require={'hardware': ['pygame>=2.5.0']},\n"
+        ")\n",
+        encoding="utf-8",
+    )
+    seen: list[str] = []
+
+    def runner(path: Path, python: str) -> subprocess.CompletedProcess[str]:
+        seen.append(path.read_text(encoding="utf-8"))
+        return _completed(0, stdout=_CLEAN_JSON)
+
+    monkeypatch.setattr(safety_requirements_scan, "run_safety_check", runner)
+    code = safety_requirements_scan.main(["--root", str(tmp_path)])
+    captured = capsys.readouterr()
+    assert not marker.exists()
+    assert code == 1
+    assert any("pygame>=2.5.0" in text for text in seen)
+    assert any("requests==2.19.1" in text for text in seen)
+    assert "setup.py" in captured.out
+    assert "UNPINNED pygame" in captured.out
+    assert "UNPINNED requests" not in captured.out
+
+
+@pytest.mark.unit
+def test_non_literal_setup_requirements_fail_closed(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    (tmp_path / "setup.py").write_text(
+        "reqs = ['flask>=1']\n"
+        "from setuptools import setup\n"
+        "setup(install_requires=reqs)\n",
+        encoding="utf-8",
+    )
+
+    def fail_if_called(path: Path, python: str) -> subprocess.CompletedProcess[str]:
+        raise AssertionError(f"Safety should not scan an unreadable setup.py: {path}")
+
+    monkeypatch.setattr(safety_requirements_scan, "run_safety_check", fail_if_called)
+    code = safety_requirements_scan.main(["--root", str(tmp_path)])
+    captured = capsys.readouterr()
+    assert code == 1
+    assert "not a literal list" in captured.err
+
+
+@pytest.mark.unit
+def test_unpinned_requirement_fails_without_stopping_the_next_file(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    targets = [
+        safety_requirements_scan.DependencyTarget(
+            display="first/requirements.txt",
+            requirement_file=Path("first"),
+            unpinned=("fastapi",),
+        ),
+        safety_requirements_scan.DependencyTarget(
+            display="second/requirements.txt",
+            requirement_file=Path("second"),
+        ),
+    ]
+    seen: list[Path] = []
+
+    def runner(path: Path) -> subprocess.CompletedProcess[str]:
+        seen.append(path)
+        return _completed(0, stdout=_CLEAN_JSON)
+
+    code = safety_requirements_scan.scan_dependency_targets(targets, runner)
+    captured = capsys.readouterr()
+    assert seen == [Path("first"), Path("second")]
+    assert code == 1
+    assert "UNPINNED fastapi" in captured.out
+    assert "second/requirements.txt (exit 0)" in captured.out
+
+
+@pytest.mark.unit
+def test_ignored_safety_advisory_fails_the_scan(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    payload = (
+        '{"vulnerabilities": [], "ignored_vulnerabilities": '
+        '[{"package_name": "pyjwt", "vulnerability_id": "SFTY-20260930-08546"}]}\n'
+    )
+    target = safety_requirements_scan.DependencyTarget(
+        display="pi-client/requirements.txt",
+        requirement_file=Path("pi-client/requirements.txt"),
+    )
+    code = safety_requirements_scan.scan_dependency_targets(
+        [target],
+        lambda path: _completed(0, stdout=payload),
+    )
+    captured = capsys.readouterr()
+    assert code == 1
+    assert "IGNORED pyjwt SFTY-20260930-08546" in captured.out
+
+
+@pytest.mark.unit
+def test_editable_requirement_is_not_silently_ignored(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    (tmp_path / "requirements.txt").write_text("-e .\n", encoding="utf-8")
+    monkeypatch.setattr(
+        safety_requirements_scan,
+        "run_safety_check",
+        lambda path, python: _completed(0, stdout=_CLEAN_JSON),
+    )
+    code = safety_requirements_scan.main(["--root", str(tmp_path)])
+    captured = capsys.readouterr()
+    assert code == 1
+    assert "UNSUPPORTED -e ." in captured.out
 
 
 @pytest.mark.safety_cli
@@ -217,10 +453,9 @@ def test_second_planted_file_is_scanned_when_only_it_is_vulnerable(
     captured = capsys.readouterr()
     combined = captured.out + captured.err
     assert code == 1
-    assert clean.as_posix() in combined
-    assert "(exit 0)" in combined
-    assert vulnerable.as_posix() in combined
-    assert "requests" in combined
+    assert "aaa/requirements.txt (exit 0)" in combined
+    assert "zzz/requirements.txt" in combined
+    assert "ADVISORY requests" in combined
     assert "filelock" not in combined.lower()
 
 
@@ -241,10 +476,9 @@ def test_scan_continues_after_a_real_vulnerability(
     captured = capsys.readouterr()
     combined = captured.out + captured.err
     assert code == 1
-    assert vulnerable.as_posix() in combined
-    assert clean.as_posix() in combined
-    assert f"{clean.as_posix()} (exit 0)" in combined
-    assert "requests" in combined
+    assert "aaa/requirements.txt" in combined
+    assert "zzz/requirements.txt (exit 0)" in combined
+    assert "ADVISORY requests" in combined
     assert "filelock" not in combined.lower()
 
 
