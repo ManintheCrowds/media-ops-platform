@@ -344,6 +344,25 @@ def _extend_only() -> str:
     return 'title = "weak"\n\n[extend]\nuseDefault = true\n'
 
 
+def test_gate_script_calls_the_policy_self_check(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    head = _commit_file(repo, "note.txt", "hello\n", "note")
+    seen: list[Path] = []
+    real = gitleaks_ci.assert_policy_canaries
+
+    def spy(gitleaks: str, config: Path, source: Path) -> None:
+        seen.append(config)
+        real(gitleaks, config, source)
+
+    monkeypatch.setattr(gitleaks_ci, "assert_policy_canaries", spy)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 0
+    assert seen
+
+
 def test_root_path_allowlist_fails_the_self_check(tmp_path: Path) -> None:
     config = _extend_only() + "\n[allowlist]\npaths = ['''^[^/]''']\n"
     _expect_policy_failure(tmp_path, config)

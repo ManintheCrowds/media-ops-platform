@@ -34,9 +34,49 @@ def test_pull_request_gate_is_materialized_from_the_base() -> None:
     assert "|| true" not in text
     assert "||  true" not in text
     assert "continue-on-error" not in text
-    assert "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb" in text
-    assert "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509" in text
     assert "gitleaks_8.30.1_linux_x64.tar.gz" in text
+
+
+_TARBALL_SHA = "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+_BINARY_SHA = "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509"
+
+
+def _gate_and_tests(text: str) -> tuple[str, str]:
+    gate, tests = text.split("  gitleaks-tests:", 1)
+    return gate.split("  gitleaks:", 1)[1], tests
+
+
+def test_gate_job_pins_tarball_and_both_binary_hashes() -> None:
+    """The pin checks have to match the gate job, not the tests job's copy."""
+    gate, tests = _gate_and_tests(_WORKFLOW.read_text(encoding="utf-8"))
+    assert gate.count(_TARBALL_SHA) == 1
+    assert gate.count(_BINARY_SHA) == 2
+    assert f"{_BINARY_SHA}  /usr/local/bin/gitleaks" in gate
+    assert tests.count(_TARBALL_SHA) == 1
+    assert tests.count(_BINARY_SHA) == 1
+    assert f"{_BINARY_SHA}  /usr/local/bin/gitleaks" in tests
+
+
+def test_find_and_loop_step_cannot_be_skipped() -> None:
+    """The scan step that walks commits cannot be skipped or ignored."""
+    text = _WORKFLOW.read_text(encoding="utf-8")
+    gate, _tests = _gate_and_tests(text)
+    assert "continue-on-error" not in gate
+    start = gate.index("      - name: Run gitleaks\n")
+    step = gate[start:]
+    assert "\n    if:" not in step
+    assert "|| true" not in step
+    run = _run_block(text, "Run gitleaks")
+    assert "set -euo pipefail" in run
+    assert 'python3 -I "${RUNNER_TEMP}/scan/gitleaks_ci.py"' in run
+    script = (
+        _WORKFLOW.parents[2] / ".github" / "scripts" / "gitleaks_ci.py"
+    ).read_text(encoding="utf-8")
+    loop = script.split("def prescan_opaque_files", 1)[1].split("\ndef ", 1)[0]
+    assert '"-z"' in script
+    assert "--diff-filter=AMR" in script
+    assert "for commit, path in blobs:" in loop
+    assert "|| true" not in loop
 
 
 def _scanner():
