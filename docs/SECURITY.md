@@ -369,8 +369,8 @@ security_logger.warning(f"Failed login attempt for username: {username}")
 
 **Regular Checks:**
 ```bash
-# Check dependencies
-safety check
+# Check dependencies from the repo root so .safety-policy.yml is applied
+safety check --policy-file .safety-policy.yml
 
 # Security linting
 bandit -r app services
@@ -379,6 +379,28 @@ bandit -r app services
 pip list --outdated
 pip install --upgrade <package>
 ```
+
+### python-jose ignore (expires 2026-12-23)
+
+`.safety-policy.yml` tells `safety check` to ignore one advisory: Safety id `SFTY-20260903-64758`, which is GHSA-3qf3-8w2g-rqmx / PYSEC-2026-4298 / CVE-2026-85394 on `python-jose` through 3.5.0. There is no fixed release. The ignore ends at 2026-12-23 00:00:00 UTC. It does not cover any other advisory or package. `continue-on-vulnerability-error` stays false, so every other finding still fails the check.
+
+`python-jose[cryptography]==3.5.0` is pinned in the root `requirements.txt`, `education-service/requirements.txt`, and `job-automation-service/requirements.txt`. Call sites are HS256 shared-secret encode/decode:
+
+| Location | Use |
+| --- | --- |
+| `app/auth/jwt_handler.py` | `jwt.encode` in `create_access_token`; `jwt.decode` in `verify_token` |
+| `app/auth/oauth2.py` | calls those two helpers; no direct `jose` import |
+| `education-service/app/auth/device_auth.py` | `jwt.encode` in `create_device_token`; `jwt.decode` in `decode_device_token` |
+| `education-service/app/api/pi/devices.py` | calls `create_device_token` |
+| `education-service/app/dependencies.py` | calls `validate_platform_token` and `decode_device_token` |
+| `education-service/app/auth/platform_auth.py` | `jwt.decode` in `validate_platform_token` |
+| `tests/unit/test_auth_jwt.py` | imports `jose.jwt` and calls `jwt.decode` |
+| `education-service/tests/unit/test_pi_sync_http_acceptance.py` | imports `jose.jwt` and calls `jwt.encode` |
+| `education-service/tests/unit/test_pi_sync_service.py` | imports `jose.jwt` and calls `jwt.encode` |
+| `job-automation-service` | pin only; no `jose` import or call site |
+| `pi-client` | uses PyJWT (`import jwt`), not python-jose |
+
+Migrate those three production modules, and the tests that import `jose`, to PyJWT before the expiry. PyJWT is already what `pi-client` uses, and the calls are symmetric HS256 with the algorithm passed explicitly. joserfc is the other maintained library if a later change wants the same stack as current Authlib; it is a larger move for the same call shape. Do not wait on a python-jose release. Drop the pin and delete this ignore in the same change. Do not add CVE-2024-33663 or CVE-2024-33664 to the ignore: those ranges are `<3.4.0` and do not match 3.5.0.
 
 ### Security Updates
 

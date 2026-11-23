@@ -333,8 +333,11 @@ jobs:
       
       - name: Check for dependency vulnerabilities
         run: |
-          safety check --json || true
-          safety check
+          safety check --json --policy-file .safety-policy.yml || true
+          safety check --policy-file .safety-policy.yml
+
+      - name: Prove the python-jose Safety ignore is scoped and expiring
+        run: PYTHONSAFEPATH=1 python3 -I .github/scripts/safety_python_jose_ignore.py --check-policy --execute
 
   coverage-report:
     needs: [changes, unit-tests, integration-tests]

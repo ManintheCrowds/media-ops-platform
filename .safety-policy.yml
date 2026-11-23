@@ -1,0 +1,13 @@
+# Safety CLI `check` policy. Safety 3.8 loads this from the repo root.
+# One ignore: python-jose GHSA-3qf3-8w2g-rqmx / PYSEC-2026-4298 / CVE-2026-85394.
+# Safety id SFTY-20260903-64758 is issued only for python-jose. No fixed release.
+# The ignore applies only while expires is later than the current UTC time,
+# so it ends at 2026-12-23 00:00:00 UTC.
+security:
+  ignore-cvss-severity-below: 0
+  ignore-cvss-unknown-severity: false
+  continue-on-vulnerability-error: false
+  ignore-vulnerabilities:
+    SFTY-20260903-64758:
+      reason: No fixed python-jose release for GHSA-3qf3-8w2g-rqmx / PYSEC-2026-4298. Migrate HS256 call sites to PyJWT before expiry.
+      expires: "2026-12-23"
