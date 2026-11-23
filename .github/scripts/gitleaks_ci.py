@@ -9,12 +9,15 @@ ignore file are not the gate.
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 from typing import Sequence
+
+_EXACT_FINGERPRINT = re.compile(r"^[0-9a-f]{40}:[^:\s]+:[A-Za-z0-9_.-]+:[0-9]+$")
 
 _ZERO_SHA = "0" * 40
 
@@ -64,6 +67,18 @@ def git_show_bytes(repo: Path, sha: str, path: str) -> bytes | None:
     return shown.stdout
 
 
+def exact_ignore_text(raw: bytes) -> bytes:
+    """Keep only commit:path:rule:line entries."""
+    kept: list[str] = []
+    for line in raw.decode("utf-8", errors="replace").splitlines():
+        stripped = line.strip()
+        if _EXACT_FINGERPRINT.fullmatch(stripped):
+            kept.append(stripped)
+    if not kept:
+        return b""
+    return ("\n".join(kept) + "\n").encode("utf-8")
+
+
 def materialize_policy(repo: Path, sha: str, dest: Path) -> tuple[Path, Path]:
     """Write the config and ignore file from sha into dest.
 
@@ -79,13 +94,16 @@ def materialize_policy(repo: Path, sha: str, dest: Path) -> tuple[Path, Path]:
     config.write_bytes(config_bytes)
     ignore = dest / ".gitleaksignore"
     ignore_bytes = git_show_bytes(repo, sha, ".gitleaksignore")
-    ignore.write_bytes(b"" if ignore_bytes is None else ignore_bytes)
+    ignore.write_bytes(b"" if ignore_bytes is None else exact_ignore_text(ignore_bytes))
     return config, ignore
 
 
 def revision_log_opts(base: str, head: str) -> str:
-    """Git log options for the scan range. This is not ``--all``."""
-    return f"{base}..{head}"
+    """Git log options for one first-parent range. ``--all`` is refused."""
+    opts = f"--diff-merges=first-parent --text {base}..{head}"
+    if "--all" in opts.split():
+        raise ScanError("refusing --all", 2)
+    return opts
 
 
 def gitleaks_command(
