@@ -221,6 +221,23 @@ def test_scan_output_does_not_contain_the_canary(tmp_path: Path) -> None:
     assert completed.returncode == 1
 
 
+def test_path_only_base_fingerprint_does_not_suppress(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    (repo / ".gitleaksignore").write_text(
+        "secret.txt:aws-access-token:1\n", encoding="utf-8"
+    )
+    _git(repo, "add", ".gitleaksignore")
+    _git(repo, "commit", "-q", "-m", "path-only ignore")
+    base = subprocess.check_output(
+        ["git", "-C", str(repo), "rev-parse", "HEAD"], text=True
+    ).strip()
+    token = _runtime_token()
+    head = _commit_file(repo, "secret.txt", f"token={token}\n", "add token")
+    code = gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks())
+    assert code == 1
+
+
 def test_push_ignore_on_the_pushed_commit_still_fails(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)

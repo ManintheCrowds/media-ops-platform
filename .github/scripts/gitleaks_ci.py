@@ -9,6 +9,7 @@ ignore file are not the gate.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -178,6 +179,86 @@ def _run_gitleaks(source: Path, command: list[str], ignore: Path) -> int:
             held.replace(source_ignore)
 
 
+def assert_policy_canaries(gitleaks: str, config: Path) -> None:
+    """Fail unless the materialized config still detects runtime canaries."""
+    parent = Path(tempfile.mkdtemp(prefix="gitleaks-canary-"))
+    try:
+        empty = parent / "empty"
+        empty.mkdir()
+        sarif = parent / "rules.sarif"
+        counted = subprocess.run(
+            [
+                gitleaks,
+                "detect",
+                "--no-git",
+                "--source",
+                str(empty),
+                "--config",
+                str(config),
+                "--redact",
+                "--no-banner",
+                "--report-format",
+                "sarif",
+                "--report-path",
+                str(sarif),
+                "--exit-code",
+                "0",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if counted.returncode != 0 or not sarif.is_file():
+            raise ScanError("policy canary failed", 2)
+        rules = (
+            json.loads(sarif.read_text(encoding="utf-8"))["runs"][0]["tool"][
+                "driver"
+            ].get("rules")
+            or []
+        )
+        if len(rules) < 200:
+            raise ScanError("policy canary failed", 2)
+        aws = "AKIA" + "".join(["M7NP", "Q2RS", "T4VW", "X5YZ"])
+        pat = "ghp_" + "".join(
+            ["Ab3Cd", "Ef7Gh", "Jk2Lm", "Np5Qr", "St8Vw", "Xy1Za", "Bc4De", "F"]
+        )
+        source = parent / "src"
+        source.mkdir()
+        (source / "aws.txt").write_text(f"token={aws}\n", encoding="utf-8")
+        (source / "github.txt").write_text(f"github={pat}\n", encoding="utf-8")
+        report = parent / "canary.json"
+        scanned = subprocess.run(
+            [
+                gitleaks,
+                "detect",
+                "--no-git",
+                "--source",
+                str(source),
+                "--config",
+                str(config),
+                "--redact",
+                "--no-banner",
+                "--report-format",
+                "json",
+                "--report-path",
+                str(report),
+                "--exit-code",
+                "0",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        found = json.loads(report.read_text(encoding="utf-8") or "[]")
+        rule_ids = {item.get("RuleID") for item in found}
+        leaked = aws in scanned.stdout or aws in scanned.stderr
+        leaked = leaked or pat in scanned.stdout or pat in scanned.stderr
+        if "aws-access-token" not in rule_ids or "github-pat" not in rule_ids or leaked:
+            raise ScanError("policy canary failed", 2)
+    finally:
+        shutil.rmtree(parent, ignore_errors=True)
+
+
 def _scan_range(repo: Path, policy_sha: str, head: str, gitleaks: str) -> int:
     require_commit(repo, head)
     if commit_count(repo, f"{policy_sha}..{head}") == 0:
@@ -185,6 +266,7 @@ def _scan_range(repo: Path, policy_sha: str, head: str, gitleaks: str) -> int:
     parent = Path(tempfile.mkdtemp(prefix="gitleaks-policy-"))
     try:
         config, ignore = materialize_policy(repo, policy_sha, parent)
+        assert_policy_canaries(gitleaks, config)
         command = gitleaks_command(
             gitleaks,
             repo,
