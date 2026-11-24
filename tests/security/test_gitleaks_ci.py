@@ -1205,6 +1205,69 @@ def test_zip_nested_past_the_depth_fails(tmp_path: Path) -> None:
     _expect_prescan_exit_one(repo, base, head)
 
 
+def test_sample_prefix_is_at_least_eight_kibibytes() -> None:
+    assert len(gitleaks_ci._SAMPLE_PREFIX) >= 8192
+
+
+def test_ustar_aligned_to_a_short_prefix_is_still_scanned(tmp_path: Path) -> None:
+    """A 7-byte prefix would put ustar at the tar sniffer's offset."""
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    short_prefix = len("opaque\n")
+    payload = bytearray(257 - short_prefix)
+    payload += b"ustar\0"
+    payload += f'\nkey = "{token}"\n'.encode()
+    base, head = _commit_bytes(repo, "data.bin", bytes(payload))
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+def test_member_crossing_the_byte_cap_fails(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    chunk = b"\x00" * (1024 * 1024)
+    half = b"\x00" * (512 * 1024)
+    line = f'\nkey = "{token}"\n'.encode()
+    crossing = chunk[: -len(line)] + line
+    payload = io.BytesIO()
+    with zipfile.ZipFile(payload, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("pad0.bin", chunk)
+        archive.writestr("pad1.bin", chunk)
+        archive.writestr("pad2.bin", chunk)
+        archive.writestr("pad3.bin", half)
+        archive.writestr("secret.bin", crossing)
+    base, head = _commit_bytes(repo, "data.bin", payload.getvalue())
+    _expect_prescan_exit_one(repo, base, head)
+
+
+def test_gzip_over_one_mebibyte_fails(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    body = (b"\n" * (1024 * 1024 + 10)) + f'key = "{token}"\n'.encode()
+    base, head = _commit_bytes(repo, "data.bin", _gzip_bytes(body))
+    _expect_prescan_exit_one(repo, base, head)
+
+
+def test_truncated_gzip_fails(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    whole = _gzip_bytes(_padded_secret(token))
+    base, head = _commit_bytes(repo, "data.bin", whole[: len(whole) // 2])
+    _expect_prescan_exit_one(repo, base, head)
+
+
+def test_gzip_of_a_zip_is_unpacked(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    nested = _gzip_bytes(_zip_with_token(token, zipfile.ZIP_DEFLATED))
+    base, head = _commit_bytes(repo, "data.bin", nested)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
 def test_ustar_magic_at_offset_257_is_scanned(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)

@@ -344,11 +344,21 @@ def test_trusted_python_is_isolated_from_the_checkout() -> None:
         "# --require-hashes -r .github/tomli-requirements.txt"
     )
     assert "--require-hashes" not in _command_text(decoy)
-    assert any(
-        "--require-hashes" in _command_text(line)
-        and "tomli-requirements.txt" in _command_text(line)
+    install = (
+        "pip install --require-hashes --only-binary=:all: "
+        "-r .github/tomli-requirements.txt"
+    )
+    assert any(line.strip() == install for line in active_unit.splitlines())
+    assert not any(
+        line.strip()
+        == "pip install tomli==2.2.1\t# --require-hashes -r .github/tomli-requirements.txt"
         for line in active_unit.splitlines()
     )
+    echoed = (
+        "pip install tomli==2.2.1; echo --require-hashes "
+        "-r .github/tomli-requirements.txt"
+    )
+    assert not any(line.strip() == echoed for line in active_unit.splitlines())
     pinned = (
         _WORKFLOW.parents[2] / ".github" / "tomli-requirements.txt"
     ).read_text(encoding="utf-8")
