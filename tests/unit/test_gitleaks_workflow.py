@@ -332,7 +332,12 @@ def test_trusted_python_is_isolated_from_the_checkout() -> None:
         _WORKFLOW.parents[2] / ".github" / "workflows" / "tests.yml"
     ).read_text(encoding="utf-8")
     assert ".github/tomli-requirements.txt" in unit_tests
-    assert "--require-hashes" in unit_tests
+    active_unit = _uncommented(unit_tests)
+    assert any(
+        "--require-hashes" in line and "tomli-requirements.txt" in line
+        for line in active_unit.splitlines()
+        if not line.strip().startswith("#")
+    )
     pinned = (
         _WORKFLOW.parents[2] / ".github" / "tomli-requirements.txt"
     ).read_text(encoding="utf-8")
