@@ -5,9 +5,9 @@ The scheduled job is the only caller. A run passes only when every finding
 matches an unexpired baseline entry by detector, path, commit, and line. Any
 verified result fails, including one whose location is in the baseline.
 An expired baseline entry fails the run even when no finding matches it.
-Four account-closed Adzuna fingerprints may omit expires. Those rows never
-expire, so the scheduled job will not ask for them again. Every other entry
-still has an expiry, and that date cannot be more than 45 days out.
+The 14 known Adzuna locations may omit expires when the reason is account
+closed. A verified finding at one of those keys still fails. Every other
+entry still needs an expiry, and that date cannot be more than 45 days out.
 
 Scanner JSON includes secret material. This script reads detector name,
 verified flag, file path, commit, and line, and never prints anything else.
@@ -30,35 +30,25 @@ _EVIDENCE_RE = re.compile(r"^https://\S+$")
 _ENTRY_FIELDS = frozenset(
     {"detector", "path", "commit", "line", "expires", "closed_on", "reason", "evidence"}
 )
-# Account-closed Adzuna rows. These four fingerprints may omit expires.
-# Nothing in the scheduled job will ask for them to be rechecked.
+# The 14 known Adzuna locations. They may omit expires only with the
+# account-closed reason. A verified finding at one of these keys still fails.
 _NO_EXPIRY_REASON = "account closed"
 _NO_EXPIRY_FINGERPRINTS = frozenset(
     {
-        (
-            "Adzuna",
-            "job-automation-service/.env.backup",
-            "726225a6c1939a4a199cea3de1b893e079193f90",
-            3,
-        ),
-        (
-            "Adzuna",
-            "job-automation-service/.env.backup",
-            "7c07e7b78403ddfed05d76cb16f445407ae93e80",
-            3,
-        ),
-        (
-            "Adzuna",
-            "job-automation-service/SERVER_DEBUG_INSTRUCTIONS.md",
-            "641d4f19dabfa807c70aad6fee312e8e3e0ae201",
-            64,
-        ),
-        (
-            "Adzuna",
-            "job-automation-service/SERVER_DEBUG_INSTRUCTIONS.md",
-            "f708e4c85c471ef9af8817362b7ff14cc09bc6b7",
-            64,
-        ),
+        ("Adzuna", "job-automation-service/.env.backup", "726225a6c1939a4a199cea3de1b893e079193f90", 3),
+        ("Adzuna", "job-automation-service/.env.backup", "7c07e7b78403ddfed05d76cb16f445407ae93e80", 3),
+        ("Adzuna", "job-automation-service/ENV_FILE_FIX_SUMMARY.md", "641d4f19dabfa807c70aad6fee312e8e3e0ae201", 71),
+        ("Adzuna", "job-automation-service/ENV_FILE_FIX_SUMMARY.md", "f708e4c85c471ef9af8817362b7ff14cc09bc6b7", 71),
+        ("Adzuna", "job-automation-service/NEXT_STEPS_TO_FIX.md", "641d4f19dabfa807c70aad6fee312e8e3e0ae201", 48),
+        ("Adzuna", "job-automation-service/NEXT_STEPS_TO_FIX.md", "f708e4c85c471ef9af8817362b7ff14cc09bc6b7", 48),
+        ("Adzuna", "job-automation-service/SERVER_DEBUG_INSTRUCTIONS.md", "641d4f19dabfa807c70aad6fee312e8e3e0ae201", 64),
+        ("Adzuna", "job-automation-service/SERVER_DEBUG_INSTRUCTIONS.md", "f708e4c85c471ef9af8817362b7ff14cc09bc6b7", 64),
+        ("Adzuna", "job-automation-service/TEST_RESULTS_SUMMARY.md", "641d4f19dabfa807c70aad6fee312e8e3e0ae201", 108),
+        ("Adzuna", "job-automation-service/TEST_RESULTS_SUMMARY.md", "f708e4c85c471ef9af8817362b7ff14cc09bc6b7", 108),
+        ("Adzuna", "job-automation-service/fix_server_credentials.ps1", "641d4f19dabfa807c70aad6fee312e8e3e0ae201", 25),
+        ("Adzuna", "job-automation-service/fix_server_credentials.ps1", "641d4f19dabfa807c70aad6fee312e8e3e0ae201", 45),
+        ("Adzuna", "job-automation-service/fix_server_credentials.ps1", "f708e4c85c471ef9af8817362b7ff14cc09bc6b7", 25),
+        ("Adzuna", "job-automation-service/fix_server_credentials.ps1", "f708e4c85c471ef9af8817362b7ff14cc09bc6b7", 45),
     }
 )
 

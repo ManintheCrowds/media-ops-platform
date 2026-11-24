@@ -352,55 +352,45 @@ def test_checked_in_baseline_shape() -> None:
         if (entry.detector, entry.path, entry.commit, entry.line)
         in known_findings._NO_EXPIRY_FINGERPRINTS
     }
-    assert len(permanent) == 4
+    assert len(permanent) == 14
     for entry in entries:
         assert entry.detector == "Adzuna"
         assert entry.closed_on is None
         assert entry.evidence is None
         assert entry.line is not None
-        if entry in permanent:
-            assert entry.expires is None
-            assert entry.reason == "account closed"
-        else:
-            assert entry.expires == date(2026, 12, 23)
-            assert "Re-triaged 2026-11-23" in entry.reason
+        assert entry.expires is None
+        assert entry.reason == "account closed"
     locations = {(entry.path, entry.commit, entry.line) for entry in entries}
     assert locations == _BASELINE_LOCATIONS
+    assert {
+        ("Adzuna", path, commit, line) for path, commit, line in locations
+    } == known_findings._NO_EXPIRY_FINGERPRINTS
 
 
-def test_checked_in_baseline_fails_on_its_expiry_date() -> None:
+def test_checked_in_baseline_does_not_expire() -> None:
     entries = known_findings.load_baseline(_BASELINE.read_text(encoding="utf-8"))
-    day_before = known_findings.evaluate([], entries, date(2026, 12, 22))
-    expiry_day = known_findings.evaluate([], entries, date(2026, 12, 23))
+    far = known_findings.evaluate([], entries, date(2099, 1, 1))
 
-    assert day_before.ok is True
-    assert day_before.expired_count == 0
-    assert expiry_day.ok is False
-    assert expiry_day.finding_count == 0
-    assert expiry_day.expired_count == 10
-
-
-def test_account_closed_fingerprints_have_no_expiry() -> None:
-    entries = known_findings.load_baseline(_BASELINE.read_text(encoding="utf-8"))
-    permanent = [
-        entry
-        for entry in entries
-        if entry.expires is None
-    ]
-    assert len(permanent) == 4
-    far = known_findings.evaluate([], permanent, date(2099, 1, 1))
     assert far.ok is True
     assert far.expired_count == 0
-    finding = known_findings.Finding(
-        detector=permanent[0].detector,
-        path=permanent[0].path,
-        commit=permanent[0].commit,
-        verified=False,
-        line=permanent[0].line,
-    )
-    matched = known_findings.evaluate([finding], permanent, date(2099, 1, 1))
-    assert matched.ok is True
-    assert matched.matched_count == 1
+    assert far.baseline_count == 14
+
+
+def test_verified_finding_fails_on_every_no_expiry_entry() -> None:
+    entries = known_findings.load_baseline(_BASELINE.read_text(encoding="utf-8"))
+    assert len(entries) == 14
+    for entry in entries:
+        finding = known_findings.Finding(
+            detector=entry.detector,
+            path=entry.path,
+            commit=entry.commit,
+            verified=True,
+            line=entry.line,
+        )
+        result = known_findings.evaluate([finding], entries, date(2099, 1, 1))
+        assert result.ok is False
+        assert result.verified_count == 1
+        assert any("verified result" in item for item in result.failures)
 
 
 def test_no_expiry_is_only_the_account_closed_fingerprints() -> None:
