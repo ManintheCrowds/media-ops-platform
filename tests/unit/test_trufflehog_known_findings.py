@@ -409,6 +409,14 @@ def test_no_expiry_match_prints_days_none() -> None:
     assert "days=46" not in summary
 
 
+def test_no_expiry_loader_requires_the_full_tuple() -> None:
+    """Same detector and path with a different commit and line still need an expiry."""
+    narrowed = _entry(commit="a" * 40, line=9)
+    narrowed.pop("expires")
+    with pytest.raises(ValueError, match="missing expires"):
+        known_findings.load_baseline(_baseline(narrowed))
+
+
 def test_no_expiry_is_only_the_account_closed_fingerprints() -> None:
     outsider = _entry(path="notes.txt", line=9)
     outsider.pop("expires")

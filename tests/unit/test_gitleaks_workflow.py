@@ -52,6 +52,11 @@ def _uncommented(text: str) -> str:
     )
 
 
+def _command_text(line: str) -> str:
+    """Drop a trailing `` #`` comment. A flag that lives only there does not count."""
+    return line.split(" #", 1)[0]
+
+
 def test_gate_job_pins_tarball_and_both_binary_hashes() -> None:
     """Commented pin lines do not count. The live sha256sum lines do."""
     gate, tests = _gate_and_tests(_WORKFLOW.read_text(encoding="utf-8"))
@@ -333,10 +338,15 @@ def test_trusted_python_is_isolated_from_the_checkout() -> None:
     ).read_text(encoding="utf-8")
     assert ".github/tomli-requirements.txt" in unit_tests
     active_unit = _uncommented(unit_tests)
+    decoy = (
+        "pip install tomli==2.2.1  "
+        "# --require-hashes -r .github/tomli-requirements.txt"
+    )
+    assert "--require-hashes" not in _command_text(decoy)
     assert any(
-        "--require-hashes" in line and "tomli-requirements.txt" in line
+        "--require-hashes" in _command_text(line)
+        and "tomli-requirements.txt" in _command_text(line)
         for line in active_unit.splitlines()
-        if not line.strip().startswith("#")
     )
     pinned = (
         _WORKFLOW.parents[2] / ".github" / "tomli-requirements.txt"

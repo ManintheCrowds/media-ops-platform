@@ -765,6 +765,38 @@ def test_symlink_replaced_by_utf16_file_is_scanned(tmp_path: Path) -> None:
     assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
 
 
+def test_rename_onto_an_allowlisted_name_is_scanned(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    original = "".join(f"line {index}\n" for index in range(200))
+    _commit_file(repo, "a.py", original, "add")
+    base = _head(repo)
+    token = _runtime_token()
+    _git(repo, "mv", "a.py", "logo.png")
+    (repo / "logo.png").write_text(original + f'key = "{token}"\n', encoding="utf-8")
+    _git(repo, "add", "--", "logo.png")
+    _git(repo, "commit", "-q", "-m", "rename")
+    shown = subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repo),
+            "diff-tree",
+            "-r",
+            "-M",
+            "--raw",
+            "--no-commit-id",
+            "HEAD",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert " R" in shown.stdout
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
 def test_renamed_and_edited_utf16_file_is_scanned(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)
