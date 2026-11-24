@@ -6,7 +6,7 @@ import importlib.util
 import json
 import re
 import sys
-from datetime import date
+from datetime import date, timedelta
 from io import StringIO
 from pathlib import Path
 
@@ -426,6 +426,43 @@ def test_no_expiry_is_only_the_account_closed_fingerprints() -> None:
     capped = _evaluate("", _baseline(_entry(expires="2099-01-01")), date(2026, 11, 23))
     assert capped.ok is False
     assert any("upper limit" in item for item in capped.failures)
+
+
+def test_no_expiry_match_requires_the_same_commit_and_line() -> None:
+    entries = known_findings.load_baseline(_BASELINE.read_text(encoding="utf-8"))
+    entry = entries[0]
+    other_commit = "a" * 40
+    assert other_commit != entry.commit
+    for finding in (
+        known_findings.Finding(
+            detector=entry.detector,
+            path=entry.path,
+            commit=other_commit,
+            verified=False,
+            line=entry.line,
+        ),
+        known_findings.Finding(
+            detector=entry.detector,
+            path=entry.path,
+            commit=entry.commit,
+            verified=False,
+            line=(entry.line or 0) + 1,
+        ),
+    ):
+        result = known_findings.evaluate([finding], entries, date(2099, 1, 1))
+        assert result.matched_count == 0
+        assert result.unmatched_count == 1
+
+
+def test_baseline_expiry_cap_is_exactly_45_days() -> None:
+    today = date(2026, 11, 23)
+    day_45 = (today + timedelta(days=45)).isoformat()
+    day_46 = (today + timedelta(days=46)).isoformat()
+    allowed = _evaluate("", _baseline(_entry(expires=day_45)), today)
+    too_far = _evaluate("", _baseline(_entry(expires=day_46)), today)
+    assert allowed.ok is True
+    assert too_far.ok is False
+    assert any("upper limit" in item for item in too_far.failures)
 
 
 def test_baseline_expiry_has_an_upper_limit() -> None:
