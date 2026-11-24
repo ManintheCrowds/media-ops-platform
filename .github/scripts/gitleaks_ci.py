@@ -831,6 +831,8 @@ def _container_payloads(blob: bytes, depth: int) -> list[bytes]:
             archive.close()
         raise ScanError("prescan failed", 1)
     if depth >= _ARCHIVE_DEPTH:
+        if _gzip_after_prefix(blob) is not None:
+            raise ScanError("prescan failed", 1)
         return []
     payloads: list[bytes] = []
     if archive is not None:
@@ -844,6 +846,11 @@ def _container_payloads(blob: bytes, depth: int) -> list[bytes]:
         data = stream(blob)
         payloads.append(data)
         payloads.extend(_container_payloads(data, depth + 1))
+    else:
+        shifted = _gzip_after_prefix(blob)
+        if shifted is not None:
+            payloads.append(shifted)
+            payloads.extend(_container_payloads(shifted, depth + 1))
     return payloads
 
 
@@ -856,6 +863,21 @@ def _stream_reader(blob: bytes):
     if blob.startswith(b"\x1f\x8b"):
         return _read_gzip
     return None
+
+
+def _gzip_after_prefix(blob: bytes) -> bytes | None:
+    """Decompress gzip at its first header when that header is not byte 0.
+
+    A byte sequence that is not a readable gzip stream is left alone. A
+    stream that starts at byte 0 is handled by ``_stream_reader``.
+    """
+    offset = blob.find(b"\x1f\x8b\x08")
+    if offset <= 0:
+        return None
+    try:
+        return _read_gzip(blob[offset:])
+    except ScanError:
+        return None
 
 
 def _scan_sample(parent: Path, gitleaks: str, config: Path, text: str) -> int:

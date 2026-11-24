@@ -1093,6 +1093,31 @@ def test_zip_without_a_central_directory_fails(tmp_path: Path) -> None:
     _expect_both_paths_fail(repo, base, head)
 
 
+def _gzip_bytes(payload: bytes) -> bytes:
+    raw = io.BytesIO()
+    with gzip.GzipFile(fileobj=raw, mode="wb") as handle:
+        handle.write(payload)
+    return raw.getvalue()
+
+
+def test_gzip_after_a_pdf_header_is_unpacked(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    payload = b"%PDF-1.4\n" + _gzip_bytes(_padded_secret(token))
+    base, head = _commit_bytes(repo, "note.pdf", payload)
+    _expect_both_paths(repo, base, head)
+
+
+def test_gzip_inside_a_zip_member_is_unpacked(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    member = b"XXXX" + _gzip_bytes(_padded_secret(token))
+    base, head = _commit_bytes(repo, "data.bin", _deflated_zip("inner.bin", member))
+    _expect_both_paths(repo, base, head)
+
+
 def test_gzip_member_is_unpacked(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)
