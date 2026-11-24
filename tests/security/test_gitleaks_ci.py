@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gzip
 import hashlib
 import importlib.util
 import io
@@ -957,6 +958,74 @@ def test_unreadable_zip_member_fails(tmp_path: Path) -> None:
     raw[central + 10 : central + 12] = (99).to_bytes(2, "little")
     base, head = _commit_bytes(repo, "data.bin", bytes(raw))
     _expect_prescan_exit_one(repo, base, head)
+
+
+def _deflated_zip(name: str, payload: bytes) -> bytes:
+    raw = io.BytesIO()
+    with zipfile.ZipFile(raw, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(name, payload)
+    return raw.getvalue()
+
+
+@pytest.mark.parametrize(
+    ("name", "prefix"),
+    [
+        ("data.bin", b"XXXX"),
+        ("note.pdf", b"%PDF-1.4\n"),
+        ("data.bin", b"\x7fELF"),
+    ],
+)
+def test_zip_after_a_prefix_is_unpacked(
+    tmp_path: Path, name: str, prefix: bytes
+) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    inner = _zip_with_token(token, zipfile.ZIP_DEFLATED)
+    base, head = _commit_bytes(repo, name, prefix + inner)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+def test_gzip_member_is_unpacked(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    payload = io.BytesIO()
+    with gzip.GzipFile(fileobj=payload, mode="wb") as handle:
+        handle.write(f'key = "{token}"\n'.encode())
+    base, head = _commit_bytes(repo, "data.bin", payload.getvalue())
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+def test_nested_zip_member_is_unpacked(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    inner = _zip_with_token(token, zipfile.ZIP_DEFLATED)
+    base, head = _commit_bytes(repo, "data.bin", _deflated_zip("inner.zip", inner))
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+def test_zip_nested_past_the_depth_fails(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    inner = _zip_with_token(token, zipfile.ZIP_DEFLATED)
+    middle = _deflated_zip("inner.zip", inner)
+    outer = _deflated_zip("middle.zip", middle)
+    base, head = _commit_bytes(repo, "data.bin", outer)
+    _expect_prescan_exit_one(repo, base, head)
+
+
+def test_ustar_magic_at_offset_257_is_scanned(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    payload = bytearray(257)
+    payload += b"ustar"
+    payload += f'\nkey = "{token}"\n'.encode()
+    base, head = _commit_bytes(repo, "data.bin", bytes(payload))
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
 
 
 def test_image_magic_without_a_token_is_not_a_finding(tmp_path: Path) -> None:

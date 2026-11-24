@@ -8,6 +8,7 @@ ignore file are not the gate.
 
 from __future__ import annotations
 
+import gzip
 import hashlib
 import io
 import json
@@ -42,11 +43,14 @@ GITLEAKS_BINARY = Path("/usr/local/bin/gitleaks")
 BOOTSTRAP_SHA = "f3559cbb2677eb72088bec7c56d541f0aa78a41e"
 # Rule count in the gitleaks 8.30.1 default pack.
 GITLEAKS_DEFAULT_RULES = 222
-# One zip level. Caps stop a blob from expanding without a bound.
+# Caps apply to each zip. Two container levels are unpacked. A zip or gzip
+# nested deeper than that fails the scan instead of being skipped.
 _ZIP_MEMBER_CAP = 32
 _ZIP_MEMBER_BYTES = 1_048_576
 _ZIP_TOTAL_BYTES = 4_194_304
-_SAMPLE_PREFIX = "opaque\n"
+_ARCHIVE_DEPTH = 2
+# 8 KiB of newlines moves a tar magic at offset 257 out of the sniffer window.
+_SAMPLE_PREFIX = "\n" * 8192
 # The only path patterns the gate accepts in a global allowlist.
 APPROVED_ALLOW_PATHS: tuple[str, ...] = (
     r"(?:^|/)poetry\.lock$",
@@ -741,19 +745,8 @@ def _blobs_in_range(repo: Path, base: str, head: str) -> list[tuple[str, str]]:
     return pairs
 
 
-def _zip_member_bytes(blob: bytes) -> list[bytes]:
-    """Return one level of zip members.
-
-    A directory entry is skipped. Crossing the member count, the per-member
-    size, or the total size fails the scan, as does a member that cannot be
-    read. The scan does not keep going with the members that fit.
-    """
-    if not blob.startswith((b"PK\x03\x04", b"PK\x05\x06")):
-        return []
-    try:
-        archive = zipfile.ZipFile(io.BytesIO(blob))
-    except zipfile.BadZipFile:
-        return []
+def _read_zip_members(archive: zipfile.ZipFile) -> list[bytes]:
+    """Read one zip. Caps and an unreadable member fail the scan."""
     members: list[bytes] = []
     total = 0
     seen = 0
@@ -777,8 +770,59 @@ def _zip_member_bytes(blob: bytes) -> list[bytes]:
     return members
 
 
+def _open_zip(blob: bytes) -> zipfile.ZipFile | None:
+    """Open a zip whose local header is anywhere in the blob."""
+    if b"PK\x03\x04" not in blob and b"PK\x05\x06" not in blob:
+        return None
+    try:
+        return zipfile.ZipFile(io.BytesIO(blob))
+    except zipfile.BadZipFile:
+        return None
+
+
+def _read_gzip(blob: bytes) -> bytes:
+    """Decompress one gzip member. A short or unreadable stream fails the scan."""
+    try:
+        with gzip.GzipFile(fileobj=io.BytesIO(blob)) as handle:
+            data = handle.read(_ZIP_MEMBER_BYTES + 1)
+    except (OSError, EOFError, gzip.BadGzipFile) as exc:
+        raise ScanError("prescan failed", 1) from exc
+    if len(data) > _ZIP_MEMBER_BYTES:
+        raise ScanError("prescan failed", 1)
+    return data
+
+
+def _container_payloads(blob: bytes, depth: int) -> list[bytes]:
+    """Unpack zip and gzip payloads down to a fixed depth.
+
+    ``depth`` is how many containers have already been opened. A container
+    past ``_ARCHIVE_DEPTH`` fails the scan.
+    """
+    archive = _open_zip(blob)
+    is_gzip = blob.startswith(b"\x1f\x8b")
+    if depth >= _ARCHIVE_DEPTH and (archive is not None or is_gzip):
+        if archive is not None:
+            archive.close()
+        raise ScanError("prescan failed", 1)
+    if depth >= _ARCHIVE_DEPTH:
+        return []
+    payloads: list[bytes] = []
+    if archive is not None:
+        try:
+            for member in _read_zip_members(archive):
+                payloads.append(member)
+                payloads.extend(_container_payloads(member, depth + 1))
+        finally:
+            archive.close()
+    if is_gzip:
+        data = _read_gzip(blob)
+        payloads.append(data)
+        payloads.extend(_container_payloads(data, depth + 1))
+    return payloads
+
+
 def _scan_sample(parent: Path, gitleaks: str, config: Path, text: str) -> int:
-    """Scan decoded text. A leading line keeps archive and ELF sniffers off byte 0."""
+    """Scan decoded text. A long blank prefix keeps tar and archive sniffers off byte 0."""
     sample = parent / "sample.txt"
     sample.write_text(_SAMPLE_PREFIX + text, encoding="utf-8")
     report = parent / "report.json"
@@ -823,7 +867,7 @@ def prescan_opaque_files(
             blob = git_cat_blob(repo, blob_sha)
             if blob is None:
                 raise ScanError("prescan failed", 2)
-            members = _zip_member_bytes(blob)
+            members = _container_payloads(blob, 0)
             if not _opaque(path, blob, allow_paths) and not members:
                 continue
             texts = [_decode_opaque(blob)]
