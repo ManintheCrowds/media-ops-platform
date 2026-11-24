@@ -486,6 +486,11 @@ def test_pull_request_and_push_job_stays_strict() -> None:
     assert "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" in text
     assert "trufflehog-known-findings.json" not in strict_job
     assert "trufflehog-known-findings.json" in scheduled
+    assert (
+        "github.event_name == 'schedule' || "
+        "(github.event_name == 'workflow_dispatch' && "
+        "github.ref == 'refs/heads/main')"
+    ) in scheduled
     assert "trufflehog-strict:" not in scheduled
 
 
