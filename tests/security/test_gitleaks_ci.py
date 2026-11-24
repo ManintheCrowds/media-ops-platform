@@ -697,6 +697,27 @@ def test_prescan_nonzero_exit_fails_when_the_report_is_empty(
     assert caught.value.code == 2
 
 
+def test_diff_tree_rejects_a_non_hex_blob_id() -> None:
+    raw = (
+        b":100644 100644 "
+        + (b"g" * 40)
+        + b" "
+        + (b"a" * 40)
+        + b" A\x00a.py\x00"
+    )
+    with pytest.raises(gitleaks_ci.ScanError) as caught:
+        gitleaks_ci._parse_diff_tree(raw)
+    assert caught.value.code == 1
+    valid = (
+        b":100644 100644 "
+        + (b"a" * 40)
+        + b" "
+        + (b"b" * 40)
+        + b" A\x00a.py\x00"
+    )
+    assert gitleaks_ci._parse_diff_tree(valid) == [("b" * 40, "a.py")]
+
+
 def test_unparseable_diff_tree_record_fails() -> None:
     with pytest.raises(gitleaks_ci.ScanError) as caught:
         gitleaks_ci._parse_diff_tree(b"not a raw record\x00")

@@ -686,7 +686,7 @@ def _parse_diff_tree(raw: bytes) -> list[tuple[str, str]]:
         if len(old_sha) != 40 or len(new_sha) != 40:
             raise ScanError("prescan failed", 1)
         hex_digits = set("0123456789abcdef")
-        if set(old_sha) > hex_digits or set(new_sha) > hex_digits:
+        if not set(old_sha) <= hex_digits or not set(new_sha) <= hex_digits:
             raise ScanError("prescan failed", 1)
         kind = status[:1]
         if kind not in "AMTRC" or (len(status) > 1 and not status[1:].isdigit()):
