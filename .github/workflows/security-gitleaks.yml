@@ -58,11 +58,8 @@ jobs:
             echo "missing revision" >&2
             exit 2
           fi
-          if git cat-file -e "${GATE_SHA}:.gitleaksignore" 2>/dev/null; then
-            git show "${GATE_SHA}:.gitleaksignore" > "${RUNNER_TEMP}/scan/.gitleaksignore"
-          else
-            : > "${RUNNER_TEMP}/scan/.gitleaksignore"
-          fi
+          # The scan script reads .gitleaksignore with git show and pins those
+          # bytes itself. The empty-file pin does not use a copy written here.
 
       - name: Run gitleaks
         env:

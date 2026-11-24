@@ -26,7 +26,8 @@ def test_pull_request_gate_is_materialized_from_the_base() -> None:
     text = _WORKFLOW.read_text(encoding="utf-8")
     assert 'git show "${GATE_SHA}:.github/scripts/gitleaks_ci.py"' in text
     assert 'git show "${GATE_SHA}:.gitleaks.toml"' not in text
-    assert 'git show "${GATE_SHA}:.gitleaksignore"' in text
+    assert 'git show "${GATE_SHA}:.gitleaksignore"' not in text
+    assert "${RUNNER_TEMP}/scan/.gitleaksignore" not in text
     assert 'git show "${GATE_SHA}:.github/trufflehog-known-findings.json"' not in text
     assert "${RUNNER_TEMP}/scan/gitleaks_ci.py" in text
     assert "bootstrap: base has no scan script" in text
