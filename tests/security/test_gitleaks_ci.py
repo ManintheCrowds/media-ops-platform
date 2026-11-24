@@ -681,6 +681,20 @@ def test_merge_only_utf16_file_is_scanned(tmp_path: Path) -> None:
     assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
 
 
+def test_prescan_nonzero_exit_fails_when_the_report_is_empty(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def fake_run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        report = Path(command[command.index("--report-path") + 1])
+        report.write_text("[]", encoding="utf-8")
+        return subprocess.CompletedProcess(command, 2, "", "")
+
+    monkeypatch.setattr(gitleaks_ci.subprocess, "run", fake_run)
+    with pytest.raises(gitleaks_ci.ScanError) as caught:
+        gitleaks_ci._scan_sample(tmp_path, "gitleaks", tmp_path / "config", "text")
+    assert caught.value.code == 2
+
+
 def test_unparseable_diff_tree_record_fails() -> None:
     with pytest.raises(gitleaks_ci.ScanError) as caught:
         gitleaks_ci._parse_diff_tree(b"not a raw record\x00")
