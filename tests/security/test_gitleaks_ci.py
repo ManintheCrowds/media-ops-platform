@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import bz2
 import gzip
 import hashlib
 import importlib.util
 import io
 import json
+import lzma
 import random
 import subprocess
 import sys
+import tarfile
 import zipfile
 from pathlib import Path
 
@@ -1016,6 +1019,49 @@ def test_zip_after_a_prefix_is_unpacked(
     inner = _zip_with_token(token, zipfile.ZIP_DEFLATED)
     base, head = _commit_bytes(repo, name, prefix + inner)
     assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+def _expect_both_paths(repo: Path, base: str, head: str) -> None:
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+    assert gitleaks_ci.run_push_scan(repo, base, head, _gitleaks()) == 1
+
+
+def _tar_bytes(token: str) -> bytes:
+    text = f'key = "{token}"\n'.encode()
+    raw = io.BytesIO()
+    with tarfile.open(fileobj=raw, mode="w") as archive:
+        info = tarfile.TarInfo("secret.txt")
+        info.size = len(text)
+        archive.addfile(info, io.BytesIO(text))
+    return raw.getvalue()
+
+
+def _padded_secret(token: str) -> bytes:
+    filler = bytes(index % 251 for index in range(4096))
+    return filler + f'\nkey = "{token}"\n'.encode()
+
+
+@pytest.mark.parametrize(
+    ("name", "wrap"),
+    [
+        (
+            "note.xz",
+            lambda token: lzma.compress(_padded_secret(token), format=lzma.FORMAT_XZ),
+        ),
+        ("note.bz2", lambda token: bz2.compress(_padded_secret(token))),
+        (
+            "note.tar.xz",
+            lambda token: lzma.compress(_tar_bytes(token), format=lzma.FORMAT_XZ),
+        ),
+        ("note.tar.bz2", lambda token: bz2.compress(_tar_bytes(token))),
+    ],
+)
+def test_xz_and_bzip2_streams_are_unpacked(tmp_path: Path, name: str, wrap) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    base, head = _commit_bytes(repo, name, wrap(token))
+    _expect_both_paths(repo, base, head)
 
 
 def test_gzip_member_is_unpacked(tmp_path: Path) -> None:

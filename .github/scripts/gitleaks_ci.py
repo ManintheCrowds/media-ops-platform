@@ -8,10 +8,12 @@ ignore file are not the gate.
 
 from __future__ import annotations
 
+import bz2
 import gzip
 import hashlib
 import io
 import json
+import lzma
 import os
 import re
 import shutil
@@ -780,6 +782,28 @@ def _open_zip(blob: bytes) -> zipfile.ZipFile | None:
         return None
 
 
+def _read_capped(blob: bytes, opener: type) -> bytes:
+    """Read one compressed stream, stopping at the per-member cap."""
+    try:
+        with opener(io.BytesIO(blob)) as handle:
+            data = handle.read(_ZIP_MEMBER_BYTES + 1)
+    except (OSError, EOFError, lzma.LZMAError) as exc:
+        raise ScanError("prescan failed", 1) from exc
+    if len(data) > _ZIP_MEMBER_BYTES:
+        raise ScanError("prescan failed", 1)
+    return data
+
+
+def _read_xz(blob: bytes) -> bytes:
+    """Decompress one xz stream."""
+    return _read_capped(blob, lzma.LZMAFile)
+
+
+def _read_bz2(blob: bytes) -> bytes:
+    """Decompress one bzip2 stream."""
+    return _read_capped(blob, bz2.BZ2File)
+
+
 def _read_gzip(blob: bytes) -> bytes:
     """Decompress one gzip member. A short or unreadable stream fails the scan."""
     try:
@@ -793,14 +817,14 @@ def _read_gzip(blob: bytes) -> bytes:
 
 
 def _container_payloads(blob: bytes, depth: int) -> list[bytes]:
-    """Unpack zip and gzip payloads down to a fixed depth.
+    """Unpack zip, gzip, xz, and bzip2 payloads down to a fixed depth.
 
     ``depth`` is how many containers have already been opened. A container
     past ``_ARCHIVE_DEPTH`` fails the scan.
     """
     archive = _open_zip(blob)
-    is_gzip = blob.startswith(b"\x1f\x8b")
-    if depth >= _ARCHIVE_DEPTH and (archive is not None or is_gzip):
+    stream = _stream_reader(blob)
+    if depth >= _ARCHIVE_DEPTH and (archive is not None or stream is not None):
         if archive is not None:
             archive.close()
         raise ScanError("prescan failed", 1)
@@ -814,11 +838,22 @@ def _container_payloads(blob: bytes, depth: int) -> list[bytes]:
                 payloads.extend(_container_payloads(member, depth + 1))
         finally:
             archive.close()
-    if is_gzip:
-        data = _read_gzip(blob)
+    if stream is not None:
+        data = stream(blob)
         payloads.append(data)
         payloads.extend(_container_payloads(data, depth + 1))
     return payloads
+
+
+def _stream_reader(blob: bytes):
+    """Return the decompressor for a stream that starts at byte 0."""
+    if blob.startswith(b"\xfd7zXZ\x00"):
+        return _read_xz
+    if blob.startswith(b"BZh"):
+        return _read_bz2
+    if blob.startswith(b"\x1f\x8b"):
+        return _read_gzip
+    return None
 
 
 def _scan_sample(parent: Path, gitleaks: str, config: Path, text: str) -> int:
