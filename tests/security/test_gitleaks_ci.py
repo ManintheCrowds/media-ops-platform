@@ -892,6 +892,73 @@ def test_zip_member_token_is_scanned(
     assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
 
 
+def _commit_bytes(repo: Path, name: str, payload: bytes) -> tuple[str, str]:
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    (repo / name).write_bytes(payload)
+    _git(repo, "add", name)
+    _git(repo, "commit", "-q", "-m", "blob")
+    return base, _head(repo)
+
+
+def _expect_prescan_exit_one(repo: Path, base: str, head: str) -> None:
+    with pytest.raises(gitleaks_ci.ScanError) as caught:
+        gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks())
+    assert caught.value.code == 1
+
+
+def test_zip_member_past_the_count_cap_fails(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    payload = io.BytesIO()
+    with zipfile.ZipFile(payload, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for index in range(32):
+            archive.writestr(f"pad{index}.txt", "pad")
+        archive.writestr("secret.txt", f'key = "{token}"\n')
+    base, head = _commit_bytes(repo, "data.bin", payload.getvalue())
+    _expect_prescan_exit_one(repo, base, head)
+
+
+def test_zip_member_over_one_mebibyte_fails(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    payload = io.BytesIO()
+    with zipfile.ZipFile(payload, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("big.bin", b"\x00" * (1024 * 1024 + 1) + f'key = "{token}"\n'.encode())
+    base, head = _commit_bytes(repo, "data.bin", payload.getvalue())
+    _expect_prescan_exit_one(repo, base, head)
+
+
+def test_zip_members_past_four_mebibytes_fail(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    payload = io.BytesIO()
+    chunk = b"\x00" * (1024 * 1024)
+    with zipfile.ZipFile(payload, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for index in range(4):
+            archive.writestr(f"pad{index}.bin", chunk)
+        archive.writestr("secret.txt", f'key = "{token}"\n')
+    base, head = _commit_bytes(repo, "data.bin", payload.getvalue())
+    _expect_prescan_exit_one(repo, base, head)
+
+
+def test_unreadable_zip_member_fails(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    payload = io.BytesIO()
+    with zipfile.ZipFile(payload, "w") as archive:
+        archive.writestr("secret.txt", f'key = "{token}"\n')
+    raw = bytearray(payload.getvalue())
+    raw[8:10] = (99).to_bytes(2, "little")
+    central = raw.find(b"PK\x01\x02")
+    raw[central + 10 : central + 12] = (99).to_bytes(2, "little")
+    base, head = _commit_bytes(repo, "data.bin", bytes(raw))
+    _expect_prescan_exit_one(repo, base, head)
+
+
 def test_image_magic_without_a_token_is_not_a_finding(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)

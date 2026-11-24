@@ -742,7 +742,12 @@ def _blobs_in_range(repo: Path, base: str, head: str) -> list[tuple[str, str]]:
 
 
 def _zip_member_bytes(blob: bytes) -> list[bytes]:
-    """Return one level of zip members, skipping directories and oversized files."""
+    """Return one level of zip members.
+
+    A directory entry is skipped. Crossing the member count, the per-member
+    size, or the total size fails the scan, as does a member that cannot be
+    read. The scan does not keep going with the members that fit.
+    """
     if not blob.startswith((b"PK\x03\x04", b"PK\x05\x06")):
         return []
     try:
@@ -757,16 +762,16 @@ def _zip_member_bytes(blob: bytes) -> list[bytes]:
             continue
         seen += 1
         if seen > _ZIP_MEMBER_CAP:
-            break
+            raise ScanError("prescan failed", 1)
         if info.file_size > _ZIP_MEMBER_BYTES or total >= _ZIP_TOTAL_BYTES:
-            continue
+            raise ScanError("prescan failed", 1)
         try:
             with archive.open(info, "r") as handle:
                 data = handle.read(_ZIP_MEMBER_BYTES + 1)
-        except (zipfile.BadZipFile, RuntimeError, OSError):
-            continue
+        except (zipfile.BadZipFile, RuntimeError, OSError) as exc:
+            raise ScanError("prescan failed", 1) from exc
         if len(data) > _ZIP_MEMBER_BYTES or total + len(data) > _ZIP_TOTAL_BYTES:
-            continue
+            raise ScanError("prescan failed", 1)
         total += len(data)
         members.append(data)
     return members
