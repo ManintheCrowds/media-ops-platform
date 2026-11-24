@@ -30,7 +30,7 @@ username=your_username&password=your_password
 **Response:**
 ```json
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "access_token": "<access_token>",
   "token_type": "bearer"
 }
 ```

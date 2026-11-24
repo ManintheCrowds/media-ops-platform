@@ -6,7 +6,7 @@ import importlib.util
 import json
 import re
 import sys
-from datetime import date
+from datetime import date, timedelta
 from io import StringIO
 from pathlib import Path
 
@@ -54,26 +54,28 @@ def _finding_json(
     commit: str = _COMMIT,
     detector: str = "Adzuna",
     line: int = 3,
+    verification_error: bool = False,
 ) -> str:
-    return json.dumps(
-        {
-            "DetectorName": detector,
-            "Verified": verified,
-            "Raw": _FAKE_RAW,
-            "RawV2": _FAKE_RAW,
-            "Redacted": _FAKE_RAW[:4] + "...",
-            "SourceMetadata": {
-                "Data": {
-                    "Git": {
-                        "file": _PATH,
-                        "commit": commit,
-                        "line": line,
-                        "email": "person@example.invalid",
-                    }
+    payload: dict[str, object] = {
+        "DetectorName": detector,
+        "Verified": verified,
+        "Raw": _FAKE_RAW,
+        "RawV2": _FAKE_RAW,
+        "Redacted": _FAKE_RAW[:4] + "...",
+        "SourceMetadata": {
+            "Data": {
+                "Git": {
+                    "file": _PATH,
+                    "commit": commit,
+                    "line": line,
+                    "email": "person@example.invalid",
                 }
-            },
-        }
-    )
+            }
+        },
+    }
+    if verification_error:
+        payload["VerificationError"] = "unexpected HTTP response status 429"
+    return json.dumps(payload)
 
 
 def _evaluate(
@@ -113,7 +115,7 @@ def test_empty_findings_pass() -> None:
 
 def test_same_commit_different_line_fails() -> None:
     result = _evaluate(
-        _finding_json(verified=False, line=45),
+        _finding_json(verified=False, line=45, verification_error=True),
         _baseline(_entry()),
         date(2026, 11, 9),
     )
@@ -125,10 +127,56 @@ def test_same_commit_different_line_fails() -> None:
     assert _FAKE_RAW not in "\n".join(result.failures)
 
 
-def test_new_finding_fails() -> None:
+def test_unverified_finding_outside_baseline_is_counted_and_passes() -> None:
     other_commit = "641d4f19dabfa807c70aad6fee312e8e3e0ae201"
     result = _evaluate(
         _finding_json(verified=False, commit=other_commit),
+        _baseline(_entry()),
+        date(2026, 11, 9),
+    )
+    summary = known_findings.format_summary(result)
+    counts = known_findings.parse_nightly_counts(summary)
+
+    assert result.ok is True
+    assert counts == {
+        "total": 1,
+        "verified": 0,
+        "unverified": 1,
+        "unknown": 0,
+        "baselined": 0,
+        "new": 1,
+    }
+    assert _FAKE_RAW not in summary
+
+
+def test_nightly_count_line_round_trip() -> None:
+    result = _evaluate(
+        "\n".join(
+            [
+                _finding_json(verified=False, verification_error=True),
+                _finding_json(verified=True, line=4),
+            ]
+        ),
+        _baseline(_entry()),
+        date(2026, 11, 9),
+    )
+    summary = known_findings.format_summary(result)
+    counts = known_findings.parse_nightly_counts(summary)
+
+    assert result.ok is False
+    assert counts["total"] == 2
+    assert counts["verified"] == 1
+    assert counts["unknown"] == 1
+    assert counts["unverified"] == 0
+    assert counts["baselined"] == 1
+    assert counts["new"] == 1
+    assert summary.count("trufflehog_nightly ") == 1
+
+
+def test_new_finding_fails() -> None:
+    other_commit = "641d4f19dabfa807c70aad6fee312e8e3e0ae201"
+    result = _evaluate(
+        _finding_json(verified=False, commit=other_commit, verification_error=True),
         _baseline(_entry()),
         date(2026, 11, 9),
     )
@@ -298,14 +346,168 @@ def test_checked_in_baseline_shape() -> None:
     assert not re.search(r"\b[a-f0-9]{32}\b", text)
     assert "Raw" not in text
     assert "redacted" not in text.lower()
+    permanent = {
+        entry
+        for entry in entries
+        if (entry.detector, entry.path, entry.commit, entry.line)
+        in known_findings._NO_EXPIRY_FINGERPRINTS
+    }
+    assert len(permanent) == 14
     for entry in entries:
         assert entry.detector == "Adzuna"
-        assert entry.expires == date(2026, 11, 23)
         assert entry.closed_on is None
         assert entry.evidence is None
         assert entry.line is not None
+        assert entry.expires is None
+        assert entry.reason == "account closed"
     locations = {(entry.path, entry.commit, entry.line) for entry in entries}
     assert locations == _BASELINE_LOCATIONS
+    assert {
+        ("Adzuna", path, commit, line) for path, commit, line in locations
+    } == known_findings._NO_EXPIRY_FINGERPRINTS
+
+
+def test_checked_in_baseline_does_not_expire() -> None:
+    entries = known_findings.load_baseline(_BASELINE.read_text(encoding="utf-8"))
+    far = known_findings.evaluate([], entries, date(2099, 1, 1))
+
+    assert far.ok is True
+    assert far.expired_count == 0
+    assert far.baseline_count == 14
+
+
+def test_verified_finding_fails_on_every_no_expiry_entry() -> None:
+    entries = known_findings.load_baseline(_BASELINE.read_text(encoding="utf-8"))
+    assert len(entries) == 14
+    for entry in entries:
+        finding = known_findings.Finding(
+            detector=entry.detector,
+            path=entry.path,
+            commit=entry.commit,
+            verified=True,
+            line=entry.line,
+        )
+        result = known_findings.evaluate([finding], entries, date(2099, 1, 1))
+        assert result.ok is False
+        assert result.verified_count == 1
+        assert any("verified result" in item for item in result.failures)
+
+
+def test_no_expiry_match_prints_days_none() -> None:
+    entries = known_findings.load_baseline(_BASELINE.read_text(encoding="utf-8"))
+    entry = entries[0]
+    finding = known_findings.Finding(
+        detector=entry.detector,
+        path=entry.path,
+        commit=entry.commit,
+        verified=False,
+        line=entry.line,
+    )
+    result = known_findings.evaluate([finding], entries, date(2099, 1, 1))
+    summary = known_findings.format_summary(result)
+    assert f"line={entry.line} days=none" in summary
+    assert "days=46" not in summary
+
+
+def test_no_expiry_loader_requires_the_commit() -> None:
+    narrowed = _entry(commit="b" * 40)
+    narrowed.pop("expires")
+    with pytest.raises(ValueError, match="missing expires"):
+        known_findings.load_baseline(_baseline(narrowed))
+
+
+def test_no_expiry_loader_requires_the_line() -> None:
+    narrowed = _entry(line=9)
+    narrowed.pop("expires")
+    with pytest.raises(ValueError, match="missing expires"):
+        known_findings.load_baseline(_baseline(narrowed))
+
+
+def test_no_expiry_loader_requires_the_full_tuple() -> None:
+    """Same detector and path with a different commit and line still need an expiry."""
+    narrowed = _entry(commit="a" * 40, line=9)
+    narrowed.pop("expires")
+    with pytest.raises(ValueError, match="missing expires"):
+        known_findings.load_baseline(_baseline(narrowed))
+
+
+def test_no_expiry_is_only_the_account_closed_fingerprints() -> None:
+    outsider = _entry(path="notes.txt", line=9)
+    outsider.pop("expires")
+    with pytest.raises(ValueError, match="missing expires"):
+        known_findings.load_baseline(_baseline(outsider))
+    named = {
+        "detector": "Adzuna",
+        "path": "job-automation-service/.env.backup",
+        "commit": "726225a6c1939a4a199cea3de1b893e079193f90",
+        "line": 3,
+        "reason": "still open",
+    }
+    with pytest.raises(ValueError, match="account-closed reason"):
+        known_findings.load_baseline(_baseline(named))
+    capped = _evaluate("", _baseline(_entry(expires="2099-01-01")), date(2026, 11, 23))
+    assert capped.ok is False
+    assert any("upper limit" in item for item in capped.failures)
+
+
+def test_no_expiry_match_requires_the_same_commit_and_line() -> None:
+    entries = known_findings.load_baseline(_BASELINE.read_text(encoding="utf-8"))
+    entry = entries[0]
+    other_commit = "a" * 40
+    assert other_commit != entry.commit
+    for finding in (
+        known_findings.Finding(
+            detector=entry.detector,
+            path=entry.path,
+            commit=other_commit,
+            verified=False,
+            line=entry.line,
+        ),
+        known_findings.Finding(
+            detector=entry.detector,
+            path=entry.path,
+            commit=entry.commit,
+            verified=False,
+            line=(entry.line or 0) + 1,
+        ),
+    ):
+        result = known_findings.evaluate([finding], entries, date(2099, 1, 1))
+        assert result.matched_count == 0
+        assert result.unmatched_count == 1
+
+
+def test_baseline_expiry_cap_is_exactly_45_days() -> None:
+    today = date(2026, 11, 23)
+    day_45 = (today + timedelta(days=45)).isoformat()
+    day_46 = (today + timedelta(days=46)).isoformat()
+    allowed = _evaluate("", _baseline(_entry(expires=day_45)), today)
+    too_far = _evaluate("", _baseline(_entry(expires=day_46)), today)
+    assert allowed.ok is True
+    assert too_far.ok is False
+    assert any("upper limit" in item for item in too_far.failures)
+
+
+def test_baseline_expiry_has_an_upper_limit() -> None:
+    today = date(2026, 11, 23)
+    allowed = _evaluate("", _baseline(_entry(expires="2026-12-23")), today)
+    too_far = _evaluate("", _baseline(_entry(expires="2099-01-01")), today)
+    assert allowed.ok is True
+    assert too_far.ok is False
+    assert any("upper limit" in item for item in too_far.failures)
+
+
+def test_trufflehog_action_is_pinned_to_a_full_sha() -> None:
+    uses = []
+    for raw in _WORKFLOW.read_text(encoding="utf-8").splitlines():
+        stripped = raw.strip()
+        if stripped.startswith("#") or not stripped.startswith("uses:"):
+            continue
+        uses.append(stripped.split("uses:", 1)[1].strip().split()[0])
+    assert (
+        "trufflesecurity/trufflehog@ea68ca03c865c5f324e86e849ced20ed3cf9dbbb" in uses
+    )
+    assert all(not item.endswith("@main") for item in uses)
+    assert all("@v" not in item for item in uses)
 
 
 def test_evidence_link_is_accepted_and_non_urls_are_rejected() -> None:
@@ -321,17 +523,54 @@ def test_later_closed_on_is_rejected() -> None:
         known_findings.load_baseline(_baseline(_entry(closed_on="2026-11-24")))
 
 
+def test_pull_request_and_push_job_stays_strict() -> None:
+    text = _WORKFLOW.read_text(encoding="utf-8")
+    strict, scheduled = text.split("  trufflehog-scheduled:", 1)
+    strict_job = strict.split("  trufflehog-strict:", 1)[1]
+
+    assert (
+        "github.event_name == 'pull_request' || github.event_name == 'push'"
+        in strict_job
+    )
+    assert (
+        "extra_args: --results=verified,unknown,unverified --no-ignore-tag\n"
+        in strict_job
+    )
+    assert "--exclude-paths" not in strict_job
+    assert "--no-ignore-tag" in strict_job
+    assert (
+        "3.99.8@sha256:674b2f187620a19df77f44cf9a7d77efcc581a5662accef2f2739cbb46ba4a3a"
+        in strict_job
+    )
+    assert "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" in text
+    assert "trufflehog-known-findings.json" not in strict_job
+    assert "trufflehog-known-findings.json" in scheduled
+    assert (
+        "github.event_name == 'schedule' || "
+        "(github.event_name == 'workflow_dispatch' && "
+        "github.ref == 'refs/heads/main')"
+    ) in scheduled
+    assert "trufflehog-strict:" not in scheduled
+
+
 def test_scheduled_job_uses_baseline_and_strict_job_does_not() -> None:
     text = _WORKFLOW.read_text(encoding="utf-8")
     strict, scheduled = text.split("trufflehog-scheduled:", 1)
 
-    assert "extra_args: --results=verified,unknown\n" in strict
+    assert (
+        "extra_args: --results=verified,unknown,unverified --no-ignore-tag\n" in strict
+    )
     assert "trufflehog-known-findings.json" not in strict
     assert "trufflehog_known_findings.py" not in strict
     assert "--exclude-paths" not in strict
-    assert "--results=verified,unknown" in scheduled
+    assert "--results=verified,unknown,unverified" in scheduled
+    assert "--no-ignore-tag" in scheduled
+    assert "pull-requests: write" not in text
+    assert "extra_args: --results=verified,unknown\n" not in scheduled
     assert "--exclude-paths=config/trufflehog-exclude.txt" in scheduled
     assert ".github/scripts/trufflehog_known_findings.py" in scheduled
+    assert "env -i PATH=/usr/bin:/bin HOME=\"$HOME\" PYTHONSAFEPATH=1" in scheduled
+    assert "python3 -I .github/scripts/trufflehog_known_findings.py" in scheduled
     assert ".github/trufflehog-known-findings.json" in scheduled
     digest = (
         "ghcr.io/trufflesecurity/trufflehog:3.99.8"

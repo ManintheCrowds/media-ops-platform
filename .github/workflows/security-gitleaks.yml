@@ -8,23 +8,120 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
-  security-events: write
 
 jobs:
   gitleaks:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+          persist-credentials: false
+          submodules: false
 
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v3
+      - name: Fetch gate revision
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_CONFIG: .gitleaks.toml
-          GITLEAKS_ENABLE_COMMENTS: false
-          GITLEAKS_ENABLE_SUMMARY: true
-          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: true
+          GATE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GATE_SHA}" ] || [ "${GATE_SHA}" = "0000000000000000000000000000000000000000" ]; then
+            echo "missing revision" >&2
+            exit 2
+          fi
+          git fetch --no-tags origin "${GATE_SHA}"
+          git cat-file -e "${GATE_SHA}^{commit}"
+
+      - name: Install gitleaks 8.30.1
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/gitleaks.tar.gz \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  /tmp/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          sudo mv /tmp/gitleaks /usr/local/bin/gitleaks
+          echo "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509  /usr/local/bin/gitleaks" | sha256sum -c -
+
+      - name: Materialize base scan gate
+        env:
+          GATE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/scan"
+          BOOTSTRAP_SHA="f3559cbb2677eb72088bec7c56d541f0aa78a41e"
+          if git cat-file -e "${GATE_SHA}:.github/scripts/gitleaks_ci.py" 2>/dev/null; then
+            git show "${GATE_SHA}:.github/scripts/gitleaks_ci.py" > "${RUNNER_TEMP}/scan/gitleaks_ci.py"
+          elif [ "${GATE_SHA}" = "${BOOTSTRAP_SHA}" ]; then
+            echo "bootstrap: base has no scan script"
+            cp .github/scripts/gitleaks_ci.py "${RUNNER_TEMP}/scan/gitleaks_ci.py"
+          else
+            echo "missing revision" >&2
+            exit 2
+          fi
+          # The scan script reads .gitleaksignore with git show and pins those
+          # bytes itself. The empty-file pin does not use a copy written here.
+
+      - name: Run gitleaks
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          unset GITLEAKS_BIN
+          unset GITLEAKS_CONFIG
+          unset GITLEAKS_CONFIG_TOML
+          echo "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509  /usr/local/bin/gitleaks" | sha256sum -c -
+          /usr/local/bin/gitleaks version
+          # Drop PYTHON*, GIT_*, and LD_* so a checkout module or loader cannot
+          # replace the stdlib or the binary the checksum just accepted.
+          env -i \
+            PATH=/usr/bin:/bin \
+            HOME="$HOME" \
+            PYTHONSAFEPATH=1 \
+            GITHUB_EVENT_NAME="$GITHUB_EVENT_NAME" \
+            PR_BASE_SHA="$PR_BASE_SHA" \
+            PR_HEAD_SHA="$PR_HEAD_SHA" \
+            PUSH_BEFORE="$PUSH_BEFORE" \
+            PUSH_SHA="$PUSH_SHA" \
+            python3 -I "${RUNNER_TEMP}/scan/gitleaks_ci.py"
+
+  gitleaks-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          submodules: false
+
+      - name: Install gitleaks 8.30.1
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/gitleaks.tar.gz \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  /tmp/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          sudo mv /tmp/gitleaks /usr/local/bin/gitleaks
+          echo "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509  /usr/local/bin/gitleaks" | sha256sum -c -
+
+      - name: Gitleaks tests
+        run: |
+          set -euo pipefail
+          python3 -I -m pip install --target "${RUNNER_TEMP}/gitleaks-pytest" \
+            --require-hashes --only-binary=:all: \
+            -r .github/gitleaks-tests-requirements.txt
+          printf '%s\n' \
+            'import sys' \
+            'sys.path.insert(0, sys.argv[1])' \
+            'import pytest' \
+            'raise SystemExit(pytest.main(sys.argv[2:]))' \
+            > "${RUNNER_TEMP}/run_gitleaks_tests.py"
+          cd "${RUNNER_TEMP}"
+          python3 -I "${RUNNER_TEMP}/run_gitleaks_tests.py" \
+            "${RUNNER_TEMP}/gitleaks-pytest" \
+            -o addopts= --noconftest --rootdir="${RUNNER_TEMP}" \
+            "${GITHUB_WORKSPACE}/tests/security" -q

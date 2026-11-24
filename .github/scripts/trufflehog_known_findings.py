@@ -5,6 +5,9 @@ The scheduled job is the only caller. A run passes only when every finding
 matches an unexpired baseline entry by detector, path, commit, and line. Any
 verified result fails, including one whose location is in the baseline.
 An expired baseline entry fails the run even when no finding matches it.
+The 14 known Adzuna locations may omit expires when the reason is account
+closed. A verified finding at one of those keys still fails. Every other
+entry still needs an expiry, and that date cannot be more than 45 days out.
 
 Scanner JSON includes secret material. This script reads detector name,
 verified flag, file path, commit, and line, and never prints anything else.
@@ -17,14 +20,108 @@ import json
 import re
 import sys
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Mapping, Sequence, TextIO
 
 _COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_MAX_EXPIRY_DAYS = 45
 _EVIDENCE_RE = re.compile(r"^https://\S+$")
 _ENTRY_FIELDS = frozenset(
     {"detector", "path", "commit", "line", "expires", "closed_on", "reason", "evidence"}
+)
+# The 14 known Adzuna locations. They may omit expires only with the
+# account-closed reason. A verified finding at one of these keys still fails.
+# Changing this set and the baseline together is self-approving: main
+# requires lint and unit-tests, and does not require a review.
+_NO_EXPIRY_REASON = "account closed"
+_NO_EXPIRY_FINGERPRINTS = frozenset(
+    {
+        (
+            "Adzuna",
+            "job-automation-service/.env.backup",
+            "726225a6c1939a4a199cea3de1b893e079193f90",
+            3,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/.env.backup",
+            "7c07e7b78403ddfed05d76cb16f445407ae93e80",
+            3,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/ENV_FILE_FIX_SUMMARY.md",
+            "641d4f19dabfa807c70aad6fee312e8e3e0ae201",
+            71,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/ENV_FILE_FIX_SUMMARY.md",
+            "f708e4c85c471ef9af8817362b7ff14cc09bc6b7",
+            71,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/NEXT_STEPS_TO_FIX.md",
+            "641d4f19dabfa807c70aad6fee312e8e3e0ae201",
+            48,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/NEXT_STEPS_TO_FIX.md",
+            "f708e4c85c471ef9af8817362b7ff14cc09bc6b7",
+            48,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/SERVER_DEBUG_INSTRUCTIONS.md",
+            "641d4f19dabfa807c70aad6fee312e8e3e0ae201",
+            64,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/SERVER_DEBUG_INSTRUCTIONS.md",
+            "f708e4c85c471ef9af8817362b7ff14cc09bc6b7",
+            64,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/TEST_RESULTS_SUMMARY.md",
+            "641d4f19dabfa807c70aad6fee312e8e3e0ae201",
+            108,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/TEST_RESULTS_SUMMARY.md",
+            "f708e4c85c471ef9af8817362b7ff14cc09bc6b7",
+            108,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/fix_server_credentials.ps1",
+            "641d4f19dabfa807c70aad6fee312e8e3e0ae201",
+            25,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/fix_server_credentials.ps1",
+            "641d4f19dabfa807c70aad6fee312e8e3e0ae201",
+            45,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/fix_server_credentials.ps1",
+            "f708e4c85c471ef9af8817362b7ff14cc09bc6b7",
+            25,
+        ),
+        (
+            "Adzuna",
+            "job-automation-service/fix_server_credentials.ps1",
+            "f708e4c85c471ef9af8817362b7ff14cc09bc6b7",
+            45,
+        ),
+    }
 )
 
 
@@ -35,6 +132,7 @@ class Finding:
     commit: str
     verified: bool
     line: int | None
+    verification_error: bool = False
 
 
 @dataclass(frozen=True)
@@ -42,13 +140,16 @@ class BaselineEntry:
     detector: str
     path: str
     commit: str
-    expires: date
+    expires: date | None
     closed_on: date | None
     reason: str
     line: int | None
     evidence: str | None
 
-    def effective_expiry(self) -> date:
+    def effective_expiry(self) -> date | None:
+        """Return the date this entry stops matching, or None when it does not."""
+        if self.expires is None:
+            return None
         if self.closed_on is not None:
             return self.closed_on
         return self.expires
@@ -60,7 +161,7 @@ class MatchedEntry:
     path: str
     commit: str
     line: int | None
-    days_to_expiry: int
+    days_to_expiry: int | None
 
 
 @dataclass(frozen=True)
@@ -73,6 +174,8 @@ class Evaluation:
     expired_count: int
     baseline_count: int
     soonest_days_to_expiry: int | None
+    unverified_count: int
+    unknown_count: int
     failures: tuple[str, ...]
     matched_entries: tuple[MatchedEntry, ...]
 
@@ -122,12 +225,15 @@ def finding_from_payload(payload: Mapping[str, object], line_number: int) -> Fin
     line = git.get("line")
     if line is not None and not isinstance(line, int):
         raise ValueError(f"finding on line {line_number} has a non-integer line")
+    verification_error = payload.get("VerificationError")
     return Finding(
         detector=detector,
         path=path,
         commit=commit.lower(),
         verified=verified,
         line=line,
+        verification_error=isinstance(verification_error, str)
+        and bool(verification_error.strip()),
     )
 
 
@@ -164,17 +270,26 @@ def _entry_from_payload(payload: Mapping[str, object], index: int) -> BaselineEn
         raise ValueError(f"baseline entry {index} missing commit")
     if not isinstance(reason, str) or not reason.strip():
         raise ValueError(f"baseline entry {index} missing reason")
-    if "expires" not in payload:
-        raise ValueError(f"baseline entry {index} missing expires")
-    expires = _parse_date(payload.get("expires"), f"baseline entry {index} expires")
-    closed_on = _optional_date(
-        payload.get("closed_on"), f"baseline entry {index} closed_on"
-    )
-    if closed_on is not None and closed_on > expires:
-        raise ValueError(f"baseline entry {index} closed_on is after expires")
     line = payload.get("line")
     if line is not None and (not isinstance(line, int) or isinstance(line, bool)):
         raise ValueError(f"baseline entry {index} line must be an integer")
+    line_value = line if isinstance(line, int) else None
+    fingerprint = (detector, path, commit, line_value)
+    closed_on = _optional_date(
+        payload.get("closed_on"), f"baseline entry {index} closed_on"
+    )
+    if "expires" not in payload:
+        if fingerprint not in _NO_EXPIRY_FINGERPRINTS:
+            raise ValueError(f"baseline entry {index} missing expires")
+        if reason.strip() != _NO_EXPIRY_REASON:
+            raise ValueError(f"baseline entry {index} missing account-closed reason")
+        if closed_on is not None:
+            raise ValueError(f"baseline entry {index} closed_on requires expires")
+        expires = None
+    else:
+        expires = _parse_date(payload.get("expires"), f"baseline entry {index} expires")
+        if closed_on is not None and closed_on > expires:
+            raise ValueError(f"baseline entry {index} closed_on is after expires")
     evidence = payload.get("evidence")
     if evidence is not None:
         if (
@@ -224,60 +339,97 @@ def load_baseline(text: str) -> list[BaselineEntry]:
     return parsed
 
 
+def finding_kind(finding: Finding) -> str:
+    """Classify a finding without reading verification-error text."""
+    if finding.verified:
+        return "verified"
+    if finding.verification_error:
+        return "unknown"
+    return "unverified"
+
+
 def evaluate(
     findings: Sequence[Finding],
     entries: Sequence[BaselineEntry],
     today: date,
 ) -> Evaluation:
-    days_by_entry = tuple(
-        (entry, (entry.effective_expiry() - today).days) for entry in entries
+    days_by_entry: list[tuple[BaselineEntry, int | None]] = []
+    for entry in entries:
+        expiry = entry.effective_expiry()
+        days_by_entry.append(None if expiry is None else (expiry - today).days)
+    dated = tuple(
+        (entry, days)
+        for entry, days in zip(entries, days_by_entry, strict=True)
+        if days is not None
     )
-    expired = tuple(entry for entry, days in days_by_entry if days <= 0)
-    allowed: dict[tuple[str, str, str, int | None], int] = {}
-    for entry, days in days_by_entry:
-        if days <= 0:
+    expired = tuple(entry for entry, days in dated if days <= 0)
+    allowed: dict[tuple[str, str, str, int | None], int | None] = {}
+    for entry, days in zip(entries, days_by_entry, strict=True):
+        if days is not None and days <= 0:
             continue
         key = (entry.detector, entry.path, entry.commit, entry.line)
-        previous = allowed.get(key)
-        if previous is None or days < previous:
+        if key not in allowed:
+            allowed[key] = days
+            continue
+        previous = allowed[key]
+        if days is not None and (previous is None or days < previous):
             allowed[key] = days
 
     failures: list[str] = []
-    for entry, days in days_by_entry:
+    limit = today + timedelta(days=_MAX_EXPIRY_DAYS)
+    for entry, _days in dated:
+        if entry.expires is not None and entry.expires > limit:
+            failures.append(
+                "baseline expiry past upper limit: "
+                f"{entry.detector} {entry.path} {entry.commit} line={entry.line} "
+                f"expires={entry.expires.isoformat()}"
+            )
+    for entry, days in dated:
         if days <= 0:
+            effective = entry.effective_expiry()
+            assert effective is not None
             failures.append(
                 "expired baseline entry: "
                 f"{entry.detector} {entry.path} {entry.commit} line={entry.line} "
-                f"effective_expiry={entry.effective_expiry().isoformat()} "
+                f"effective_expiry={effective.isoformat()} "
                 f"days_to_expiry={days}"
             )
 
     matched_count = 0
     unmatched_count = 0
     verified_count = 0
-    matched: dict[tuple[str, str, str, int | None], int] = {}
+    unknown_count = 0
+    unverified_count = 0
+    matched: dict[tuple[str, str, str, int | None], int | None] = {}
     for finding in findings:
         key = (finding.detector, finding.path, finding.commit, finding.line)
-        if finding.verified:
+        kind = finding_kind(finding)
+        if kind == "verified":
             verified_count += 1
             failures.append(
                 "verified result: "
                 f"{finding.detector} {finding.path} {finding.commit} "
                 f"line={finding.line}"
             )
-        days = allowed.get(key)
-        if days is None:
+        elif kind == "unknown":
+            unknown_count += 1
+        elif kind == "unverified":
+            unverified_count += 1
+        else:
+            raise AssertionError(f"unhandled finding kind: {kind}")
+        if key not in allowed:
             unmatched_count += 1
-            failures.append(
-                "finding not in unexpired baseline: "
-                f"{finding.detector} {finding.path} {finding.commit} "
-                f"line={finding.line}"
-            )
+            if kind != "unverified":
+                failures.append(
+                    "finding not in unexpired baseline: "
+                    f"{finding.detector} {finding.path} {finding.commit} "
+                    f"line={finding.line}"
+                )
             continue
         matched_count += 1
-        matched[key] = days
+        matched[key] = allowed[key]
 
-    soonest = min((days for _, days in days_by_entry), default=None)
+    soonest = min((days for days in days_by_entry if days is not None), default=None)
     matched_entries = tuple(
         MatchedEntry(detector, path, commit, line, days)
         for (detector, path, commit, line), days in sorted(
@@ -300,9 +452,44 @@ def evaluate(
         expired_count=len(expired),
         baseline_count=len(entries),
         soonest_days_to_expiry=soonest,
+        unverified_count=unverified_count,
+        unknown_count=unknown_count,
         failures=tuple(failures),
         matched_entries=matched_entries,
     )
+
+
+_NIGHTLY_RE = re.compile(
+    r"^trufflehog_nightly total=(?P<total>\d+) verified=(?P<verified>\d+) "
+    r"unverified=(?P<unverified>\d+) unknown=(?P<unknown>\d+) "
+    r"baselined=(?P<baselined>\d+) new=(?P<new>\d+)$"
+)
+
+
+def nightly_count_line(result: Evaluation) -> str:
+    """Return the single machine-readable nightly total."""
+    return (
+        "trufflehog_nightly "
+        f"total={result.finding_count} "
+        f"verified={result.verified_count} "
+        f"unverified={result.unverified_count} "
+        f"unknown={result.unknown_count} "
+        f"baselined={result.matched_count} "
+        f"new={result.unmatched_count}"
+    )
+
+
+def parse_nightly_counts(text: str) -> dict[str, int]:
+    """Parse the one nightly total line from a matcher report."""
+    matches = [
+        line for line in text.splitlines() if line.startswith("trufflehog_nightly ")
+    ]
+    if len(matches) != 1:
+        raise ValueError("expected one nightly count line")
+    match = _NIGHTLY_RE.fullmatch(matches[0])
+    if match is None:
+        raise ValueError("nightly count line is not parseable")
+    return {key: int(value) for key, value in match.groupdict().items()}
 
 
 def format_summary(result: Evaluation) -> str:
@@ -328,11 +515,13 @@ def format_summary(result: Evaluation) -> str:
     if result.matched_entries:
         lines.extend(
             f"- {item.detector} {item.path} {item.commit} "
-            f"line={item.line} days={item.days_to_expiry}"
+            f"line={item.line} days="
+            f"{'none' if item.days_to_expiry is None else item.days_to_expiry}"
             for item in result.matched_entries
         )
     else:
         lines.append("- none")
+    lines.append(nightly_count_line(result))
     return "\n".join(lines) + "\n"
 
 

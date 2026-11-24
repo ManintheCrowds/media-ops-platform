@@ -1,3 +1,5 @@
 [submodule "plans"]
 	path = plans
 	url = https://github.com/ManintheCrowds/Planswithinplans.git
+# reference/CL4R1T4S must never be created. An unregistered gitlink at that
+# path makes actions/checkout fail while it removes credentials.
