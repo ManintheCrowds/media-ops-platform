@@ -299,6 +299,19 @@ def _run_in_mount_namespace(script: str, cwd: Path) -> subprocess.CompletedProce
     return completed
 
 
+def test_baseline_only_change_still_runs_unit_tests() -> None:
+    text = (
+        _WORKFLOW.parents[2] / ".github" / "workflows" / "tests.yml"
+    ).read_text(encoding="utf-8")
+    active = _uncommented(text)
+    matched = [
+        line
+        for line in active.splitlines()
+        if "grep -Eq" in line and "code_changed" not in line
+    ]
+    assert any("trufflehog-known-findings\\.json" in line for line in matched)
+
+
 def test_trusted_python_is_isolated_from_the_checkout() -> None:
     text = _WORKFLOW.read_text(encoding="utf-8")
     gate, tests = text.split("  gitleaks-tests:", 1)
