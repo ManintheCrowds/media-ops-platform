@@ -721,6 +721,7 @@ def prescan_opaque_files(
                     str(parent),
                     "--config",
                     str(config),
+                    "--ignore-gitleaks-allow",
                     "--redact",
                     "--no-banner",
                     "--report-format",

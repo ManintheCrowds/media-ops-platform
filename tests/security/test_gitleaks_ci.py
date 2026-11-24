@@ -213,6 +213,31 @@ def test_pull_request_config_change_still_fails(tmp_path: Path) -> None:
     assert code == 1
 
 
+@pytest.mark.parametrize(
+    ("name", "payload"),
+    [
+        ("wide.txt", None),
+        ("logo.png", b"\x89PNG\r\n\x1a\n"),
+    ],
+)
+def test_prescan_ignores_gitleaks_allow(
+    tmp_path: Path, name: str, payload: bytes | None
+) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    line = f'key = "{token}" # gitleaks:allow\n'
+    if payload is None:
+        (repo / name).write_bytes(line.encode("utf-16"))
+    else:
+        (repo / name).write_bytes(payload + line.encode("utf-8"))
+    _git(repo, "add", name)
+    _git(repo, "commit", "-q", "-m", "allow comment")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
 def test_gitleaks_allow_comment_still_fails(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)
