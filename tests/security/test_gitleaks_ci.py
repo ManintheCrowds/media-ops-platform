@@ -1033,8 +1033,8 @@ def test_unreadable_zip_member_fails(tmp_path: Path) -> None:
     _init_repo(repo)
     token = _runtime_token()
     payload = io.BytesIO()
-    with zipfile.ZipFile(payload, "w") as archive:
-        archive.writestr("secret.txt", f'key = "{token}"\n')
+    with zipfile.ZipFile(payload, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("secret.txt", _padded_secret(token))
     raw = bytearray(payload.getvalue())
     raw[8:10] = (99).to_bytes(2, "little")
     central = raw.find(b"PK\x01\x02")
