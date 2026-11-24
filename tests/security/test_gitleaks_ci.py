@@ -631,14 +631,11 @@ def test_unreadable_listed_path_fails_closed(
     _git(repo, "add", "wide.txt")
     _git(repo, "commit", "-q", "-m", "wide")
     head = _head(repo)
-    real_show = gitleaks_ci.git_show_bytes
+    def hide_blob(repo_path: Path, blob_sha: str) -> bytes | None:
+        del repo_path, blob_sha
+        return None
 
-    def hide_wide(repo_path: Path, sha: str, path: str) -> bytes | None:
-        if path == "wide.txt":
-            return None
-        return real_show(repo_path, sha, path)
-
-    monkeypatch.setattr(gitleaks_ci, "git_show_bytes", hide_wide)
+    monkeypatch.setattr(gitleaks_ci, "git_cat_blob", hide_blob)
     with pytest.raises(gitleaks_ci.ScanError) as caught:
         gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks())
     assert caught.value.code == 2
