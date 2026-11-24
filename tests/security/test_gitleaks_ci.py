@@ -13,6 +13,7 @@ import random
 import subprocess
 import sys
 import tarfile
+import time
 import zipfile
 from pathlib import Path
 
@@ -940,6 +941,32 @@ def _expect_prescan_exit_one(repo: Path, base: str, head: str) -> None:
     with pytest.raises(gitleaks_ci.ScanError) as caught:
         gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks())
     assert caught.value.code == 1
+
+
+def test_nested_zips_share_one_byte_cap(tmp_path: Path) -> None:
+    """32 inner zips of 4 MiB must fail before unpacking all 128 MiB."""
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    chunk = b"\x00" * (1024 * 1024)
+    line = f'\nkey = "{token}"\n'.encode()
+    last = chunk[: -len(line)] + line
+    inners: list[bytes] = []
+    for index in range(32):
+        raw = io.BytesIO()
+        with zipfile.ZipFile(raw, "w", compression=zipfile.ZIP_DEFLATED) as inner:
+            for part in range(4):
+                body = last if index == 31 and part == 3 else chunk
+                inner.writestr(f"part{part}.bin", body)
+        inners.append(raw.getvalue())
+    outer = io.BytesIO()
+    with zipfile.ZipFile(outer, "w", compression=zipfile.ZIP_STORED) as archive:
+        for index, payload in enumerate(inners):
+            archive.writestr(f"inner{index}.zip", payload)
+    started = time.monotonic()
+    base, head = _commit_bytes(repo, "data.bin", outer.getvalue())
+    _expect_prescan_exit_one(repo, base, head)
+    assert time.monotonic() - started < 45
 
 
 def test_zip_member_past_the_count_cap_fails(tmp_path: Path) -> None:

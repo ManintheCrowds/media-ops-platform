@@ -748,10 +748,28 @@ def _blobs_in_range(repo: Path, base: str, head: str) -> list[tuple[str, str]]:
     return pairs
 
 
-def _read_zip_members(archive: zipfile.ZipFile) -> list[bytes]:
-    """Read one zip. Caps and an unreadable member fail the scan."""
+class _UnpackBudget:
+    """Bytes unpacked from one blob, including nested containers."""
+
+    def __init__(self) -> None:
+        self.total = 0
+
+    def charge(self, size: int) -> None:
+        """Count ``size`` bytes, or fail when this blob is already at the cap."""
+        if size > _ZIP_MEMBER_BYTES or self.total >= _ZIP_TOTAL_BYTES:
+            raise ScanError("prescan failed", 1)
+        if self.total + size > _ZIP_TOTAL_BYTES:
+            raise ScanError("prescan failed", 1)
+        self.total += size
+
+
+def _read_zip_members(archive: zipfile.ZipFile, budget: _UnpackBudget) -> list[bytes]:
+    """Read one zip. Caps and an unreadable member fail the scan.
+
+    The byte cap is the budget for the whole blob, so a nested zip does not
+    start over at zero.
+    """
     members: list[bytes] = []
-    total = 0
     seen = 0
     for info in archive.infolist():
         if info.is_dir():
@@ -759,16 +777,14 @@ def _read_zip_members(archive: zipfile.ZipFile) -> list[bytes]:
         seen += 1
         if seen > _ZIP_MEMBER_CAP:
             raise ScanError("prescan failed", 1)
-        if info.file_size > _ZIP_MEMBER_BYTES or total >= _ZIP_TOTAL_BYTES:
+        if info.file_size > _ZIP_MEMBER_BYTES or budget.total >= _ZIP_TOTAL_BYTES:
             raise ScanError("prescan failed", 1)
         try:
             with archive.open(info, "r") as handle:
                 data = handle.read(_ZIP_MEMBER_BYTES + 1)
         except (zipfile.BadZipFile, RuntimeError, OSError) as exc:
             raise ScanError("prescan failed", 1) from exc
-        if len(data) > _ZIP_MEMBER_BYTES or total + len(data) > _ZIP_TOTAL_BYTES:
-            raise ScanError("prescan failed", 1)
-        total += len(data)
+        budget.charge(len(data))
         members.append(data)
     return members
 
@@ -785,41 +801,43 @@ def _open_zip(blob: bytes) -> zipfile.ZipFile | None:
         return None
 
 
-def _read_capped(blob: bytes, opener: type) -> bytes:
-    """Read one compressed stream, stopping at the per-member cap."""
+def _read_capped(blob: bytes, opener: type, budget: _UnpackBudget) -> bytes:
+    """Read one compressed stream, stopping at the per-member and blob caps."""
+    if budget.total >= _ZIP_TOTAL_BYTES:
+        raise ScanError("prescan failed", 1)
     try:
         with opener(io.BytesIO(blob)) as handle:
             data = handle.read(_ZIP_MEMBER_BYTES + 1)
     except (OSError, EOFError, lzma.LZMAError) as exc:
         raise ScanError("prescan failed", 1) from exc
-    if len(data) > _ZIP_MEMBER_BYTES:
-        raise ScanError("prescan failed", 1)
+    budget.charge(len(data))
     return data
 
 
-def _read_xz(blob: bytes) -> bytes:
+def _read_xz(blob: bytes, budget: _UnpackBudget) -> bytes:
     """Decompress one xz stream."""
-    return _read_capped(blob, lzma.LZMAFile)
+    return _read_capped(blob, lzma.LZMAFile, budget)
 
 
-def _read_bz2(blob: bytes) -> bytes:
+def _read_bz2(blob: bytes, budget: _UnpackBudget) -> bytes:
     """Decompress one bzip2 stream."""
-    return _read_capped(blob, bz2.BZ2File)
+    return _read_capped(blob, bz2.BZ2File, budget)
 
 
-def _read_gzip(blob: bytes) -> bytes:
+def _read_gzip(blob: bytes, budget: _UnpackBudget) -> bytes:
     """Decompress one gzip member. A short or unreadable stream fails the scan."""
+    if budget.total >= _ZIP_TOTAL_BYTES:
+        raise ScanError("prescan failed", 1)
     try:
         with gzip.GzipFile(fileobj=io.BytesIO(blob)) as handle:
             data = handle.read(_ZIP_MEMBER_BYTES + 1)
     except (OSError, EOFError, gzip.BadGzipFile, zlib.error) as exc:
         raise ScanError("prescan failed", 1) from exc
-    if len(data) > _ZIP_MEMBER_BYTES:
-        raise ScanError("prescan failed", 1)
+    budget.charge(len(data))
     return data
 
 
-def _container_payloads(blob: bytes, depth: int) -> list[bytes]:
+def _container_payloads(blob: bytes, depth: int, budget: _UnpackBudget) -> list[bytes]:
     """Unpack zip, gzip, xz, and bzip2 payloads down to a fixed depth.
 
     ``depth`` is how many containers have already been opened. A container
@@ -832,26 +850,26 @@ def _container_payloads(blob: bytes, depth: int) -> list[bytes]:
             archive.close()
         raise ScanError("prescan failed", 1)
     if depth >= _ARCHIVE_DEPTH:
-        if _gzip_after_prefix(blob) is not None:
+        if _gzip_after_prefix(blob, budget) is not None:
             raise ScanError("prescan failed", 1)
         return []
     payloads: list[bytes] = []
     if archive is not None:
         try:
-            for member in _read_zip_members(archive):
+            for member in _read_zip_members(archive, budget):
                 payloads.append(member)
-                payloads.extend(_container_payloads(member, depth + 1))
+                payloads.extend(_container_payloads(member, depth + 1, budget))
         finally:
             archive.close()
     if stream is not None:
-        data = stream(blob)
+        data = stream(blob, budget)
         payloads.append(data)
-        payloads.extend(_container_payloads(data, depth + 1))
+        payloads.extend(_container_payloads(data, depth + 1, budget))
     else:
-        shifted = _gzip_after_prefix(blob)
+        shifted = _gzip_after_prefix(blob, budget)
         if shifted is not None:
             payloads.append(shifted)
-            payloads.extend(_container_payloads(shifted, depth + 1))
+            payloads.extend(_container_payloads(shifted, depth + 1, budget))
     return payloads
 
 
@@ -866,7 +884,7 @@ def _stream_reader(blob: bytes):
     return None
 
 
-def _gzip_after_prefix(blob: bytes) -> bytes | None:
+def _gzip_after_prefix(blob: bytes, budget: _UnpackBudget) -> bytes | None:
     """Decompress gzip at its first header when that header is not byte 0.
 
     A byte sequence that is not a readable gzip stream is left alone. A
@@ -876,7 +894,7 @@ def _gzip_after_prefix(blob: bytes) -> bytes | None:
     if offset <= 0:
         return None
     try:
-        return _read_gzip(blob[offset:])
+        return _read_gzip(blob[offset:], budget)
     except ScanError:
         return None
 
@@ -927,7 +945,7 @@ def prescan_opaque_files(
             blob = git_cat_blob(repo, blob_sha)
             if blob is None:
                 raise ScanError("prescan failed", 2)
-            members = _container_payloads(blob, 0)
+            members = _container_payloads(blob, 0, _UnpackBudget())
             if not _opaque(path, blob, allow_paths) and not members:
                 continue
             texts = [_decode_opaque(blob)]
