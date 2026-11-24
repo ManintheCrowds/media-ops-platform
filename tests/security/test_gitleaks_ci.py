@@ -1064,6 +1064,35 @@ def test_xz_and_bzip2_streams_are_unpacked(tmp_path: Path, name: str, wrap) -> N
     _expect_both_paths(repo, base, head)
 
 
+def _expect_both_paths_fail(repo: Path, base: str, head: str) -> None:
+    for scan in (
+        gitleaks_ci.run_pull_request_scan,
+        gitleaks_ci.run_push_scan,
+    ):
+        with pytest.raises(gitleaks_ci.ScanError) as caught:
+            scan(repo, base, head, _gitleaks())
+        assert caught.value.code == 1
+
+
+def test_zip_with_trailing_junk_fails(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    payload = _zip_with_token(token, zipfile.ZIP_DEFLATED) + (b"\x00" * (70 * 1024))
+    base, head = _commit_bytes(repo, "data.bin", payload)
+    _expect_both_paths_fail(repo, base, head)
+
+
+def test_zip_without_a_central_directory_fails(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    raw = _zip_with_token(token, zipfile.ZIP_DEFLATED)
+    payload = raw[: raw.find(b"PK\x01\x02")]
+    base, head = _commit_bytes(repo, "data.bin", payload)
+    _expect_both_paths_fail(repo, base, head)
+
+
 def test_gzip_member_is_unpacked(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)

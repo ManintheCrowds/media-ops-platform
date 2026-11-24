@@ -778,7 +778,9 @@ def _open_zip(blob: bytes) -> zipfile.ZipFile | None:
         return None
     try:
         return zipfile.ZipFile(io.BytesIO(blob))
-    except zipfile.BadZipFile:
+    except zipfile.BadZipFile as exc:
+        if blob.startswith(b"PK\x03\x04"):
+            raise ScanError("prescan failed", 1) from exc
         return None
 
 
