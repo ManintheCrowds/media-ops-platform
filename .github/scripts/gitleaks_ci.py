@@ -656,7 +656,8 @@ def _blobs_in_range(repo: Path, base: str, head: str) -> list[tuple[str, str]]:
 
     ``git log --format=`` drops the commit id, so the format is ``%H``.
     ``--diff-merges=first-parent`` lists files that exist only in a merge.
-    The other flags are ``--name-only --diff-filter=AMR -z``.
+    The other flags are ``--name-only --diff-filter=AMRT -z``. A type
+    change (symlink to file) is included.
     """
     listed = subprocess.run(
         [
@@ -667,7 +668,7 @@ def _blobs_in_range(repo: Path, base: str, head: str) -> list[tuple[str, str]]:
             "--reverse",
             "--format=%H",
             "--name-only",
-            "--diff-filter=AMR",
+            "--diff-filter=AMRT",
             "--diff-merges=first-parent",
             "-z",
             f"{base}..{head}",

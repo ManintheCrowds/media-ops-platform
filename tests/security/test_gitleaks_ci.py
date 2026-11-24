@@ -679,6 +679,41 @@ def test_merge_only_utf16_file_is_scanned(tmp_path: Path) -> None:
     assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
 
 
+def test_symlink_replaced_by_utf16_file_is_scanned(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    (repo / "README").write_text("readme\n", encoding="utf-8")
+    (repo / "app.py").symlink_to("README")
+    _git(repo, "add", "README", "app.py")
+    _git(repo, "commit", "-q", "-m", "symlink")
+    base = _head(repo)
+    (repo / "app.py").unlink()
+    token = _runtime_token()
+    (repo / "app.py").write_bytes(f'key = "{token}"\n'.encode("utf-16"))
+    _git(repo, "add", "app.py")
+    _git(repo, "commit", "-q", "-m", "replace symlink")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+def test_renamed_and_edited_utf16_file_is_scanned(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    token = _runtime_token()
+    (repo / "plain.txt").write_bytes(f'key = "{token}"\n'.encode("utf-16"))
+    _git(repo, "add", "plain.txt")
+    _git(repo, "commit", "-q", "-m", "add wide")
+    base = _head(repo)
+    _git(repo, "mv", "plain.txt", "nested.txt")
+    (repo / "nested.txt").write_bytes(
+        f'key = "{token}"\nnote=1\n'.encode("utf-16")
+    )
+    _git(repo, "add", "nested.txt")
+    _git(repo, "commit", "-q", "-m", "rename and edit")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
 def test_renamed_utf16_secret_deleted_later_is_scanned(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)
