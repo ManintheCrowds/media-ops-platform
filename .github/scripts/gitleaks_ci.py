@@ -103,6 +103,18 @@ def commit_count(repo: Path, revision_range: str) -> int:
     return int(listed.stdout.strip() or "0")
 
 
+def git_cat_blob(repo: Path, blob_sha: str) -> bytes | None:
+    """Return a blob by its own id. Paths are never passed to git show."""
+    shown = subprocess.run(
+        ["git", "-C", str(repo), "cat-file", "blob", blob_sha],
+        check=False,
+        capture_output=True,
+    )
+    if shown.returncode != 0:
+        return None
+    return shown.stdout
+
+
 def git_show_bytes(repo: Path, sha: str, path: str) -> bytes | None:
     """Return a blob from sha, or None when that path is absent."""
     shown = subprocess.run(
@@ -651,47 +663,91 @@ def _decode_opaque(blob: bytes) -> str:
     return "\n".join(decoded)
 
 
-def _blobs_in_range(repo: Path, base: str, head: str) -> list[tuple[str, str]]:
-    """Return ``(commit, path)`` for every added, modified, or renamed blob.
+def _parse_diff_tree(raw: bytes) -> list[tuple[str, str]]:
+    """Return ``(blob_sha, path)`` from ``git diff-tree -z --raw``.
 
-    ``git log --format=`` drops the commit id, so the format is ``%H``.
-    ``--diff-merges=first-parent`` lists files that exist only in a merge.
-    The other flags are ``--name-only --diff-filter=AMRT -z``. A type
-    change (symlink to file) is included.
+    A path is whatever follows the header, including a 40-hex name or a
+    name that itself starts with ``:``. Anything that is not a raw header
+    fails the scan.
+    """
+    parts = raw.split(b"\x00")
+    if parts and parts[-1] == b"":
+        parts.pop()
+    blobs: list[tuple[str, str]] = []
+    index = 0
+    while index < len(parts):
+        header = parts[index]
+        index += 1
+        try:
+            text = header.decode("ascii")
+        except UnicodeError as exc:
+            raise ScanError("prescan failed", 1) from exc
+        fields = text.split(" ")
+        if len(fields) != 5 or not fields[0].startswith(":"):
+            raise ScanError("prescan failed", 1)
+        _old_mode, _new_mode, old_sha, new_sha, status = fields
+        if len(old_sha) != 40 or len(new_sha) != 40:
+            raise ScanError("prescan failed", 1)
+        hex_digits = set("0123456789abcdef")
+        if set(old_sha) > hex_digits or set(new_sha) > hex_digits:
+            raise ScanError("prescan failed", 1)
+        kind = status[:1]
+        if kind not in "AMTRC" or (len(status) > 1 and not status[1:].isdigit()):
+            raise ScanError("prescan failed", 1)
+        if index >= len(parts):
+            raise ScanError("prescan failed", 1)
+        path = parts[index]
+        index += 1
+        if kind in "RC":
+            if index >= len(parts):
+                raise ScanError("prescan failed", 1)
+            path = parts[index]
+            index += 1
+        if not path:
+            raise ScanError("prescan failed", 1)
+        blobs.append((new_sha, path.decode("utf-8", "surrogateescape")))
+    return blobs
+
+
+def _blobs_in_range(repo: Path, base: str, head: str) -> list[tuple[str, str]]:
+    """Return ``(blob_sha, path)`` for added, modified, renamed, and type changes.
+
+    Each commit is listed with ``git rev-list`` and then
+    ``git diff-tree -r -z -m --first-parent -M --raw --diff-filter=AMRT``.
+    Paths are never guessed from a 40-hex string.
     """
     listed = subprocess.run(
-        [
-            "git",
-            "-C",
-            str(repo),
-            "log",
-            "--reverse",
-            "--format=%H",
-            "--name-only",
-            "--diff-filter=AMRT",
-            "--diff-merges=first-parent",
-            "-z",
-            f"{base}..{head}",
-        ],
+        ["git", "-C", str(repo), "rev-list", "--reverse", f"{base}..{head}"],
         check=False,
         capture_output=True,
+        text=True,
     )
     if listed.returncode != 0:
         raise ScanError("missing revision", 2)
     pairs: list[tuple[str, str]] = []
-    commit: str | None = None
-    for part in listed.stdout.split(b"\x00"):
-        if part.startswith(b"\n"):
-            part = part[1:]
-        if not part:
-            continue
-        text = part.decode("utf-8", "surrogateescape")
-        if len(text) == 40 and set(text) <= set("0123456789abcdef"):
-            commit = text
-            continue
-        if commit is None:
+    for commit in listed.stdout.split():
+        shown = subprocess.run(
+            [
+                "git",
+                "-C",
+                str(repo),
+                "diff-tree",
+                "-r",
+                "-z",
+                "-m",
+                "--first-parent",
+                "-M",
+                "--raw",
+                "--diff-filter=AMRT",
+                "--no-commit-id",
+                commit,
+            ],
+            check=False,
+            capture_output=True,
+        )
+        if shown.returncode != 0:
             raise ScanError("prescan failed", 2)
-        pairs.append((commit, text))
+        pairs.extend(_parse_diff_tree(shown.stdout))
     return pairs
 
 
@@ -703,8 +759,8 @@ def prescan_opaque_files(
     allow_paths = _configured_allow_paths(config)
     parent = Path(tempfile.mkdtemp(prefix="gitleaks-opaque-"))
     try:
-        for commit, path in blobs:
-            blob = git_show_bytes(repo, commit, path)
+        for blob_sha, path in blobs:
+            blob = git_cat_blob(repo, blob_sha)
             if blob is None:
                 raise ScanError("prescan failed", 2)
             if not _opaque(path, blob, allow_paths):

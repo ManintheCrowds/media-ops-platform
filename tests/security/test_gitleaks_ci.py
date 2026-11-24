@@ -679,6 +679,61 @@ def test_merge_only_utf16_file_is_scanned(tmp_path: Path) -> None:
     assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
 
 
+def test_unparseable_diff_tree_record_fails() -> None:
+    with pytest.raises(gitleaks_ci.ScanError) as caught:
+        gitleaks_ci._parse_diff_tree(b"not a raw record\x00")
+    assert caught.value.code == 1
+
+
+def test_root_file_named_like_a_commit_is_scanned(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    name = "0123456789abcdef0123456789abcdef01234567"
+    (repo / name).write_bytes(f'key = "{token}"\n'.encode("utf-16"))
+    (repo / "later.txt").write_text("later\n", encoding="utf-8")
+    _git(repo, "add", "--", name, "later.txt")
+    _git(repo, "commit", "-q", "-m", "hex name")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+    assert gitleaks_ci.run_push_scan(repo, base, head, _gitleaks()) == 1
+
+
+def test_rename_onto_a_commit_named_file_is_scanned(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    _commit_file(repo, "a.txt", "ok\n", "base")
+    base = _head(repo)
+    token = _runtime_token()
+    name = "fedcba9876543210fedcba9876543210fedcba98"
+    _git(repo, "mv", "a.txt", name)
+    (repo / name).write_bytes(f'key = "{token}"\n'.encode("utf-16"))
+    _git(repo, "add", "--", name)
+    _git(repo, "commit", "-q", "-m", "rename to hex")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+def test_path_that_looks_like_a_raw_diff_is_scanned(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    name = ":100644 100644 aaaa bbbb M"
+    (repo / name).write_bytes(f'key = "{token}"\n'.encode("utf-16"))
+    added = subprocess.run(
+        ["git", "--literal-pathspecs", "-C", str(repo), "add", "--", name],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert added.returncode == 0, added.stderr
+    _git(repo, "commit", "-q", "-m", "colon path")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
 def test_symlink_replaced_by_utf16_file_is_scanned(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)
