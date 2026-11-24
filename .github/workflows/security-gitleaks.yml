@@ -58,14 +58,10 @@ jobs:
             echo "missing revision" >&2
             exit 2
           fi
-          git show "${GATE_SHA}:.gitleaks.toml" > "${RUNNER_TEMP}/scan/.gitleaks.toml"
           if git cat-file -e "${GATE_SHA}:.gitleaksignore" 2>/dev/null; then
             git show "${GATE_SHA}:.gitleaksignore" > "${RUNNER_TEMP}/scan/.gitleaksignore"
           else
             : > "${RUNNER_TEMP}/scan/.gitleaksignore"
-          fi
-          if git cat-file -e "${GATE_SHA}:.github/trufflehog-known-findings.json" 2>/dev/null; then
-            git show "${GATE_SHA}:.github/trufflehog-known-findings.json" > "${RUNNER_TEMP}/scan/trufflehog-known-findings.json"
           fi
 
       - name: Run gitleaks

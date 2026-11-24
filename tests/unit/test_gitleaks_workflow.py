@@ -25,9 +25,9 @@ _WORKFLOW = (
 def test_pull_request_gate_is_materialized_from_the_base() -> None:
     text = _WORKFLOW.read_text(encoding="utf-8")
     assert 'git show "${GATE_SHA}:.github/scripts/gitleaks_ci.py"' in text
-    assert 'git show "${GATE_SHA}:.gitleaks.toml"' in text
+    assert 'git show "${GATE_SHA}:.gitleaks.toml"' not in text
     assert 'git show "${GATE_SHA}:.gitleaksignore"' in text
-    assert 'git show "${GATE_SHA}:.github/trufflehog-known-findings.json"' in text
+    assert 'git show "${GATE_SHA}:.github/trufflehog-known-findings.json"' not in text
     assert "${RUNNER_TEMP}/scan/gitleaks_ci.py" in text
     assert "bootstrap: base has no scan script" in text
     assert "python3 .github/scripts/gitleaks_ci.py" not in text
@@ -87,8 +87,8 @@ def test_find_and_loop_step_cannot_be_skipped() -> None:
     ).read_text(encoding="utf-8")
     loop = script.split("def prescan_opaque_files", 1)[1].split("\ndef ", 1)[0]
     assert '"-z"' in script
-    assert "--diff-filter=AMR" in script
-    assert "for commit, path in blobs:" in loop
+    assert "--diff-filter=AMRT" in script
+    assert "for blob_sha, path in blobs:" in loop
     assert "|| true" not in loop
 
 
