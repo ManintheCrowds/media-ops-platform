@@ -945,14 +945,21 @@ def prescan_opaque_files(
             blob = git_cat_blob(repo, blob_sha)
             if blob is None:
                 raise ScanError("prescan failed", 2)
-            members = _container_payloads(blob, 0, _UnpackBudget())
-            if not _opaque(path, blob, allow_paths) and not members:
+            failed: ScanError | None = None
+            try:
+                members = _container_payloads(blob, 0, _UnpackBudget())
+            except ScanError as exc:
+                failed = exc
+                members = []
+            if not _opaque(path, blob, allow_paths) and not members and failed is None:
                 continue
             texts = [_decode_opaque(blob)]
             texts.extend(_decode_opaque(member) for member in members)
             for text in texts:
                 if text and _scan_sample(parent, gitleaks, config, text) != 0:
                     return 1
+            if failed is not None:
+                raise failed
         return 0
     finally:
         shutil.rmtree(parent, ignore_errors=True)
