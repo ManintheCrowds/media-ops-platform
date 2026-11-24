@@ -89,7 +89,7 @@ class MatchedEntry:
     path: str
     commit: str
     line: int | None
-    days_to_expiry: int
+    days_to_expiry: int | None
 
 
 @dataclass(frozen=True)
@@ -291,15 +291,17 @@ def evaluate(
         if days is not None
     )
     expired = tuple(entry for entry, days in dated if days <= 0)
-    allowed: dict[tuple[str, str, str, int | None], int] = {}
+    allowed: dict[tuple[str, str, str, int | None], int | None] = {}
     for entry, days in zip(entries, days_by_entry, strict=True):
         if days is not None and days <= 0:
             continue
         key = (entry.detector, entry.path, entry.commit, entry.line)
-        previous = allowed.get(key)
-        remaining = days if days is not None else _MAX_EXPIRY_DAYS + 1
-        if previous is None or remaining < previous:
-            allowed[key] = remaining
+        if key not in allowed:
+            allowed[key] = days
+            continue
+        previous = allowed[key]
+        if days is not None and (previous is None or days < previous):
+            allowed[key] = days
 
     failures: list[str] = []
     limit = today + timedelta(days=_MAX_EXPIRY_DAYS)
@@ -326,7 +328,7 @@ def evaluate(
     verified_count = 0
     unknown_count = 0
     unverified_count = 0
-    matched: dict[tuple[str, str, str, int | None], int] = {}
+    matched: dict[tuple[str, str, str, int | None], int | None] = {}
     for finding in findings:
         key = (finding.detector, finding.path, finding.commit, finding.line)
         kind = finding_kind(finding)
@@ -343,8 +345,7 @@ def evaluate(
             unverified_count += 1
         else:
             raise AssertionError(f"unhandled finding kind: {kind}")
-        days = allowed.get(key)
-        if days is None:
+        if key not in allowed:
             unmatched_count += 1
             if kind != "unverified":
                 failures.append(
@@ -354,7 +355,7 @@ def evaluate(
                 )
             continue
         matched_count += 1
-        matched[key] = days
+        matched[key] = allowed[key]
 
     soonest = min((days for days in days_by_entry if days is not None), default=None)
     matched_entries = tuple(
@@ -442,7 +443,8 @@ def format_summary(result: Evaluation) -> str:
     if result.matched_entries:
         lines.extend(
             f"- {item.detector} {item.path} {item.commit} "
-            f"line={item.line} days={item.days_to_expiry}"
+            f"line={item.line} days="
+            f"{'none' if item.days_to_expiry is None else item.days_to_expiry}"
             for item in result.matched_entries
         )
     else:

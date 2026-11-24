@@ -393,6 +393,22 @@ def test_verified_finding_fails_on_every_no_expiry_entry() -> None:
         assert any("verified result" in item for item in result.failures)
 
 
+def test_no_expiry_match_prints_days_none() -> None:
+    entries = known_findings.load_baseline(_BASELINE.read_text(encoding="utf-8"))
+    entry = entries[0]
+    finding = known_findings.Finding(
+        detector=entry.detector,
+        path=entry.path,
+        commit=entry.commit,
+        verified=False,
+        line=entry.line,
+    )
+    result = known_findings.evaluate([finding], entries, date(2099, 1, 1))
+    summary = known_findings.format_summary(result)
+    assert f"line={entry.line} days=none" in summary
+    assert "days=46" not in summary
+
+
 def test_no_expiry_is_only_the_account_closed_fingerprints() -> None:
     outsider = _entry(path="notes.txt", line=9)
     outsider.pop("expires")
