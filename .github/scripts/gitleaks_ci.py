@@ -21,6 +21,7 @@ import subprocess
 import sys
 import tempfile
 import zipfile
+import zlib
 from pathlib import Path
 
 try:
@@ -811,7 +812,7 @@ def _read_gzip(blob: bytes) -> bytes:
     try:
         with gzip.GzipFile(fileobj=io.BytesIO(blob)) as handle:
             data = handle.read(_ZIP_MEMBER_BYTES + 1)
-    except (OSError, EOFError, gzip.BadGzipFile) as exc:
+    except (OSError, EOFError, gzip.BadGzipFile, zlib.error) as exc:
         raise ScanError("prescan failed", 1) from exc
     if len(data) > _ZIP_MEMBER_BYTES:
         raise ScanError("prescan failed", 1)

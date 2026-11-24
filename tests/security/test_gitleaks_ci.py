@@ -1118,6 +1118,14 @@ def test_gzip_inside_a_zip_member_is_unpacked(tmp_path: Path) -> None:
     _expect_both_paths(repo, base, head)
 
 
+def test_broken_gzip_header_fails_closed(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    payload = b"\x1f\x8b\x08" + (b"\x00" * 20)
+    base, head = _commit_bytes(repo, "data.bin", payload)
+    _expect_prescan_exit_one(repo, base, head)
+
+
 def test_gzip_member_is_unpacked(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)
