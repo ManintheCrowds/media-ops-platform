@@ -523,10 +523,11 @@ def test_bootstrap_is_only_the_known_base(tmp_path: Path) -> None:
         },
     )
     assert "bootstrap: base has no scan script" in accepted.stdout
-    assert accepted.returncode != 0
+    assert accepted.returncode == 0
     assert (allowed / "scan" / "gitleaks_ci.py").read_text(encoding="utf-8") == (
         "print('head-script')\n"
     )
+    assert not (allowed / "scan" / ".gitleaks.toml").exists()
     assert not (other / "scan" / "gitleaks_ci.py").exists()
 
 
