@@ -33,6 +33,8 @@ _ZERO_SHA = "0" * 40
 # The tarball itself is 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb.
 GITLEAKS_SHA256 = "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509"
 # sha256 of the approved .gitleaks.toml. A policy change has to change this pin.
+# Changing the pin and the config in one change is self-approving: main
+# requires lint and unit-tests, and does not require a review.
 APPROVED_CONFIG_SHA256 = "c46800467f8d1f3ec8019bfd0d693bb169b7fbe12ec37ae32f619289961ee6be"
 # sha256 of an empty file. Main has no .gitleaksignore, so only empty is approved.
 APPROVED_IGNORE_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
@@ -278,13 +280,13 @@ def _paths_match_canary(patterns: Sequence[str]) -> bool:
 
 
 def validate_policy_config(config: Path) -> None:
-    """Reject a config that weakens the default pack or widens the allowlist.
+    """Check a few structural fields. The sha256 pin is the authoritative gate.
 
-    ``[extend]`` must set ``useDefault = true`` and nothing else: no
-    ``disabledRules``, and no ``path`` or ``url``. The only global allowlist
-    is the approved path list. Regexes, ``regexTarget``, stopwords, commits,
-    and per-rule allowlists are rejected, including a path pattern that would
-    match a canary's repo-relative path.
+    ``assert_approved_config`` runs first, inside ``assert_policy_canaries``.
+    This walk checks ``useDefault``, a single path allowlist, and some
+    forbidden keys. With the pin absent it still accepts weakened shapes,
+    including disabled rules hidden from this walk, extra allowlists, and
+    path patterns this function does not treat as a canary match.
     """
     try:
         parsed = tomllib.loads(config.read_text(encoding="utf-8"))

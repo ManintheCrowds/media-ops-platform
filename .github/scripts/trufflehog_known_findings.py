@@ -32,6 +32,8 @@ _ENTRY_FIELDS = frozenset(
 )
 # The 14 known Adzuna locations. They may omit expires only with the
 # account-closed reason. A verified finding at one of these keys still fails.
+# Changing this set and the baseline together is self-approving: main
+# requires lint and unit-tests, and does not require a review.
 _NO_EXPIRY_REASON = "account closed"
 _NO_EXPIRY_FINGERPRINTS = frozenset(
     {
