@@ -341,6 +341,49 @@ def test_push_all_zero_before_fails(tmp_path: Path) -> None:
     assert caught.value.code == 2
 
 
+def _commit_tree(repo: Path, parents: list[str], message: str) -> str:
+    tree = subprocess.check_output(
+        ["git", "-C", str(repo), "write-tree"], text=True
+    ).strip()
+    command = ["git", "-C", str(repo), "commit-tree", tree, "-m", message]
+    for parent in parents:
+        command.extend(["-p", parent])
+    return subprocess.check_output(command, text=True).strip()
+
+
+def test_side_first_merge_ignore_does_not_hide_the_leak(tmp_path: Path) -> None:
+    """Parents [leak, ignore]. A non-empty ignore fails closed on push and PR."""
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    _git(repo, "checkout", "-q", "-b", "side")
+    token = _runtime_token()
+    leak_commit = _commit_file(repo, "leak.txt", f'key = "{token}"\n', "leak")
+    _git(repo, "checkout", "-q", base)
+    note = _commit_file(repo, "note.txt", "hello\n", "note")
+    _git(repo, "checkout", "-q", leak_commit)
+    (repo / "note.txt").write_text("hello\n", encoding="utf-8")
+    _git(repo, "add", "note.txt")
+    control = _commit_tree(repo, [leak_commit, note], "control")
+    assert gitleaks_ci.run_push_scan(repo, note, control, _gitleaks()) == 1
+    assert gitleaks_ci.run_pull_request_scan(repo, note, control, _gitleaks()) == 1
+
+    _git(repo, "checkout", "-q", base)
+    fingerprint = f"{leak_commit}:leak.txt:github-pat:1\n"
+    added = _commit_file(repo, ".gitleaksignore", fingerprint, "ignore")
+    _git(repo, "checkout", "-q", leak_commit)
+    (repo / ".gitleaksignore").write_text(fingerprint, encoding="utf-8")
+    _git(repo, "add", ".gitleaksignore")
+    merged = _commit_tree(repo, [leak_commit, added], "side first")
+    for scan in (
+        gitleaks_ci.run_push_scan,
+        gitleaks_ci.run_pull_request_scan,
+    ):
+        with pytest.raises(gitleaks_ci.ScanError) as caught:
+            scan(repo, added, merged, _gitleaks())
+        assert caught.value.code == 2
+
+
 def test_push_unfetchable_before_fails(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     _init_repo(repo)

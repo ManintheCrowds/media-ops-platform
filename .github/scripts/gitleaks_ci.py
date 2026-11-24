@@ -32,6 +32,8 @@ _ZERO_SHA = "0" * 40
 GITLEAKS_SHA256 = "88f91962aa2f93ac6ab281d553b9e125f5197bbbce38f9f2437f7299c32e5509"
 # sha256 of the approved .gitleaks.toml. A policy change has to change this pin.
 APPROVED_CONFIG_SHA256 = "c46800467f8d1f3ec8019bfd0d693bb169b7fbe12ec37ae32f619289961ee6be"
+# sha256 of an empty file. Main has no .gitleaksignore, so only empty is approved.
+APPROVED_IGNORE_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 GITLEAKS_BINARY = Path("/usr/local/bin/gitleaks")
 BOOTSTRAP_SHA = "f3559cbb2677eb72088bec7c56d541f0aa78a41e"
 # Rule count in the gitleaks 8.30.1 default pack.
@@ -375,6 +377,17 @@ def _canary_lines() -> dict[str, str]:
         for relative, value in zip(_CANARY_RELATIVE_PATHS, values, strict=True)
     }
     return lines
+
+
+def assert_approved_ignore(ignore: Path) -> None:
+    """Fail unless the materialized ignore file is empty.
+
+    An ignore line for a commit that is not on the gate revision can hide
+    that commit after a side-first merge. Main ships no ignore file.
+    """
+    digest = hashlib.sha256(ignore.read_bytes()).hexdigest()
+    if digest != APPROVED_IGNORE_SHA256:
+        raise _policy_failure()
 
 
 def assert_approved_config(config: Path) -> None:
@@ -738,6 +751,7 @@ def _scan_range(repo: Path, policy_sha: str, head: str, gitleaks: str) -> int:
     parent = Path(tempfile.mkdtemp(prefix="gitleaks-policy-"))
     try:
         config, ignore = materialize_policy(repo, policy_sha, parent)
+        assert_approved_ignore(ignore)
         assert_policy_canaries(gitleaks, config, repo)
         if prescan_opaque_files(repo, policy_sha, head, gitleaks, config) != 0:
             return 1
