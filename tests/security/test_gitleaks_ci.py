@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import io
 import json
 import random
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -817,6 +819,64 @@ def test_high_byte_padding_is_scanned(tmp_path: Path, name: str) -> None:
     (repo / name).write_bytes(padding + f'key = "{token}"\n'.encode("utf-8"))
     _git(repo, "add", name)
     _git(repo, "commit", "-q", "-m", "padded")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+@pytest.mark.parametrize(
+    ("name", "prefix"),
+    [
+        ("data.bin", b"PK\x03\x04"),
+        ("logo.png", b"PK\x03\x04"),
+        ("note.pdf", b"PK\x03\x04"),
+        ("data.bin", b"\x7fELF"),
+        ("logo.png", b"\x7fELF"),
+        ("note.pdf", b"\x7fELF"),
+        ("data.bin", b"%PDF-1.4\n"),
+        ("logo.png", b"%PDF-1.4\n"),
+        ("note.pdf", b"%PDF-1.4\n"),
+    ],
+)
+def test_token_after_archive_magic_is_scanned(
+    tmp_path: Path, name: str, prefix: bytes
+) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    (repo / name).write_bytes(prefix + f'key = "{token}"\n'.encode("utf-8"))
+    _git(repo, "add", name)
+    _git(repo, "commit", "-q", "-m", "magic plus token")
+    head = _head(repo)
+    assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
+
+
+def _zip_with_token(token: str, compression: int) -> bytes:
+    payload = io.BytesIO()
+    with zipfile.ZipFile(payload, "w", compression=compression) as archive:
+        archive.writestr("secret.txt", f'key = "{token}"\n')
+    return payload.getvalue()
+
+
+@pytest.mark.parametrize(
+    ("name", "compression"),
+    [
+        ("doc.docx", zipfile.ZIP_STORED),
+        ("doc.docx", zipfile.ZIP_DEFLATED),
+        ("book.xlsx", zipfile.ZIP_DEFLATED),
+        ("a.zip", zipfile.ZIP_DEFLATED),
+    ],
+)
+def test_zip_member_token_is_scanned(
+    tmp_path: Path, name: str, compression: int
+) -> None:
+    repo = tmp_path / "repo"
+    _init_repo(repo)
+    base = _commit_file(repo, "readme.txt", "ok\n", "base")
+    token = _runtime_token()
+    (repo / name).write_bytes(_zip_with_token(token, compression))
+    _git(repo, "add", name)
+    _git(repo, "commit", "-q", "-m", "zip member")
     head = _head(repo)
     assert gitleaks_ci.run_pull_request_scan(repo, base, head, _gitleaks()) == 1
 

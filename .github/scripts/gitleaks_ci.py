@@ -9,6 +9,7 @@ ignore file are not the gate.
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import os
 import re
@@ -16,6 +17,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 from pathlib import Path
 
 try:
@@ -38,6 +40,11 @@ GITLEAKS_BINARY = Path("/usr/local/bin/gitleaks")
 BOOTSTRAP_SHA = "f3559cbb2677eb72088bec7c56d541f0aa78a41e"
 # Rule count in the gitleaks 8.30.1 default pack.
 GITLEAKS_DEFAULT_RULES = 222
+# One zip level. Caps stop a blob from expanding without a bound.
+_ZIP_MEMBER_CAP = 32
+_ZIP_MEMBER_BYTES = 1_048_576
+_ZIP_TOTAL_BYTES = 4_194_304
+_SAMPLE_PREFIX = "opaque\n"
 # The only path patterns the gate accepts in a global allowlist.
 APPROVED_ALLOW_PATHS: tuple[str, ...] = (
     r"(?:^|/)poetry\.lock$",
@@ -751,6 +758,71 @@ def _blobs_in_range(repo: Path, base: str, head: str) -> list[tuple[str, str]]:
     return pairs
 
 
+def _zip_member_bytes(blob: bytes) -> list[bytes]:
+    """Return one level of zip members, skipping directories and oversized files."""
+    if not blob.startswith((b"PK\x03\x04", b"PK\x05\x06")):
+        return []
+    try:
+        archive = zipfile.ZipFile(io.BytesIO(blob))
+    except zipfile.BadZipFile:
+        return []
+    members: list[bytes] = []
+    total = 0
+    seen = 0
+    for info in archive.infolist():
+        if info.is_dir():
+            continue
+        seen += 1
+        if seen > _ZIP_MEMBER_CAP:
+            break
+        if info.file_size > _ZIP_MEMBER_BYTES or total >= _ZIP_TOTAL_BYTES:
+            continue
+        try:
+            with archive.open(info, "r") as handle:
+                data = handle.read(_ZIP_MEMBER_BYTES + 1)
+        except (zipfile.BadZipFile, RuntimeError, OSError):
+            continue
+        if len(data) > _ZIP_MEMBER_BYTES or total + len(data) > _ZIP_TOTAL_BYTES:
+            continue
+        total += len(data)
+        members.append(data)
+    return members
+
+
+def _scan_sample(parent: Path, gitleaks: str, config: Path, text: str) -> int:
+    """Scan decoded text. A leading line keeps archive and ELF sniffers off byte 0."""
+    sample = parent / "sample.txt"
+    sample.write_text(_SAMPLE_PREFIX + text, encoding="utf-8")
+    report = parent / "report.json"
+    scanned = subprocess.run(
+        [
+            gitleaks,
+            "detect",
+            "--no-git",
+            "--source",
+            str(parent),
+            "--config",
+            str(config),
+            "--ignore-gitleaks-allow",
+            "--redact",
+            "--no-banner",
+            "--report-format",
+            "json",
+            "--report-path",
+            str(report),
+            "--exit-code",
+            "0",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if scanned.returncode != 0:
+        raise ScanError("prescan failed", 2)
+    findings = json.loads(report.read_text(encoding="utf-8") or "[]")
+    return 1 if findings else 0
+
+
 def prescan_opaque_files(
     repo: Path, base: str, head: str, gitleaks: str, config: Path
 ) -> int:
@@ -763,40 +835,14 @@ def prescan_opaque_files(
             blob = git_cat_blob(repo, blob_sha)
             if blob is None:
                 raise ScanError("prescan failed", 2)
-            if not _opaque(path, blob, allow_paths):
+            members = _zip_member_bytes(blob)
+            if not _opaque(path, blob, allow_paths) and not members:
                 continue
-            text = _decode_opaque(blob)
-            sample = parent / "sample.txt"
-            sample.write_text(text, encoding="utf-8")
-            report = parent / "report.json"
-            scanned = subprocess.run(
-                [
-                    gitleaks,
-                    "detect",
-                    "--no-git",
-                    "--source",
-                    str(parent),
-                    "--config",
-                    str(config),
-                    "--ignore-gitleaks-allow",
-                    "--redact",
-                    "--no-banner",
-                    "--report-format",
-                    "json",
-                    "--report-path",
-                    str(report),
-                    "--exit-code",
-                    "0",
-                ],
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-            if scanned.returncode != 0:
-                raise ScanError("prescan failed", 2)
-            findings = json.loads(report.read_text(encoding="utf-8") or "[]")
-            if findings:
-                return 1
+            texts = [_decode_opaque(blob)]
+            texts.extend(_decode_opaque(member) for member in members)
+            for text in texts:
+                if text and _scan_sample(parent, gitleaks, config, text) != 0:
+                    return 1
         return 0
     finally:
         shutil.rmtree(parent, ignore_errors=True)
