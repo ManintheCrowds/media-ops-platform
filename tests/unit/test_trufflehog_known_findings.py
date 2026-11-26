@@ -300,7 +300,7 @@ def test_checked_in_baseline_shape() -> None:
     assert "redacted" not in text.lower()
     for entry in entries:
         assert entry.detector == "Adzuna"
-        assert entry.expires == date(2026, 11, 23)
+        assert entry.expires == date(2026, 12, 26)
         assert entry.closed_on is None
         assert entry.evidence is None
         assert entry.line is not None
