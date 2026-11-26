@@ -5,7 +5,7 @@
       "path": "job-automation-service/.env.backup",
       "commit": "726225a6c1939a4a199cea3de1b893e079193f90",
       "line": 3,
-      "expires": "2026-11-23",
+      "expires": "2026-12-26",
       "reason": "Publicly exposed credential treated as compromised. Account closure is in progress and the value cannot be rotated. Verification drops HTTP 401 and reports other responses as unknown."
     },
     {
@@ -13,7 +13,7 @@
       "path": "job-automation-service/.env.backup",
       "commit": "7c07e7b78403ddfed05d76cb16f445407ae93e80",
       "line": 3,
-      "expires": "2026-11-23",
+      "expires": "2026-12-26",
       "reason": "Publicly exposed credential treated as compromised. Account closure is in progress and the value cannot be rotated. Verification drops HTTP 401 and reports other responses as unknown."
     },
     {
@@ -21,7 +21,7 @@
       "path": "job-automation-service/ENV_FILE_FIX_SUMMARY.md",
       "commit": "641d4f19dabfa807c70aad6fee312e8e3e0ae201",
       "line": 71,
-      "expires": "2026-11-23",
+      "expires": "2026-12-26",
       "reason": "Publicly exposed credential treated as compromised. Account closure is in progress and the value cannot be rotated. Verification drops HTTP 401 and reports other responses as unknown."
     },
     {
@@ -29,7 +29,7 @@
       "path": "job-automation-service/ENV_FILE_FIX_SUMMARY.md",
       "commit": "f708e4c85c471ef9af8817362b7ff14cc09bc6b7",
       "line": 71,
-      "expires": "2026-11-23",
+      "expires": "2026-12-26",
       "reason": "Publicly exposed credential treated as compromised. Account closure is in progress and the value cannot be rotated. Verification drops HTTP 401 and reports other responses as unknown."
     },
     {
@@ -37,7 +37,7 @@
       "path": "job-automation-service/NEXT_STEPS_TO_FIX.md",
       "commit": "641d4f19dabfa807c70aad6fee312e8e3e0ae201",
       "line": 48,
-      "expires": "2026-11-23",
+      "expires": "2026-12-26",
       "reason": "Publicly exposed credential treated as compromised. Account closure is in progress and the value cannot be rotated. Verification drops HTTP 401 and reports other responses as unknown."
     },
     {
@@ -45,7 +45,7 @@
       "path": "job-automation-service/NEXT_STEPS_TO_FIX.md",
       "commit": "f708e4c85c471ef9af8817362b7ff14cc09bc6b7",
       "line": 48,
-      "expires": "2026-11-23",
+      "expires": "2026-12-26",
       "reason": "Publicly exposed credential treated as compromised. Account closure is in progress and the value cannot be rotated. Verification drops HTTP 401 and reports other responses as unknown."
     },
     {
@@ -53,7 +53,7 @@
       "path": "job-automation-service/SERVER_DEBUG_INSTRUCTIONS.md",
       "commit": "641d4f19dabfa807c70aad6fee312e8e3e0ae201",
       "line": 64,
-      "expires": "2026-11-23",
+      "expires": "2026-12-26",
       "reason": "Publicly exposed credential treated as compromised. Account closure is in progress and the value cannot be rotated. Verification drops HTTP 401 and reports other responses as unknown."
     },
     {
@@ -61,7 +61,7 @@
       "path": "job-automation-service/SERVER_DEBUG_INSTRUCTIONS.md",
       "commit": "f708e4c85c471ef9af8817362b7ff14cc09bc6b7",
       "line": 64,
-      "expires": "2026-11-23",
+      "expires": "2026-12-26",
       "reason": "Publicly exposed credential treated as compromised. Account closure is in progress and the value cannot be rotated. Verification drops HTTP 401 and reports other responses as unknown."
     },
     {
@@ -69,7 +69,7 @@
       "path": "job-automation-service/TEST_RESULTS_SUMMARY.md",
       "commit": "641d4f19dabfa807c70aad6fee312e8e3e0ae201",
       "line": 108,
-      "expires": "2026-11-23",
+      "expires": "2026-12-26",
       "reason": "Publicly exposed credential treated as compromised. Account closure is in progress and the value cannot be rotated. Verification drops HTTP 401 and reports other responses as unknown."
     },
     {
@@ -77,7 +77,7 @@
       "path": "job-automation-service/TEST_RESULTS_SUMMARY.md",
       "commit": "f708e4c85c471ef9af8817362b7ff14cc09bc6b7",
       "line": 108,
-      "expires": "2026-11-23",
+      "expires": "2026-12-26",
       "reason": "Publicly exposed credential treated as compromised. Account closure is in progress and the value cannot be rotated. Verification drops HTTP 401 and reports other responses as unknown."
     },
     {
@@ -85,7 +85,7 @@
       "path": "job-automation-service/fix_server_credentials.ps1",
       "commit": "641d4f19dabfa807c70aad6fee312e8e3e0ae201",
       "line": 25,
-      "expires": "2026-11-23",
+      "expires": "2026-12-26",
       "reason": "Publicly exposed credential treated as compromised. Account closure is in progress and the value cannot be rotated. Verification drops HTTP 401 and reports other responses as unknown."
     },
     {
@@ -93,7 +93,7 @@
       "path": "job-automation-service/fix_server_credentials.ps1",
       "commit": "641d4f19dabfa807c70aad6fee312e8e3e0ae201",
       "line": 45,
-      "expires": "2026-11-23",
+      "expires": "2026-12-26",
       "reason": "Publicly exposed credential treated as compromised. Account closure is in progress and the value cannot be rotated. Verification drops HTTP 401 and reports other responses as unknown."
     },
     {
@@ -101,7 +101,7 @@
       "path": "job-automation-service/fix_server_credentials.ps1",
       "commit": "f708e4c85c471ef9af8817362b7ff14cc09bc6b7",
       "line": 25,
-      "expires": "2026-11-23",
+      "expires": "2026-12-26",
       "reason": "Publicly exposed credential treated as compromised. Account closure is in progress and the value cannot be rotated. Verification drops HTTP 401 and reports other responses as unknown."
     },
     {
@@ -109,7 +109,7 @@
       "path": "job-automation-service/fix_server_credentials.ps1",
       "commit": "f708e4c85c471ef9af8817362b7ff14cc09bc6b7",
       "line": 45,
-      "expires": "2026-11-23",
+      "expires": "2026-12-26",
       "reason": "Publicly exposed credential treated as compromised. Account closure is in progress and the value cannot be rotated. Verification drops HTTP 401 and reports other responses as unknown."
     }
   ]
